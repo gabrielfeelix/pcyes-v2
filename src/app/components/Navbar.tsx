@@ -470,10 +470,10 @@ export function Navbar() {
   const handleUserClick = () => { if (isLoggedIn) navigate("/perfil"); else setAuthModalOpen(true); };
 
   const iconColor = showExpanded
-    ? (promoHovered ? (isDark ? "text-white/60 hover:text-white" : "text-black/60 hover:text-black") : "text-white/40 hover:text-white")
+    ? (promoHovered ? (isDark ? "text-white/60 hover:text-white" : "text-black/60 hover:text-black") : (isDark ? "text-white/40 hover:text-white" : "text-black/40 hover:text-black"))
     : (isDark ? "text-foreground/40 hover:text-foreground" : "text-foreground/50 hover:text-foreground");
   const navTextColor = showExpanded
-    ? (promoHovered ? (isDark ? "text-white/70 hover:text-white" : "text-black/70 hover:text-black") : "text-white/45 hover:text-white")
+    ? (promoHovered ? (isDark ? "text-white/70 hover:text-white" : "text-black/70 hover:text-black") : (isDark ? "text-white/45 hover:text-white" : "text-black/45 hover:text-black"))
     : (isDark ? "text-foreground/40 hover:text-foreground" : "text-foreground/50 hover:text-foreground");
   const categoryLinkColor = showExpanded ? "text-white/45 hover:text-white" : (isDark ? "text-foreground/45 hover:text-foreground" : "text-foreground/50 hover:text-foreground");
 
