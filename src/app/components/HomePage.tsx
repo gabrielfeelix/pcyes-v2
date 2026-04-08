@@ -30,7 +30,9 @@ export function HomePage() {
         productIds={recentArrivalIds}
       />
 
-      <BannerSection />
+      <div style={{ background: darkBg }}>
+        <WorldSection />
+      </div>
 
       <div style={{ background: darkBg }}>
         <CategoryGrid />
@@ -71,14 +73,15 @@ export function HomePage() {
       </div>
 
       <div style={{ background: darkBg }}>
+        <BannerSection />
+      </div>
+
+      <div style={{ background: darkBg }}>
         <ProductsByTags />
       </div>
 
       <Marquee words={["Gabinetes", "Teclados", "Mouses", "Headsets", "Fontes", "Coolers", "Cadeiras", "Monitores"]} speed={50} separator="·" />
 
-      <div style={{ background: darkBg }}>
-        <WorldSection />
-      </div>
       <InRealLifeSection />
 
       <FeaturesStrip />

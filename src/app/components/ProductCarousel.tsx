@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { motion, useInView } from "motion/react";
 import { useTheme } from "./ThemeProvider";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
@@ -40,6 +40,14 @@ export function ProductCarousel({
     return resolved.length > 0 ? resolved : latestIds.map((id) => allProducts.find((product) => product.id === id)).filter(Boolean) as Product[];
   }, [productIds]);
 
+  const repeatedProducts = useMemo(
+    () => [...products, ...products, ...products].map((product, index) => ({
+      product,
+      key: `${product.id}-${index}`,
+    })),
+    [products],
+  );
+
   const showNoveltyTag = useMemo(() => {
     const tone = `${label} ${title}`.toLowerCase();
     return tone.includes("novidad") || tone.includes("recém");
@@ -53,25 +61,77 @@ export function ProductCarousel({
     return `-${percentage}%`;
   };
 
-  const scroll = (direction: "left" | "right") => {
-    if (scrollRef.current) {
-      const { clientWidth, scrollLeft, scrollWidth } = scrollRef.current;
-      const scrollAmount = clientWidth > 768 ? 400 : clientWidth;
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container || products.length === 0) return;
 
-      if (direction === "left") {
-        if (scrollLeft <= 0) {
-           scrollRef.current.scrollTo({ left: scrollWidth, behavior: "smooth" });
-        } else {
-           scrollRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
-        }
-      } else {
-        if (scrollLeft + clientWidth >= scrollWidth - 10) {
-           scrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
-        } else {
-           scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
-        }
-      }
+    const firstCard = container.querySelector<HTMLElement>("[data-carousel-card='true']");
+    if (!firstCard) return;
+
+    const computed = window.getComputedStyle(container);
+    const gap = Number.parseFloat(computed.columnGap || computed.gap || "24") || 24;
+    const cardWidth = firstCard.offsetWidth + gap;
+    const setWidth = cardWidth * products.length;
+
+    container.scrollLeft = setWidth;
+  }, [products.length]);
+
+  const normalizeInfiniteScroll = () => {
+    const container = scrollRef.current;
+    if (!container || products.length === 0) return;
+
+    const firstCard = container.querySelector<HTMLElement>("[data-carousel-card='true']");
+    if (!firstCard) return;
+
+    const computed = window.getComputedStyle(container);
+    const gap = Number.parseFloat(computed.columnGap || computed.gap || "24") || 24;
+    const cardWidth = firstCard.offsetWidth + gap;
+    const setWidth = cardWidth * products.length;
+    const leftBoundary = cardWidth * 0.5;
+    const rightBoundary = setWidth * 2 - container.clientWidth * 0.5;
+
+    if (container.scrollLeft <= leftBoundary) {
+      container.scrollLeft += setWidth;
+    } else if (container.scrollLeft >= rightBoundary) {
+      container.scrollLeft -= setWidth;
     }
+  };
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    let timeoutId: number | null = null;
+
+    const handleScroll = () => {
+      if (timeoutId) window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => {
+        normalizeInfiniteScroll();
+      }, 120);
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      if (timeoutId) window.clearTimeout(timeoutId);
+      container.removeEventListener("scroll", handleScroll);
+    };
+  }, [products.length]);
+
+  const scroll = (direction: "left" | "right") => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const firstCard = container.querySelector<HTMLElement>("[data-carousel-card='true']");
+    const computed = window.getComputedStyle(container);
+    const gap = Number.parseFloat(computed.columnGap || computed.gap || "24") || 24;
+    const step = firstCard ? firstCard.offsetWidth + gap : container.clientWidth * 0.82;
+
+    container.scrollBy({
+      left: direction === "left" ? -step : step,
+      behavior: "smooth",
+    });
+
+    window.setTimeout(normalizeInfiniteScroll, 420);
   };
 
   return (
@@ -142,13 +202,14 @@ export function ProductCarousel({
           className="flex gap-6 overflow-x-auto px-5 md:px-8 pb-4 scrollbar-hide snap-x md:snap-none"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}
         >
-          {products.map((product, i) => (
+          {repeatedProducts.map(({ product, key }, i) => (
             <motion.div
-              key={product.id}
+              key={key}
               initial={{ opacity: 0, y: 40 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.7, delay: 0.08 * i }}
               className="group relative block w-[300px] flex-shrink-0 cursor-pointer snap-center md:w-[360px]"
+              data-carousel-card="true"
             >
               {(() => {
                 const discountBadge = getDiscountBadge(product);

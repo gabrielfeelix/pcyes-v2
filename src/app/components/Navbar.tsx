@@ -280,7 +280,7 @@ const megaMenus: Record<string, MegaMenu> = {
         label: "Maringá FC × PCYES", href: "/maringa-fc",
         right: {
           type: "featured", title: "Collab Oficial",
-          image: "https://upload.wikimedia.org/wikipedia/commons/e/ec/Maring%C3%A1_FC_logo.svg",
+          image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Maring%C3%A1_FC_logo.svg/512px-Maring%C3%A1_FC_logo.svg.png",
           name: "Maringá FC × PCYES",
           desc: "Produtos exclusivos da parceria oficial entre PCYES e o Maringá Futebol Clube. Represente seu time.",
           href: "/maringa-fc"
@@ -547,6 +547,7 @@ export function Navbar() {
     );
 
     const elevatedCardClass = "group relative grid h-full min-h-[270px] grid-rows-[150px_auto] overflow-hidden rounded-[24px] border border-foreground/8 bg-linear-to-b from-foreground/[0.05] to-transparent p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-[0_24px_80px_rgba(0,0,0,0.16)]";
+    const layoutElevatedCardClass = "group relative grid h-full min-h-[290px] grid-rows-[170px_auto] overflow-hidden rounded-[24px] border border-foreground/8 bg-linear-to-b from-foreground/[0.05] to-transparent p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-[0_24px_80px_rgba(0,0,0,0.16)]";
 
     const showcaseCard = (
       href: string,
@@ -630,6 +631,46 @@ export function Navbar() {
       </Link>
     );
 
+    const showcaseLayoutCard = (
+      href: string,
+      title: string,
+      subtitle: string,
+      image?: string,
+      meta?: string,
+    ) => (
+      <Link to={resolveMenuHref(href)} onClick={() => setActiveMega(null)} className={layoutElevatedCardClass}>
+        <div className="relative flex h-full items-center justify-center overflow-hidden rounded-[20px] border border-foreground/8 bg-foreground/[0.035] px-4 py-4">
+          <div className="absolute inset-3 rounded-full bg-primary/8 blur-3xl" />
+          {image ? (
+            <ImageWithFallback
+              src={image}
+              alt={title}
+              className="relative h-[132px] w-auto max-w-[92%] object-contain drop-shadow-[0_18px_32px_rgba(0,0,0,0.32)] transition-transform duration-500 group-hover:scale-[1.05]"
+              loading="eager"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="relative flex h-full w-full items-center justify-center rounded-[18px] border border-foreground/8 bg-background/60">
+              <Grid2x2 size={34} className="text-primary/70" />
+            </div>
+          )}
+        </div>
+        <div className="flex h-full flex-col justify-end pt-4">
+          {meta && (
+            <span className="mb-2 text-foreground/30" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "600", letterSpacing: "0.14em" }}>
+              {meta}
+            </span>
+          )}
+          <p className="text-foreground transition-colors group-hover:text-primary" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "20px", fontWeight: "600", lineHeight: 1.05 }}>
+            {title}
+          </p>
+          <p className="mt-2 text-foreground/42" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
+            {subtitle}
+          </p>
+        </div>
+      </Link>
+    );
+
     if (panel.type === "products") {
       const featured = panel.products.slice(0, 3);
       const quick = panel.products.slice(3, 7);
@@ -680,7 +721,7 @@ export function Navbar() {
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
               {featured.map((l) => (
                 <div key={l.label} className="min-h-[190px]">
-                  {showcaseCard(l.href, l.label, l.desc, l.image, "SUBCATEGORIA")}
+                  {showcaseLayoutCard(l.href, l.label, l.desc, l.image, "SUBCATEGORIA")}
                 </div>
               ))}
             </div>
@@ -705,10 +746,11 @@ export function Navbar() {
           </div>
         );
       }
+      const conceptualGridClass = panel.layouts.length <= 4 ? "grid flex-1 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-2" : "grid flex-1 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3";
       return (
         <div className="flex h-full flex-col">
           {panelHeader(panel.title, "Uma estrutura fixa e previsível para categorias conceituais, com blocos rápidos em vez de listas soltas.")}
-          <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className={conceptualGridClass}>
             {panel.layouts.map((l, index) => (
               <div key={l.label}>
                 {compactLinkCard(
@@ -743,7 +785,7 @@ export function Navbar() {
       return (
         <div className="flex h-full flex-col">
           {panelHeader(panel.title, "Destacamos o universo da categoria com uma peça principal e um acesso mais elegante para continuar a navegação.")}
-          <Link to={panel.href} onClick={() => setActiveMega(null)} className="group grid h-full min-h-[360px] grid-cols-1 gap-5 overflow-hidden rounded-[32px] border border-foreground/8 bg-linear-to-br from-foreground/[0.04] via-transparent to-primary/[0.06] p-6 xl:grid-cols-[1.1fr_1fr]">
+          <Link to={resolveMenuHref(panel.href)} onClick={() => setActiveMega(null)} className="group grid h-full min-h-[360px] grid-cols-1 gap-5 overflow-hidden rounded-[32px] border border-foreground/8 bg-linear-to-br from-foreground/[0.04] via-transparent to-primary/[0.06] p-6 xl:grid-cols-[1.1fr_1fr]">
             <div className="flex h-full flex-col justify-between">
               <div>
                 <p className="text-primary" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.18em" }}>
@@ -765,7 +807,7 @@ export function Navbar() {
             </div>
             <div className="relative flex min-h-[260px] items-center justify-center rounded-[28px] border border-foreground/8 bg-background/60 p-6">
               <div className="absolute inset-8 rounded-full bg-primary/10 blur-3xl" />
-              <ImageWithFallback src={panel.image} alt={panel.name} className="relative h-full max-h-[280px] w-auto max-w-full object-contain drop-shadow-[0_28px_40px_rgba(0,0,0,0.3)] transition-transform duration-700 group-hover:scale-[1.03]" />
+              <ImageWithFallback src={panel.image} alt={panel.name} className="relative h-full max-h-[280px] w-auto max-w-full object-contain drop-shadow-[0_28px_40px_rgba(0,0,0,0.3)] transition-transform duration-700 group-hover:scale-[1.03]" loading="eager" referrerPolicy="no-referrer" />
             </div>
           </Link>
         </div>
@@ -992,7 +1034,7 @@ export function Navbar() {
                 style={{ backgroundColor: isDark ? "rgba(20,20,21,0.99)" : "rgba(252,252,252,0.99)", backdropFilter: "blur(60px)" }}
                 onMouseEnter={() => handleMegaEnter(activeMega)} onMouseLeave={handleMegaLeave}
               >
-                <div className="mx-auto flex h-[560px] max-w-[1440px] px-5 md:px-8">
+                <div className="mx-auto flex h-[640px] max-w-[1440px] px-5 md:px-8">
                   {/* Left sidebar */}
                   <div className="h-full w-[220px] flex-shrink-0 border-r border-foreground/5 py-7 pr-6 xl:w-[240px]">
                     <p className="mb-3 px-3 text-foreground/30 tracking-widest" style={{ fontFamily: "var(--font-family-inter)", fontSize: "9px", fontWeight: "600" }}>
@@ -1058,7 +1100,7 @@ export function Navbar() {
                           key={activeSubData.label}
                           initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -4 }}
                           transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                          className="h-full overflow-y-auto pr-2"
+                          className="h-full overflow-y-auto pr-4 pb-6"
                         >
                           {renderRightPanel(activeSubData.right)}
                         </motion.div>
