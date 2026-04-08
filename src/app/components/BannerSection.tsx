@@ -133,6 +133,8 @@ export function BannerSection() {
   const textTranslateX = scrollProgress * (isMobile ? 20 : 14);
   const backgroundOpacity = 1 - scrollProgress * 0.5;
   const videoOverlayOpacity = Math.max(0.08, 0.38 - scrollProgress * 0.24);
+  const iframeCoverWidth = isMobile ? "178vh" : "177.78vh";
+  const iframeCoverHeight = isMobile ? "100dvh" : "100dvh";
 
   return (
     <section
@@ -165,15 +167,19 @@ export function BannerSection() {
           }}
         >
           <div
-            className="relative h-full w-full overflow-hidden border border-white/10 bg-black"
+            className="relative h-full w-full overflow-hidden bg-transparent"
             style={{ borderRadius: mediaRadius }}
           >
             <iframe
-              width="100%"
+              width="177.78%"
               height="100%"
               src={youtubeEmbed}
-              className="pointer-events-none h-full w-full"
-              style={{ borderRadius: mediaRadius }}
+              className="pointer-events-none absolute left-1/2 top-1/2 min-h-full min-w-full -translate-x-1/2 -translate-y-1/2"
+              style={{
+                borderRadius: mediaRadius,
+                width: iframeCoverWidth,
+                height: iframeCoverHeight,
+              }}
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
