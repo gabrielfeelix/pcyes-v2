@@ -138,7 +138,7 @@ export function ProductCarousel({
               className="group relative block w-[300px] flex-shrink-0 cursor-pointer snap-center md:w-[360px]"
             >
               <Link to={`/produto/${product.id}`} className="block">
-                <div className="relative mb-4 aspect-square overflow-hidden" style={{ borderRadius: "var(--radius-card)", background: isDark ? "#1a1a1c" : "#f5f5f5" }}>
+                <div className="relative mb-4 aspect-square overflow-hidden" style={{ borderRadius: "var(--radius-card)", background: isDark ? "#242427" : "#f5f5f5" }}>
                   <ImageWithFallback
                     src={product.image}
                     alt={product.name}
