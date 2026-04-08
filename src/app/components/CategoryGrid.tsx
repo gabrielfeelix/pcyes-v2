@@ -1,29 +1,61 @@
-import { useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router";
 import { motion, useInView } from "motion/react";
 import { useTheme } from "./ThemeProvider";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { ArrowUpRight } from "lucide-react";
+import { allProducts } from "./productsData";
 
-const categories = [
-  { name: "Gabinetes", count: 42, image: "https://images.unsplash.com/photo-1695120485648-0b6eed4707aa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21wdXRlciUyMGNhc2UlMjB0b3dlciUyMGRhcmt8ZW58MXx8fHwxNzczODM5Nzk1fDA&ixlib=rb-4.1.0&q=80&w=1080", span: "col-span-1 sm:col-span-2 row-span-2" },
-  { name: "Periféricos", count: 86, image: "https://images.unsplash.com/photo-1768561327952-119a4c9c76f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBtb3VzZSUyMGRhcmslMjBtaW5pbWFsfGVufDF8fHx8MTc3MzgzOTc5NHww&ixlib=rb-4.1.0&q=80&w=1080", span: "col-span-1" },
-  { name: "Coolers", count: 31, image: "https://images.unsplash.com/photo-1602951236204-ac1cf7682875?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxDUFUlMjBjb29sZXIlMjBmYW4lMjBkYXJrfGVufDF8fHx8MTc3MzgzOTc5N3ww&ixlib=rb-4.1.0&q=80&w=1080", span: "col-span-1" },
-  { name: "Fontes", count: 24, image: "https://images.unsplash.com/photo-1630831506636-5209d7349db9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21wdXRlciUyMHBvd2VyJTIwc3VwcGx5JTIwdW5pdCUyMGRhcmt8ZW58MXx8fHwxNzczODM5Nzk2fDA&ixlib=rb-4.1.0&q=80&w=1080", span: "col-span-1" },
-  { name: "Streaming", count: 18, image: "https://images.unsplash.com/photo-1579870946215-8284f1a47c9a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtaWNyb3Bob25lJTIwY29uZGVuc2VyJTIwc3R1ZGlvJTIwZGFya3xlbnwxfHx8fDE3NzM4NDA0MTB8MA&ixlib=rb-4.1.0&q=80&w=1080", span: "col-span-1" },
-  { name: "Cadeiras", count: 15, image: "https://images.unsplash.com/photo-1757194455393-8e3134d4ce19?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBjaGFpciUyMGVyZ29ub21pYyUyMGRhcmt8ZW58MXx8fHwxNzczODQwNDA4fDA&ixlib=rb-4.1.0&q=80&w=1080", span: "col-span-1 sm:col-span-2" },
-];
+type Audience = "Todos" | "Gamers" | "Escritório";
+
+interface CategoryCard {
+  name: string;
+  caption: string;
+  href: string;
+  image: string;
+  emphasis?: "large";
+}
+
+const imageById = (id: number) => allProducts.find((product) => product.id === id)?.image ?? "";
+
+const categoryGroups: Record<Audience, CategoryCard[]> = {
+  Todos: [
+    { name: "Hardware", caption: "Peças e componentes para montar ou turbinar seu setup", href: "/produtos", image: imageById(37), emphasis: "large" },
+    { name: "Periféricos", caption: "Teclados, mouses e acessórios de uso diário", href: "/produtos?category=Perif%C3%A9ricos", image: imageById(16) },
+    { name: "Computadores", caption: "Máquinas prontas e soluções para produtividade", href: "/produtos", image: imageById(27) },
+    { name: "PC Gamer", caption: "Combinações pensadas para jogar com performance", href: "/produtos", image: imageById(6) },
+    { name: "Placas de Vídeo", caption: "Mais poder gráfico para criação e jogos", href: "/produtos?category=Placas%20de%20V%C3%ADdeo", image: imageById(35) },
+    { name: "Cadeiras", caption: "Conforto de longa duração para trabalho ou gameplay", href: "/produtos?category=Cadeiras", image: imageById(1) },
+  ],
+  Gamers: [
+    { name: "Gabinetes", caption: "Fluxo de ar, vidro temperado e presença visual de setup", href: "/produtos?category=Gabinetes", image: imageById(6), emphasis: "large" },
+    { name: "Placas de Vídeo", caption: "Renderização, FPS e visual no máximo", href: "/produtos?category=Placas%20de%20V%C3%ADdeo", image: imageById(35) },
+    { name: "PC Gamer", caption: "Builds pensadas para jogar desde o primeiro boot", href: "/produtos", image: imageById(7) },
+    { name: "Streaming", caption: "Áudio, suporte e presença para live e conteúdo", href: "/produtos?category=Streaming", image: imageById(26) },
+    { name: "Mouse Gamer", caption: "Precisão, resposta rápida e conforto em combate", href: "/produtos?category=Perif%C3%A9ricos", image: imageById(16) },
+  ],
+  Escritório: [
+    { name: "Computadores", caption: "Soluções versáteis para rotina, estudo e operação", href: "/produtos", image: imageById(27), emphasis: "large" },
+    { name: "Monitores", caption: "Mais área útil e ergonomia para produtividade", href: "/produtos?category=Monitores", image: imageById(28) },
+    { name: "SSD e HD", caption: "Armazenamento rápido para abrir tudo sem espera", href: "/produtos?category=SSD%20e%20HD", image: imageById(37) },
+    { name: "Periféricos", caption: "Mouse, teclado e apoio para longas jornadas", href: "/produtos?category=Perif%C3%A9ricos", image: imageById(11) },
+    { name: "Cadeiras", caption: "Postura e conforto pensados para o dia inteiro", href: "/produtos?category=Cadeiras", image: imageById(2) },
+  ],
+};
 
 export function CategoryGrid() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.1 });
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
+  const [activeAudience, setActiveAudience] = useState<Audience>("Todos");
+
+  const cards = useMemo(() => categoryGroups[activeAudience], [activeAudience]);
 
   return (
-    <section ref={ref} className="py-28 md:py-40 px-8 md:px-16" style={{ background: isDark ? "#161617" : "transparent" }} id="explore">
+    <section ref={ref} className="py-24 md:py-32 px-5 md:px-8" style={{ background: isDark ? "#161617" : "transparent" }} id="explore">
       <div className="max-w-[1300px] mx-auto">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-6">
+        <div className="mb-14 flex flex-col gap-7 md:flex-row md:items-end md:justify-between">
           <div>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -34,18 +66,43 @@ export function CategoryGrid() {
             >
               CATEGORIAS
             </motion.p>
-            <div className="overflow-hidden">
-              <motion.h2
-                initial={{ y: 80 }}
-                animate={isInView ? { y: 0 } : {}}
-                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                className="text-foreground"
-                style={{ fontSize: "clamp(36px, 5vw, var(--text-h2))", fontFamily: "var(--font-family-figtree)", fontWeight: "var(--font-weight-light)" }}
-              >
-                Explore por<br />categoria
-              </motion.h2>
+
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div className="overflow-hidden">
+                <motion.h2
+                  initial={{ y: 80 }}
+                  animate={isInView ? { y: 0 } : {}}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                  className="text-foreground"
+                  style={{ fontSize: "clamp(36px, 5vw, var(--text-h2))", fontFamily: "var(--font-family-figtree)", fontWeight: "var(--font-weight-light)", lineHeight: 1.02 }}
+                >
+                  Explore por categoria
+                </motion.h2>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {(["Todos", "Gamers", "Escritório"] as Audience[]).map((audience) => {
+                  const active = activeAudience === audience;
+                  return (
+                    <button
+                      key={audience}
+                      onClick={() => setActiveAudience(audience)}
+                      onMouseEnter={() => setActiveAudience(audience)}
+                      className={`cursor-pointer rounded-full border px-4 py-2 transition-all duration-300 ${
+                        active
+                          ? "border-primary/25 bg-primary/[0.1] text-foreground"
+                          : "border-foreground/8 bg-transparent text-foreground/35 hover:text-foreground/70 hover:border-foreground/15"
+                      }`}
+                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "600" }}
+                    >
+                      {audience}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
+
           <Link
             to="/produtos"
             className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground hover:brightness-110 transition-all duration-300 self-start md:self-auto"
@@ -56,50 +113,52 @@ export function CategoryGrid() {
           </Link>
         </div>
 
-        {/* Bento grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 auto-rows-[200px] gap-4">
-          {categories.map((cat, i) => (
-            <Link
-              key={cat.name}
-              to={`/produtos?category=${encodeURIComponent(cat.name)}`}
-              className={`group relative overflow-hidden cursor-pointer block ${cat.span}`}
-              style={{ borderRadius: "var(--radius-card)" }}
-            >
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+          {cards.map((card, i) => {
+            const isLarge = card.emphasis === "large";
+            return (
               <motion.div
-                initial={{ opacity: 0, y: 50 }}
+                key={`${activeAudience}-${card.name}`}
+                initial={{ opacity: 0, y: 40 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.8, delay: 0.1 * i, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full h-full relative"
+                transition={{ duration: 0.6, delay: 0.06 * i }}
+                className={isLarge ? "md:col-span-5" : "md:col-span-4"}
               >
-                <ImageWithFallback
-                  src={cat.image}
-                  alt={cat.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1.5s] ease-out"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent group-hover:from-black/85 transition-all duration-500" />
+                <Link
+                  to={card.href}
+                  className="group relative block h-full min-h-[260px] overflow-hidden"
+                  style={{ borderRadius: "var(--radius-card)" }}
+                >
+                  <div className="absolute inset-0 bg-linear-to-br from-primary/[0.08] via-transparent to-transparent z-[1]" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/12 to-transparent z-[1]" />
+                  <ImageWithFallback
+                    src={card.image}
+                    alt={card.name}
+                    className={`h-full w-full transition-transform duration-[1.4s] ease-out group-hover:scale-105 ${isLarge ? "object-contain p-8" : "object-contain p-7"}`}
+                    style={{ background: isDark ? "#131314" : "#f4f4f4" }}
+                  />
 
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
+                  <div className="absolute left-0 right-0 top-0 z-[2] h-[2px] origin-left scale-x-0 bg-primary transition-transform duration-700 group-hover:scale-x-100" />
 
-                <div className="absolute bottom-0 left-0 right-0 p-6 flex items-end justify-between">
-                  <div>
-                    <p className="text-white mb-1" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "22px", fontWeight: "var(--font-weight-medium)" }}>
-                      {cat.name}
+                  <div className="absolute bottom-0 left-0 right-0 z-[2] p-6">
+                    <p className="mb-2 text-white" style={{ fontFamily: "var(--font-family-figtree)", fontSize: isLarge ? "28px" : "22px", fontWeight: "600", lineHeight: 1.05 }}>
+                      {card.name}
                     </p>
-                    <p className="text-white/50 mb-3" style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-caption)" }}>
-                      {cat.count} produtos
+                    <p className="mb-4 max-w-[32ch] text-white/55" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.55 }}>
+                      {card.caption}
                     </p>
                     <span
-                      className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-white/10 backdrop-blur-sm text-white/80 group-hover:bg-white group-hover:text-black transition-all duration-500"
-                      style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "var(--text-micro)", fontWeight: "var(--font-weight-medium)" }}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-1.5 text-white/85 backdrop-blur-sm transition-all duration-500 group-hover:bg-white group-hover:text-black"
+                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.1em" }}
                     >
-                      Ver categoria
+                      VER CATEGORIA
                       <ArrowUpRight size={11} />
                     </span>
                   </div>
-                </div>
+                </Link>
               </motion.div>
-            </Link>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

@@ -518,7 +518,7 @@ export function Navbar() {
   // ─── Right Panel Renderer ──────────────────────────────────────────────────
   const renderRightPanel = (panel: RightPanel) => {
     const panelHeader = (title: string, hint: string) => (
-      <div className="mb-6 flex items-start justify-between gap-6">
+      <div className="mb-5 flex items-start justify-between gap-6">
         <div>
           <div className="mb-2 flex items-center gap-2 text-primary/80">
             <Sparkles size={12} />
@@ -526,10 +526,10 @@ export function Navbar() {
               ACESSO RÁPIDO
             </span>
           </div>
-          <h4 className="text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "28px", fontWeight: "600", lineHeight: 1 }}>
+          <h4 className="text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "24px", fontWeight: "600", lineHeight: 1 }}>
             {title}
           </h4>
-          <p className="mt-2 max-w-[560px] text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", lineHeight: 1.55 }}>
+          <p className="mt-2 max-w-[560px] text-foreground/40" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
             {hint}
           </p>
         </div>
@@ -542,7 +542,7 @@ export function Navbar() {
       </div>
     );
 
-    const elevatedCardClass = "group relative overflow-visible rounded-[28px] border border-foreground/8 bg-linear-to-b from-foreground/[0.04] to-transparent px-5 pb-5 pt-16 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-[0_24px_80px_rgba(0,0,0,0.16)]";
+    const elevatedCardClass = "group relative overflow-visible rounded-[24px] border border-foreground/8 bg-linear-to-b from-foreground/[0.04] to-transparent px-5 pb-5 pt-14 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-[0_24px_80px_rgba(0,0,0,0.16)]";
 
     const showcaseCard = (
       href: string,
@@ -560,11 +560,11 @@ export function Navbar() {
           </span>
         )}
         <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center">
-          <div className="absolute top-9 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
+          <div className="absolute top-8 h-20 w-20 rounded-full bg-primary/10 blur-2xl" />
           {image ? (
-            <img src={image} alt={title} className="relative h-28 w-auto max-w-[80%] object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.28)] transition-transform duration-500 group-hover:-translate-y-1 group-hover:scale-[1.03]" />
+            <ImageWithFallback src={image} alt={title} className="relative h-24 w-auto max-w-[76%] object-contain drop-shadow-[0_18px_24px_rgba(0,0,0,0.24)] transition-transform duration-500 group-hover:-translate-y-1 group-hover:scale-[1.03]" />
           ) : (
-            <div className="relative flex h-28 w-28 items-center justify-center rounded-[24px] border border-foreground/8 bg-background shadow-[0_20px_30px_rgba(0,0,0,0.16)]">
+            <div className="relative flex h-24 w-24 items-center justify-center rounded-[20px] border border-foreground/8 bg-background shadow-[0_18px_24px_rgba(0,0,0,0.16)]">
               <Box size={30} className="text-primary/70" />
             </div>
           )}
@@ -577,9 +577,6 @@ export function Navbar() {
           )}
           <p className="text-foreground transition-colors group-hover:text-primary" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "20px", fontWeight: "600", lineHeight: 1.05 }}>
             {title}
-          </p>
-          <p className="mt-2 text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.45 }}>
-            {subtitle}
           </p>
         </div>
       </Link>
@@ -620,7 +617,7 @@ export function Navbar() {
           {panelHeader(panel.title, "Produtos em destaque acima e atalhos rápidos abaixo, com uma leitura mais estável e visualmente forte.")}
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
             {featured.map((p) => (
-              <div key={`${p.id}-${p.subtitle}`} className="min-h-[230px]">
+              <div key={`${p.id}-${p.subtitle}`} className="min-h-[190px]">
                 {showcaseCard(`/produto/${p.id}`, p.name, p.subtitle, p.image, p.price, p.badge)}
               </div>
             ))}
@@ -661,7 +658,7 @@ export function Navbar() {
             {panelHeader(panel.title, "Subcategorias visuais com imagem forte e cartões elevados para acelerar o reconhecimento do formato ideal.")}
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
               {featured.map((l) => (
-                <div key={l.label} className="min-h-[230px]">
+                <div key={l.label} className="min-h-[190px]">
                   {showcaseCard(l.href, l.label, l.desc, l.image, "SUBCATEGORIA")}
                 </div>
               ))}

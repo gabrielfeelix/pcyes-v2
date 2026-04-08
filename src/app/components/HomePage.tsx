@@ -4,7 +4,7 @@ import { FeaturedProduct } from "./FeaturedProduct";
 import { CategoryGrid } from "./CategoryGrid";
 import { NewReleasesSection } from "./NewReleasesSection";
 import { ProductsByTags } from "./ProductsByTags";
-import { ProductCarousel } from "./ProductCarousel";
+import { ProductCarousel, recentArrivalIds } from "./ProductCarousel";
 import { PopularGrid } from "./PopularGrid";
 import { WorldSection } from "./WorldSection";
 import { InRealLifeSection } from "./InRealLifeSection";
@@ -23,6 +23,13 @@ export function HomePage() {
   return (
     <>
       <HeroSection />
+
+      <ProductCarousel
+        label="NOVIDADES"
+        title="Recém chegados"
+        subtitle="Seleção com imagens reais do catálogo PCYES para destacar o que acabou de entrar ou merece atenção agora."
+        productIds={recentArrivalIds}
+      />
 
       <div style={{ background: darkBg }}>
         <CategoryGrid />

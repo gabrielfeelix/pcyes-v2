@@ -59,10 +59,17 @@ export function CartDrawer() {
   const remainingForGift = Math.max(0, GIFT_THRESHOLD - subtotal);
 
   const giftOptions = useMemo(
-    () =>
-      [...allProducts]
+    () => {
+      const uniqueCategories = new Set<string>();
+      return [...allProducts]
         .sort((a, b) => a.priceNum - b.priceNum)
-        .slice(0, 3),
+        .filter((product) => {
+          if (uniqueCategories.has(product.category)) return false;
+          uniqueCategories.add(product.category);
+          return true;
+        })
+        .slice(0, 3);
+    },
     [],
   );
 
@@ -144,19 +151,19 @@ export function CartDrawer() {
             </div>
 
             {paidItems.length > 0 && (
-              <div className="border-b border-foreground/5 px-7 py-4">
-                <div className={`overflow-hidden rounded-[22px] border ${giftUnlocked ? "border-primary/20 bg-primary/[0.07]" : "border-foreground/8 bg-foreground/[0.03]"}`}>
-                  <div className="px-4 py-4">
+              <div className="border-b border-foreground/5 px-7 py-3.5">
+                <div className={`overflow-hidden rounded-[18px] border ${giftUnlocked ? "border-primary/18 bg-primary/[0.06]" : "border-foreground/8 bg-foreground/[0.03]"}`}>
+                  <div className="px-4 py-3.5">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3">
-                        <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl border border-primary/15 bg-primary/[0.08] text-primary">
-                          <Gift size={17} />
+                        <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl border border-primary/15 bg-primary/[0.08] text-primary">
+                          <Gift size={15} />
                         </div>
                         <div>
-                          <p className="text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "18px", fontWeight: "600" }}>
+                          <p className="text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "15px", fontWeight: "600", lineHeight: 1.2 }}>
                             Ganhe um brinde a partir de {formatPrice(GIFT_THRESHOLD)}
                           </p>
-                          <p className="mt-1 text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
+                          <p className="mt-1 text-foreground/42" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", lineHeight: 1.45 }}>
                             {giftUnlocked
                               ? giftItem
                                 ? "Seu brinde já foi selecionado e adicionado ao carrinho."
@@ -169,15 +176,15 @@ export function CartDrawer() {
                         <button
                           onClick={() => { setGiftDismissed(false); setGiftModalOpen(true); }}
                           className="text-primary hover:opacity-80 transition-opacity cursor-pointer"
-                          style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "700", letterSpacing: "0.08em" }}
+                          style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.08em" }}
                         >
                           {giftItem ? "TROCAR" : "ESCOLHER"}
                         </button>
                       )}
                     </div>
 
-                    <div className="mt-4">
-                      <div className="h-2 overflow-hidden rounded-full bg-foreground/6">
+                    <div className="mt-3">
+                      <div className="h-1.5 overflow-hidden rounded-full bg-foreground/6">
                         <motion.div
                           initial={false}
                           animate={{ width: `${giftProgress}%` }}
@@ -185,7 +192,7 @@ export function CartDrawer() {
                           className="h-full rounded-full bg-linear-to-r from-primary to-primary/65"
                         />
                       </div>
-                      <div className="mt-2 flex items-center justify-between">
+                      <div className="mt-1.5 flex items-center justify-between">
                         <span className="text-foreground/25" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "600", letterSpacing: "0.12em" }}>
                           0
                         </span>
