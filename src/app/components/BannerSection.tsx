@@ -9,6 +9,7 @@ const youtubeEmbed =
   "https://www.youtube.com/embed/g-QIHcPg1Ko?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&disablekb=1&modestbranding=1&playlist=g-QIHcPg1Ko";
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+const lerp = (start: number, end: number, progress: number) => start + (end - start) * progress;
 
 export function BannerSection() {
   const sectionRef = useRef<HTMLDivElement | null>(null);
@@ -129,8 +130,9 @@ export function BannerSection() {
     };
   }, [isActive, mediaFullyExpanded, scrollProgress, touchStartY]);
 
-  const mediaWidth = 300 + scrollProgress * (isMobile ? 660 : 1220);
-  const mediaHeight = 420 + scrollProgress * (isMobile ? 220 : 390);
+  const mediaWidth = `${lerp(isMobile ? 76 : 26, 100, scrollProgress)}vw`;
+  const mediaHeight = `${lerp(isMobile ? 54 : 58, 100, scrollProgress)}dvh`;
+  const mediaRadius = `${lerp(28, 0, scrollProgress)}px`;
   const textTranslateX = scrollProgress * (isMobile ? 20 : 14);
   const backgroundOpacity = 1 - scrollProgress * 0.5;
   const videoOverlayOpacity = Math.max(0.08, 0.38 - scrollProgress * 0.24);
@@ -153,30 +155,36 @@ export function BannerSection() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,48,48,0.14),transparent_42%)]" />
       </motion.div>
 
-      <div className="relative z-10 flex h-[100dvh] w-full items-center justify-center px-4">
+      <div className="relative z-10 flex h-[100dvh] w-full items-center justify-center">
         <div
-          className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-[28px]"
+          className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
           style={{
-            width: `${mediaWidth}px`,
-            height: `${mediaHeight}px`,
-            maxWidth: "95vw",
-            maxHeight: "86vh",
+            width: mediaWidth,
+            height: mediaHeight,
+            maxWidth: "100vw",
+            maxHeight: "100dvh",
+            borderRadius: mediaRadius,
             boxShadow: "0 30px 90px rgba(0,0,0,0.38)",
           }}
         >
-          <div className="relative h-full w-full overflow-hidden rounded-[28px] border border-white/10 bg-black">
+          <div
+            className="relative h-full w-full overflow-hidden border border-white/10 bg-black"
+            style={{ borderRadius: mediaRadius }}
+          >
             <iframe
               width="100%"
               height="100%"
               src={youtubeEmbed}
-              className="pointer-events-none h-full w-full rounded-[28px]"
+              className="pointer-events-none h-full w-full"
+              style={{ borderRadius: mediaRadius }}
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
               title="Setup gamer PCYES"
             />
             <motion.div
-              className="absolute inset-0 rounded-[28px] bg-black"
+              className="absolute inset-0 bg-black"
+              style={{ borderRadius: mediaRadius }}
               animate={{ opacity: videoOverlayOpacity }}
               transition={{ duration: 0.2 }}
             />

@@ -52,7 +52,7 @@ const megaMenus: Record<string, MegaMenu> = {
           products: [
             { id: 36, name: "SSD PCYES 256GB", subtitle: "M.2 NVMe PCIe 3.0", image: "https://cdn.oderco.com.br/produtos/202394/401A241D79BE4FABE0630300A8C0903C", price: "R$ 299,90" },
             { id: 37, name: "SSD PCYES 512GB", subtitle: "M.2 NVMe 2200MB/s", image: "https://cdn.oderco.com.br/produtos/202394/401A241D79BE4FABE0630300A8C0903C", price: "R$ 299,90", badge: "-20%" },
-            { id: 36, name: "SSD PCYES 1TB", subtitle: "M.2 NVMe Ultra Speed", image: "https://cdn.oderco.com.br/produtos/202394/401A241D79BE4FABE0630300A8C0903C", price: "R$ 449,90" },
+            { id: 39, name: "SSD PCYES 1TB", subtitle: "SATA III Alta Capacidade", image: "https://cdn.oderco.com.br/produtos/202396/401A241D79B44FABE0630300A8C0903C", price: "R$ 299,90" },
           ]
         }
       },
@@ -383,6 +383,10 @@ const navItems: NavItem[] = [
 const trending = ["Gabinete Spectrum", "Mouse Cobra", "Teclado Mecânico", "Headset 7.1"];
 const recent = ["Fontes modulares", "Cadeiras gaming"];
 
+const isPlaceholderHref = (href?: string) => !href || href === "#";
+const resolveMenuHref = (href?: string) => (isPlaceholderHref(href) ? "/produtos" : href);
+const getCatalogProduct = (id: number) => allProducts.find((product) => product.id === id);
+
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -542,7 +546,7 @@ export function Navbar() {
       </div>
     );
 
-    const elevatedCardClass = "group relative overflow-visible rounded-[24px] border border-foreground/8 bg-linear-to-b from-foreground/[0.04] to-transparent px-5 pb-5 pt-14 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-[0_24px_80px_rgba(0,0,0,0.16)]";
+    const elevatedCardClass = "group relative grid h-full min-h-[270px] grid-rows-[150px_auto] overflow-hidden rounded-[24px] border border-foreground/8 bg-linear-to-b from-foreground/[0.05] to-transparent p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-[0_24px_80px_rgba(0,0,0,0.16)]";
 
     const showcaseCard = (
       href: string,
@@ -551,25 +555,37 @@ export function Navbar() {
       image: string | undefined,
       meta?: string,
       badge?: string,
-    ) => (
-      <Link to={href} onClick={() => setActiveMega(null)} className={elevatedCardClass}>
+    ) => {
+      const catalogImage = href.startsWith("/produto/")
+        ? getCatalogProduct(Number(href.split("/").pop()))?.image
+        : undefined;
+      const visualSrc = catalogImage ?? image;
+
+      return (
+      <Link to={resolveMenuHref(href)} onClick={() => setActiveMega(null)} className={elevatedCardClass}>
         {badge && (
-          <span className="absolute right-4 top-4 rounded-full bg-primary px-2.5 py-1 text-primary-foreground"
+          <span className="absolute right-4 top-4 z-20 rounded-full bg-primary px-2.5 py-1 text-primary-foreground"
             style={{ fontFamily: "var(--font-family-inter)", fontSize: "9px", fontWeight: "700", letterSpacing: "0.08em" }}>
             {badge}
           </span>
         )}
-        <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center">
-          <div className="absolute top-8 h-20 w-20 rounded-full bg-primary/10 blur-2xl" />
-          {image ? (
-            <ImageWithFallback src={image} alt={title} className="relative h-24 w-auto max-w-[76%] object-contain drop-shadow-[0_18px_24px_rgba(0,0,0,0.24)] transition-transform duration-500 group-hover:-translate-y-1 group-hover:scale-[1.03]" />
+        <div className="relative flex h-full items-center justify-center overflow-hidden rounded-[20px] border border-foreground/8 bg-foreground/[0.04] px-4 py-5">
+          <div className="absolute inset-4 rounded-full bg-primary/8 blur-3xl" />
+          {visualSrc ? (
+            <ImageWithFallback
+              src={visualSrc}
+              alt={title}
+              className="relative h-full w-full object-contain drop-shadow-[0_18px_32px_rgba(0,0,0,0.3)] transition-transform duration-500 group-hover:scale-[1.04]"
+              loading="eager"
+              referrerPolicy="no-referrer"
+            />
           ) : (
-            <div className="relative flex h-24 w-24 items-center justify-center rounded-[20px] border border-foreground/8 bg-background shadow-[0_18px_24px_rgba(0,0,0,0.16)]">
-              <Box size={30} className="text-primary/70" />
+            <div className="relative flex h-full w-full items-center justify-center rounded-[18px] border border-foreground/8 bg-background/60">
+              <Box size={34} className="text-primary/70" />
             </div>
           )}
         </div>
-        <div className="flex h-full flex-col justify-end">
+        <div className="flex h-full flex-col justify-end pt-4">
           {meta && (
             <span className="mb-2 text-foreground/30" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "600", letterSpacing: "0.14em" }}>
               {meta}
@@ -578,9 +594,14 @@ export function Navbar() {
           <p className="text-foreground transition-colors group-hover:text-primary" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "20px", fontWeight: "600", lineHeight: 1.05 }}>
             {title}
           </p>
+          {subtitle && (
+            <p className="mt-2 text-foreground/42" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
+              {subtitle}
+            </p>
+          )}
         </div>
       </Link>
-    );
+    )};
 
     const compactLinkCard = (
       href: string,
@@ -629,7 +650,7 @@ export function Navbar() {
               </div>
             ))}
             <Link
-              to={activeSubData?.href ?? "/produtos"}
+              to={resolveMenuHref(activeSubData?.href)}
               onClick={() => setActiveMega(null)}
               className="group rounded-[22px] border border-primary/20 bg-primary/[0.08] px-5 py-4 transition-all duration-300 hover:bg-primary/[0.12]"
             >
@@ -699,7 +720,7 @@ export function Navbar() {
               </div>
             ))}
             <Link
-              to={activeSubData?.href ?? "/produtos"}
+              to={resolveMenuHref(activeSubData?.href)}
               onClick={() => setActiveMega(null)}
               className="group rounded-[22px] border border-primary/20 bg-primary/[0.08] px-5 py-4 transition-all duration-300 hover:bg-primary/[0.12]"
             >
@@ -757,26 +778,46 @@ export function Navbar() {
           {panelHeader(panel.title, "Documentos e drivers organizados em cards estáveis, evitando aquele sobe-e-desce de altura a cada categoria.")}
           <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {panel.items.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                className="group rounded-[22px] border border-foreground/8 bg-foreground/[0.03] px-5 py-4 transition-all duration-300 hover:border-primary/20 hover:bg-foreground/[0.05]"
-              >
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-foreground/8 bg-background/70">
-                  {item.name.toLowerCase().includes("manual") || item.name.toLowerCase().includes("guia")
-                    ? <FileText size={16} className="text-primary/75" />
-                    : <Download size={16} className="text-primary/75" />
-                  }
+              isPlaceholderHref(item.href) ? (
+                <div
+                  key={item.name}
+                  className="rounded-[22px] border border-foreground/8 bg-foreground/[0.03] px-5 py-4"
+                >
+                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-foreground/8 bg-background/70">
+                    {item.name.toLowerCase().includes("manual") || item.name.toLowerCase().includes("guia")
+                      ? <FileText size={16} className="text-primary/75" />
+                      : <Download size={16} className="text-primary/75" />
+                    }
+                  </div>
+                  <p className="text-foreground/85" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "600", lineHeight: 1.45 }}>
+                    {item.name}
+                  </p>
+                  <p className="mt-2 text-foreground/38" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", lineHeight: 1.5 }}>
+                    {item.version} · {item.date}
+                  </p>
                 </div>
-                <p className="text-foreground/85 transition-colors group-hover:text-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "600", lineHeight: 1.45 }}>
-                  {item.name}
-                </p>
-                <p className="mt-2 text-foreground/38" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", lineHeight: 1.5 }}>
-                  {item.version} · {item.date}
-                </p>
-              </a>
+              ) : (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  className="group rounded-[22px] border border-foreground/8 bg-foreground/[0.03] px-5 py-4 transition-all duration-300 hover:border-primary/20 hover:bg-foreground/[0.05]"
+                >
+                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-foreground/8 bg-background/70">
+                    {item.name.toLowerCase().includes("manual") || item.name.toLowerCase().includes("guia")
+                      ? <FileText size={16} className="text-primary/75" />
+                      : <Download size={16} className="text-primary/75" />
+                    }
+                  </div>
+                  <p className="text-foreground/85 transition-colors group-hover:text-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "600", lineHeight: 1.45 }}>
+                    {item.name}
+                  </p>
+                  <p className="mt-2 text-foreground/38" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", lineHeight: 1.5 }}>
+                    {item.version} · {item.date}
+                  </p>
+                </a>
+              )
             ))}
-            <a href="#" className="rounded-[22px] border border-primary/20 bg-primary/[0.08] px-5 py-4 transition-all duration-300 hover:bg-primary/[0.12]">
+            <Link to="/fale-conosco" onClick={() => setActiveMega(null)} className="rounded-[22px] border border-primary/20 bg-primary/[0.08] px-5 py-4 transition-all duration-300 hover:bg-primary/[0.12]">
               <p className="text-primary" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.18em" }}>
                 CENTRAL
               </p>
@@ -786,7 +827,7 @@ export function Navbar() {
               <p className="mt-2 text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
                 Acesse a biblioteca completa de drivers, manuais e utilitários.
               </p>
-            </a>
+            </Link>
           </div>
         </div>
       );
@@ -878,8 +919,8 @@ export function Navbar() {
                   onMouseLeave={handleMegaLeave}
                   className="flex items-center h-full"
                 >
-                  {item.href ? (
-                    <Link to={item.href}
+                  {!isPlaceholderHref(item.href) ? (
+                    <Link to={resolveMenuHref(item.href)}
                       className={`relative flex h-full items-center rounded-full px-3 py-1.5 transition-all duration-300 ${activeMega === item.mega
                         ? "bg-primary/[0.10] text-foreground"
                         : navTextColor}`}
@@ -923,8 +964,8 @@ export function Navbar() {
                 onMouseEnter={() => item.mega && handleMegaEnter(item.mega)}
                 onMouseLeave={handleMegaLeave}
               >
-                {item.href ? (
-                  <Link to={item.href}
+                {!isPlaceholderHref(item.href) ? (
+                  <Link to={resolveMenuHref(item.href)}
                     className={`relative rounded-full px-4 py-1.5 transition-all duration-300 ${activeMega === item.mega
                       ? "bg-primary/[0.12] text-foreground"
                       : (showExpanded && !promoHovered ? "text-white/45 hover:text-white" : (isDark ? "text-foreground/45 hover:text-foreground" : "text-foreground/50 hover:text-foreground"))}`}
@@ -962,27 +1003,43 @@ export function Navbar() {
                         const isActive = activeSubItem === sub.label;
                         return (
                           <li key={sub.label}>
-                            <Link
-                              to={sub.href}
-                              onMouseEnter={() => setActiveSubItem(sub.label)}
-                              onClick={() => setActiveMega(null)}
-                              className={`group relative flex items-center justify-between rounded-[18px] px-3 py-3 transition-all duration-200 ${isActive
-                                ? (isDark ? "bg-white/[0.07] text-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]" : "bg-black/[0.05] text-foreground shadow-[inset_0_0_0_1px_rgba(0,0,0,0.04)]")
-                                : "text-foreground/45 hover:bg-foreground/[0.03] hover:text-foreground/75"
-                                }`}
-                              style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: isActive ? "500" : "400" }}
-                            >
-                              <span className={`absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary transition-opacity ${isActive ? "opacity-100" : "opacity-0"}`} />
-                              <span>{sub.label}</span>
-                              <ChevronRight size={13} className={`flex-shrink-0 transition-all ${isActive ? "translate-x-0 opacity-60" : "-translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-40"}`} />
-                            </Link>
+                            {isPlaceholderHref(sub.href) ? (
+                              <button
+                                type="button"
+                                onMouseEnter={() => setActiveSubItem(sub.label)}
+                                className={`group relative flex w-full items-center justify-between rounded-[18px] px-3 py-3 text-left transition-all duration-200 ${isActive
+                                  ? (isDark ? "bg-white/[0.07] text-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]" : "bg-black/[0.05] text-foreground shadow-[inset_0_0_0_1px_rgba(0,0,0,0.04)]")
+                                  : "text-foreground/45 hover:bg-foreground/[0.03] hover:text-foreground/75"
+                                  }`}
+                                style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: isActive ? "500" : "400" }}
+                              >
+                                <span className={`absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary transition-opacity ${isActive ? "opacity-100" : "opacity-0"}`} />
+                                <span>{sub.label}</span>
+                                <ChevronRight size={13} className={`flex-shrink-0 transition-all ${isActive ? "translate-x-0 opacity-60" : "-translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-40"}`} />
+                              </button>
+                            ) : (
+                              <Link
+                                to={resolveMenuHref(sub.href)}
+                                onMouseEnter={() => setActiveSubItem(sub.label)}
+                                onClick={() => setActiveMega(null)}
+                                className={`group relative flex items-center justify-between rounded-[18px] px-3 py-3 transition-all duration-200 ${isActive
+                                  ? (isDark ? "bg-white/[0.07] text-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]" : "bg-black/[0.05] text-foreground shadow-[inset_0_0_0_1px_rgba(0,0,0,0.04)]")
+                                  : "text-foreground/45 hover:bg-foreground/[0.03] hover:text-foreground/75"
+                                  }`}
+                                style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: isActive ? "500" : "400" }}
+                              >
+                                <span className={`absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary transition-opacity ${isActive ? "opacity-100" : "opacity-0"}`} />
+                                <span>{sub.label}</span>
+                                <ChevronRight size={13} className={`flex-shrink-0 transition-all ${isActive ? "translate-x-0 opacity-60" : "-translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-40"}`} />
+                              </Link>
+                            )}
                           </li>
                         );
                       })}
                     </ul>
                     <div className="mt-5 border-t border-foreground/5 px-3 pt-4">
                       <Link
-                        to={activeSubData?.href ?? "/produtos"}
+                        to={resolveMenuHref(activeSubData?.href)}
                         onClick={() => setActiveMega(null)}
                         className="flex items-center gap-1.5 text-primary hover:opacity-75 transition-opacity"
                         style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "500" }}
@@ -1119,8 +1176,8 @@ export function Navbar() {
             <div className="px-8 py-8 flex flex-col gap-6">
               {navItems.map((item, i) => (
                 <motion.div key={item.label} initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06, duration: 0.4 }}>
-                  {item.href ? (
-                    <Link to={item.href} onClick={() => setMobileOpen(false)}
+                  {!isPlaceholderHref(item.href) ? (
+                    <Link to={resolveMenuHref(item.href)} onClick={() => setMobileOpen(false)}
                       className="text-foreground/70 hover:text-foreground transition-colors block"
                       style={{ fontFamily: "var(--font-family-figtree)", fontSize: "28px", fontWeight: "var(--font-weight-light)" }}
                     >{item.label}</Link>
