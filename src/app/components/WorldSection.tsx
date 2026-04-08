@@ -30,7 +30,7 @@ const videos = [
 
 export function WorldSection() {
   return (
-    <section className="py-32 px-5 md:px-8">
+    <section className="py-20 md:py-24 px-5 md:px-8">
       <div className="max-w-[1300px] mx-auto">
         {/* Header */}
         <motion.div
@@ -38,7 +38,7 @@ export function WorldSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-6"
+          className="text-center mb-4"
         >
           <h2
             className="text-foreground mb-5"
@@ -52,7 +52,7 @@ export function WorldSection() {
             Linhas PCYES
           </h2>
           <p
-            className="text-foreground/35 max-w-lg mx-auto mb-8"
+            className="text-foreground/35 max-w-lg mx-auto mb-6"
             style={{
               fontFamily: "var(--font-family-inter)",
               fontSize: "var(--text-base)",
@@ -76,7 +76,7 @@ export function WorldSection() {
         </motion.div>
 
         {/* 3 vertical videos grid — more gap, shorter aspect */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 mt-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 mt-10 md:mt-12">
           {videos.map((video, i) => (
             <motion.div
               key={i}

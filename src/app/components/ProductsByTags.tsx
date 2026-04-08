@@ -40,10 +40,10 @@ export function ProductsByTags() {
   };
 
   return (
-    <section ref={ref} className="py-28 md:py-40 px-5 md:px-8" style={{ background: isDark ? "#161617" : "transparent" }}>
+    <section ref={ref} className="py-20 md:py-24 px-5 md:px-8" style={{ background: isDark ? "#161617" : "transparent" }}>
       <div className="max-w-[1300px] mx-auto">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-10">
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -80,7 +80,7 @@ export function ProductsByTags() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="flex flex-wrap justify-center gap-2.5 mb-16"
+          className="flex flex-wrap justify-center gap-2.5 mb-10"
         >
           {tags.map((tag) => (
             <button
@@ -186,7 +186,7 @@ export function ProductsByTags() {
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ delay: 0.6 }}
-          className="text-center mt-16"
+          className="text-center mt-10"
         >
           <Link
             to="/produtos"

@@ -58,10 +58,10 @@ export function NewReleasesSection() {
   const others = releases.filter((_, i) => i !== selectedIdx);
 
   return (
-    <section ref={ref} className="py-28 md:py-40 px-5 md:px-8" style={{ background: isDark ? "#161617" : "transparent" }}>
+    <section ref={ref} className="py-20 md:py-24 px-5 md:px-8" style={{ background: isDark ? "#161617" : "transparent" }}>
       <div className="max-w-[1300px] mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-6">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-10 gap-5">
           <div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}

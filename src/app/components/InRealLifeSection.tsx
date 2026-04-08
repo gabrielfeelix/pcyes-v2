@@ -122,7 +122,7 @@ export function InRealLifeSection() {
   };
 
   return (
-    <section className="py-24">
+    <section className="py-20">
       {/* Title */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

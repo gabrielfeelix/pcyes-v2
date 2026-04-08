@@ -32,7 +32,7 @@ export function FeaturedProduct({ label, title, description, image, imageAlt, re
   const imageY = useTransform(scrollYProgress, [0, 1], [60, -60]);
 
   return (
-    <section ref={sectionRef} className="py-32 md:py-48 px-8 md:px-16">
+    <section ref={sectionRef} className="py-20 md:py-28 px-8 md:px-16">
       <div className={`max-w-[1300px] mx-auto flex flex-col ${reverse ? "md:flex-row-reverse" : "md:flex-row"} items-center gap-16 md:gap-28`}>
         {/* Image */}
         <motion.div className="flex-1 w-full" style={{ y: imageY }}>

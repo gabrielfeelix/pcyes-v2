@@ -146,9 +146,9 @@ export function CategoryGrid() {
   const cards = useMemo(() => categoryGroups[activeAudience], [activeAudience]);
 
   return (
-    <section ref={ref} className="px-5 pt-14 pb-24 md:px-8 md:pt-[76px] md:pb-32" style={{ background: isDark ? "#161617" : "transparent" }} id="explore">
+    <section ref={ref} className="px-5 pt-10 pb-16 md:px-8 md:pt-14 md:pb-20" style={{ background: isDark ? "#161617" : "transparent" }} id="explore">
       <div className="max-w-[1300px] mx-auto">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-14 gap-7">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-10 gap-5">
           <div>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
