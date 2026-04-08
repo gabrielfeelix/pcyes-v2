@@ -5,20 +5,26 @@ const videos = [
   {
     id: "9co8PcrCTDk",
     title: "Linha BrTT",
-    category: "Linha BrTT",
-    description: "Periféricos assinados pelo maior jogador de LoL do Brasil.",
+    category: "Periféricos",
+    href: "/produtos?search=BrTT",
+    cta: "Ver Linha BrTT",
+    description: "Uma assinatura competitiva com identidade forte, periféricos marcantes e linguagem feita para quem joga para vencer.",
   },
   {
     id: "71hTv_lqLAc",
-    title: "Gabinetes Premium",
-    category: "Gabinetes",
-    description: "Designs em vidro temperado com fluxo de ar otimizado e iluminação ARGB.",
+    title: "Linha Maringá FC",
+    category: "Collab",
+    href: "/maringa-fc",
+    cta: "Ver Linha Maringá FC",
+    description: "A collab oficial que leva o universo do clube para produtos exclusivos, com presença visual e sentimento de torcida.",
   },
   {
     id: "MTZcszksk_g",
-    title: "Cooling & Performance",
-    category: "Coolers",
-    description: "Refrigeração silenciosa no pico de desempenho.",
+    title: "Linha PCYES News",
+    category: "Lançamentos",
+    href: "/produtos",
+    cta: "Ver Linha PCYES News",
+    description: "Conteúdo, drops e lançamentos em uma frente viva da marca, conectando produto novo, cultura e movimento.",
   },
 ];
 
@@ -43,7 +49,7 @@ export function WorldSection() {
               lineHeight: "1.1",
             }}
           >
-            Mundo de PCYES
+            Linhas PCYES
           </h2>
           <p
             className="text-foreground/35 max-w-lg mx-auto mb-8"
@@ -53,8 +59,7 @@ export function WorldSection() {
               lineHeight: "1.7",
             }}
           >
-            Iluminando as muitas facetas da tecnologia, desde a performance até o
-            estilo de vida e muito mais.
+            Coleções, collabs e frentes criativas que traduzem a PCYES em linguagens diferentes, da arena competitiva ao conteúdo da marca.
           </p>
           <Link
             to="/produtos"
@@ -66,7 +71,7 @@ export function WorldSection() {
               fontWeight: "var(--font-weight-medium)",
             }}
           >
-            Explore Tudo
+            Explorar linhas
           </Link>
         </motion.div>
 
@@ -83,7 +88,7 @@ export function WorldSection() {
             >
               {/* Video container — zoomed in to fill, no black bars */}
               <Link
-                to={`/produtos?category=${encodeURIComponent(video.category)}`}
+                to={video.href}
                 className="block relative overflow-hidden aspect-[9/14] mb-6 cursor-pointer"
                 style={{ borderRadius: "var(--radius-card)" }}
               >
@@ -108,13 +113,13 @@ export function WorldSection() {
                       fontWeight: "var(--font-weight-medium)",
                     }}
                   >
-                    Ver {video.category}
+                    {video.cta}
                   </span>
                 </div>
               </Link>
 
               {/* Text below video */}
-              <Link to={`/produtos?category=${encodeURIComponent(video.category)}`}>
+              <Link to={video.href}>
                 <h3
                   className="text-foreground mb-2 group-hover:text-primary transition-colors duration-300"
                   style={{

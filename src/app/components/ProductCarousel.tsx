@@ -13,6 +13,7 @@ interface ProductCarouselProps {
   title?: string;
   subtitle?: string;
   productIds?: number[];
+  compactTop?: boolean;
 }
 
 const curatedIds = [6, 16, 41, 1, 37, 35];
@@ -23,6 +24,7 @@ export function ProductCarousel({
   title = "Escolhidos para você",
   subtitle,
   productIds = curatedIds,
+  compactTop = false,
 }: ProductCarouselProps) {
   const ref = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -135,7 +137,7 @@ export function ProductCarousel({
   };
 
   return (
-    <section ref={ref} className="py-24 md:py-32">
+    <section ref={ref} className={compactTop ? "pt-12 pb-24 md:pt-16 md:pb-32" : "py-24 md:py-32"}>
       <div className="max-w-[1300px] mx-auto px-5 md:px-8 mb-14">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <div>

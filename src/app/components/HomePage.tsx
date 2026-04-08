@@ -28,6 +28,7 @@ export function HomePage() {
         title="Recém chegados"
         subtitle="Seleção com imagens reais do catálogo PCYES para destacar o que acabou de entrar ou merece atenção agora."
         productIds={recentArrivalIds}
+        compactTop
       />
 
       <div style={{ background: darkBg }}>
