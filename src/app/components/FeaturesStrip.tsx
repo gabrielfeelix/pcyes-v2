@@ -17,7 +17,7 @@ export function FeaturesStrip() {
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
 
   return (
-    <section ref={ref} className="py-24 border-y border-border/8" style={{ background: isDark ? "#161617" : "transparent" }}>
+    <section ref={ref} className="py-24 border-y border-black/8" style={{ background: "#ffffff" }}>
       <div className="max-w-[1300px] mx-auto px-8 md:px-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-16">
         {features.map((f, i) => (
           <motion.div
@@ -27,13 +27,13 @@ export function FeaturesStrip() {
             transition={{ duration: 0.6, delay: i * 0.1 }}
             className="group text-center"
           >
-            <div className="w-14 h-14 mx-auto mb-5 border border-border/15 rounded-full flex items-center justify-center group-hover:border-primary/40 group-hover:bg-primary/5 transition-all duration-500">
-              <f.icon size={20} strokeWidth={1} className="text-foreground/50 group-hover:text-primary transition-colors duration-500" />
+            <div className="w-14 h-14 mx-auto mb-5 border border-black/10 rounded-full flex items-center justify-center group-hover:border-primary/50 group-hover:bg-primary/5 transition-all duration-500">
+              <f.icon size={20} strokeWidth={1} className="text-black/40 group-hover:text-primary transition-colors duration-500" />
             </div>
-            <p className="text-foreground mb-1" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "16px", fontWeight: "var(--font-weight-medium)" }}>
+            <p className="text-black mb-1" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "16px", fontWeight: "var(--font-weight-medium)" }}>
               {f.title}
             </p>
-            <p className="text-foreground/40" style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-caption)" }}>
+            <p className="text-black/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-caption)" }}>
               {f.desc}
             </p>
           </motion.div>

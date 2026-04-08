@@ -32,14 +32,16 @@ export function HomePage() {
       />
 
       <div style={{ background: darkBg }}>
-        <WorldSection />
-      </div>
-
-      <div style={{ background: darkBg }}>
         <CategoryGrid />
       </div>
 
       <ProductCarousel />
+
+      <div style={{ background: darkBg }}>
+        <BannerSection />
+      </div>
+
+      <NewReleasesSection />
 
       <div style={{ background: darkerBg }}>
         <FeaturedProduct
@@ -55,8 +57,6 @@ export function HomePage() {
       </div>
 
       <Marquee words={["Performance", "Precisão", "Design", "Inovação", "Tecnologia", "Gaming"]} speed={40} />
-
-      <NewReleasesSection />
 
       <div style={{ background: darkerBg }}>
         <FeaturedProduct
@@ -74,14 +74,12 @@ export function HomePage() {
       </div>
 
       <div style={{ background: darkBg }}>
-        <BannerSection />
+        <WorldSection />
       </div>
 
       <div style={{ background: darkBg }}>
         <ProductsByTags />
       </div>
-
-      <Marquee words={["Gabinetes", "Teclados", "Mouses", "Headsets", "Fontes", "Coolers", "Cadeiras", "Monitores"]} speed={50} separator="·" />
 
       <InRealLifeSection />
 

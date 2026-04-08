@@ -292,11 +292,11 @@ export function ProductCarousel({
                   </p>
                 </Link>
                 <div className="flex items-baseline gap-2">
-                  <p className="text-foreground/60" style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-sm)" }}>
+                  <p className="text-foreground/90" style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-sm)", fontWeight: "500" }}>
                     {product.price}
                   </p>
                   {product.oldPrice && (
-                    <p className="text-foreground/30 line-through" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>
+                    <p className="text-foreground/40 line-through" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>
                       {product.oldPrice}
                     </p>
                   )}

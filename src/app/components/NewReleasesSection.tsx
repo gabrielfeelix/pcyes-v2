@@ -234,7 +234,7 @@ export function NewReleasesSection() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0 ml-4">
-                    <span className="text-foreground/40" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", fontWeight: "var(--font-weight-medium)" }}>
+                    <span className="text-foreground/85" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", fontWeight: "var(--font-weight-medium)" }}>
                       {item.price}
                     </span>
                     <button

@@ -172,7 +172,7 @@ export function ProductsByTags() {
                   <p className="text-foreground group-hover:text-primary transition-colors duration-300 mb-1.5 truncate" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "16px", fontWeight: "var(--font-weight-medium)" }}>
                     {product.name}
                   </p>
-                  <p className="text-foreground/60" style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-sm)" }}>
+                  <p className="text-foreground/90" style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-sm)", fontWeight: "500" }}>
                     {product.price}
                   </p>
                 </div>
