@@ -5,7 +5,6 @@ import { CategoryGrid } from "./CategoryGrid";
 import { NewReleasesSection } from "./NewReleasesSection";
 import { ProductsByTags } from "./ProductsByTags";
 import { ProductCarousel, recentArrivalIds } from "./ProductCarousel";
-import { PopularGrid } from "./PopularGrid";
 import { WorldSection } from "./WorldSection";
 import { InRealLifeSection } from "./InRealLifeSection";
 import { FeaturesStrip } from "./FeaturesStrip";
@@ -30,6 +29,8 @@ export function HomePage() {
         subtitle="Seleção com imagens reais do catálogo PCYES para destacar o que acabou de entrar ou merece atenção agora."
         productIds={recentArrivalIds}
       />
+
+      <BannerSection />
 
       <div style={{ background: darkBg }}>
         <CategoryGrid />
@@ -75,8 +76,6 @@ export function HomePage() {
 
       <Marquee words={["Gabinetes", "Teclados", "Mouses", "Headsets", "Fontes", "Coolers", "Cadeiras", "Monitores"]} speed={50} separator="·" />
 
-      <PopularGrid />
-
       <div style={{ background: darkBg }}>
         <WorldSection />
       </div>
@@ -84,7 +83,6 @@ export function HomePage() {
 
       <FeaturesStrip />
       <Newsletter />
-      <BannerSection />
       <Footer />
     </>
   );
