@@ -4,7 +4,6 @@ import { motion, useInView } from "motion/react";
 import { useTheme } from "./ThemeProvider";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { ArrowUpRight } from "lucide-react";
-import { allProducts } from "./productsData";
 
 type Audience = "Todos" | "Gamers" | "Escritório";
 
@@ -13,33 +12,127 @@ interface CategoryCard {
   caption: string;
   href: string;
   image: string;
-  emphasis?: "large";
+  span: string;
 }
-
-const imageById = (id: number) => allProducts.find((product) => product.id === id)?.image ?? "";
 
 const categoryGroups: Record<Audience, CategoryCard[]> = {
   Todos: [
-    { name: "Hardware", caption: "Peças e componentes para montar ou turbinar seu setup", href: "/produtos", image: imageById(37), emphasis: "large" },
-    { name: "Periféricos", caption: "Teclados, mouses e acessórios de uso diário", href: "/produtos?category=Perif%C3%A9ricos", image: imageById(16) },
-    { name: "Computadores", caption: "Máquinas prontas e soluções para produtividade", href: "/produtos", image: imageById(27) },
-    { name: "PC Gamer", caption: "Combinações pensadas para jogar com performance", href: "/produtos", image: imageById(6) },
-    { name: "Placas de Vídeo", caption: "Mais poder gráfico para criação e jogos", href: "/produtos?category=Placas%20de%20V%C3%ADdeo", image: imageById(35) },
-    { name: "Cadeiras", caption: "Conforto de longa duração para trabalho ou gameplay", href: "/produtos?category=Cadeiras", image: imageById(1) },
+    {
+      name: "Hardware",
+      caption: "Peças e componentes para upgrades completos",
+      href: "/produtos",
+      image: "https://images.unsplash.com/photo-1518770660439-4636190af475?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      span: "col-span-1 sm:col-span-2 row-span-2",
+    },
+    {
+      name: "Periféricos",
+      caption: "Mouse, teclado, headset e acessórios do dia a dia",
+      href: "/produtos?category=Perif%C3%A9ricos",
+      image: "https://images.unsplash.com/photo-1541140532154-b024d705b90a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      span: "col-span-1",
+    },
+    {
+      name: "Computadores",
+      caption: "Soluções prontas para produtividade e operação",
+      href: "/produtos",
+      image: "https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      span: "col-span-1",
+    },
+    {
+      name: "PC Gamer",
+      caption: "Combinações pensadas para jogar com performance",
+      href: "/produtos",
+      image: "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      span: "col-span-1",
+    },
+    {
+      name: "Placas de Vídeo",
+      caption: "Mais poder gráfico para criação e jogos",
+      href: "/produtos?category=Placas%20de%20V%C3%ADdeo",
+      image: "https://images.unsplash.com/photo-1591488320449-011701bb6704?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      span: "col-span-1",
+    },
+    {
+      name: "Cadeiras",
+      caption: "Conforto para longas jornadas no setup",
+      href: "/produtos?category=Cadeiras",
+      image: "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      span: "col-span-1 sm:col-span-2",
+    },
   ],
   Gamers: [
-    { name: "Gabinetes", caption: "Fluxo de ar, vidro temperado e presença visual de setup", href: "/produtos?category=Gabinetes", image: imageById(6), emphasis: "large" },
-    { name: "Placas de Vídeo", caption: "Renderização, FPS e visual no máximo", href: "/produtos?category=Placas%20de%20V%C3%ADdeo", image: imageById(35) },
-    { name: "PC Gamer", caption: "Builds pensadas para jogar desde o primeiro boot", href: "/produtos", image: imageById(7) },
-    { name: "Streaming", caption: "Áudio, suporte e presença para live e conteúdo", href: "/produtos?category=Streaming", image: imageById(26) },
-    { name: "Mouse Gamer", caption: "Precisão, resposta rápida e conforto em combate", href: "/produtos?category=Perif%C3%A9ricos", image: imageById(16) },
+    {
+      name: "Gabinetes",
+      caption: "Presença visual, airflow e vidro temperado",
+      href: "/produtos?category=Gabinetes",
+      image: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      span: "col-span-1 sm:col-span-2 row-span-2",
+    },
+    {
+      name: "Placas de Vídeo",
+      caption: "FPS alto, ray tracing e potência bruta",
+      href: "/produtos?category=Placas%20de%20V%C3%ADdeo",
+      image: "https://images.unsplash.com/photo-1591799265444-d66432b91588?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      span: "col-span-1",
+    },
+    {
+      name: "PC Gamer",
+      caption: "Builds prontas para entrar em jogo",
+      href: "/produtos",
+      image: "https://images.unsplash.com/photo-1629429408209-1f912961dbd8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      span: "col-span-1",
+    },
+    {
+      name: "Streaming",
+      caption: "Áudio, suporte e presença para criadores",
+      href: "/produtos?category=Streaming",
+      image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      span: "col-span-1",
+    },
+    {
+      name: "Mouse Gamer",
+      caption: "Precisão e resposta rápida na mão",
+      href: "/produtos?category=Perif%C3%A9ricos",
+      image: "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      span: "col-span-1 sm:col-span-2",
+    },
   ],
   Escritório: [
-    { name: "Computadores", caption: "Soluções versáteis para rotina, estudo e operação", href: "/produtos", image: imageById(27), emphasis: "large" },
-    { name: "Monitores", caption: "Mais área útil e ergonomia para produtividade", href: "/produtos?category=Monitores", image: imageById(28) },
-    { name: "SSD e HD", caption: "Armazenamento rápido para abrir tudo sem espera", href: "/produtos?category=SSD%20e%20HD", image: imageById(37) },
-    { name: "Periféricos", caption: "Mouse, teclado e apoio para longas jornadas", href: "/produtos?category=Perif%C3%A9ricos", image: imageById(11) },
-    { name: "Cadeiras", caption: "Postura e conforto pensados para o dia inteiro", href: "/produtos?category=Cadeiras", image: imageById(2) },
+    {
+      name: "Computadores",
+      caption: "Máquinas versáteis para rotina e operação",
+      href: "/produtos",
+      image: "https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      span: "col-span-1 sm:col-span-2 row-span-2",
+    },
+    {
+      name: "Monitores",
+      caption: "Mais área útil e ergonomia para produtividade",
+      href: "/produtos?category=Monitores",
+      image: "https://images.unsplash.com/photo-1527443154391-507e9dc6c5cc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      span: "col-span-1",
+    },
+    {
+      name: "SSD e HD",
+      caption: "Armazenamento rápido para abrir tudo sem espera",
+      href: "/produtos?category=SSD%20e%20HD",
+      image: "https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      span: "col-span-1",
+    },
+    {
+      name: "Periféricos",
+      caption: "Itens essenciais para uma mesa funcional",
+      href: "/produtos?category=Perif%C3%A9ricos",
+      image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      span: "col-span-1",
+    },
+    {
+      name: "Cadeiras",
+      caption: "Postura e conforto pensados para o dia inteiro",
+      href: "/produtos?category=Cadeiras",
+      image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      span: "col-span-1 sm:col-span-2",
+    },
   ],
 };
 
@@ -55,7 +148,7 @@ export function CategoryGrid() {
   return (
     <section ref={ref} className="py-24 md:py-32 px-5 md:px-8" style={{ background: isDark ? "#161617" : "transparent" }} id="explore">
       <div className="max-w-[1300px] mx-auto">
-        <div className="mb-14 flex flex-col gap-7 md:flex-row md:items-end md:justify-between">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-14 gap-7">
           <div>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -74,7 +167,7 @@ export function CategoryGrid() {
                   animate={isInView ? { y: 0 } : {}}
                   transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                   className="text-foreground"
-                  style={{ fontSize: "clamp(36px, 5vw, var(--text-h2))", fontFamily: "var(--font-family-figtree)", fontWeight: "var(--font-weight-light)", lineHeight: 1.02 }}
+                  style={{ fontSize: "clamp(36px, 5vw, var(--text-h2))", fontFamily: "var(--font-family-figtree)", fontWeight: "var(--font-weight-light)" }}
                 >
                   Explore por categoria
                 </motion.h2>
@@ -113,52 +206,46 @@ export function CategoryGrid() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
-          {cards.map((card, i) => {
-            const isLarge = card.emphasis === "large";
-            return (
+        <div className="grid grid-cols-1 sm:grid-cols-4 auto-rows-[220px] gap-4">
+          {cards.map((card, i) => (
+            <Link
+              key={`${activeAudience}-${card.name}`}
+              to={card.href}
+              className={`group relative overflow-hidden cursor-pointer block ${card.span}`}
+              style={{ borderRadius: "var(--radius-card)" }}
+            >
               <motion.div
-                key={`${activeAudience}-${card.name}`}
-                initial={{ opacity: 0, y: 40 }}
+                initial={{ opacity: 0, y: 50 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.6, delay: 0.06 * i }}
-                className={isLarge ? "md:col-span-5" : "md:col-span-4"}
+                transition={{ duration: 0.7, delay: 0.07 * i, ease: [0.16, 1, 0.3, 1] }}
+                className="relative h-full w-full"
               >
-                <Link
-                  to={card.href}
-                  className="group relative block h-full min-h-[260px] overflow-hidden"
-                  style={{ borderRadius: "var(--radius-card)" }}
-                >
-                  <div className="absolute inset-0 bg-linear-to-br from-primary/[0.08] via-transparent to-transparent z-[1]" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/12 to-transparent z-[1]" />
-                  <ImageWithFallback
-                    src={card.image}
-                    alt={card.name}
-                    className={`h-full w-full transition-transform duration-[1.4s] ease-out group-hover:scale-105 ${isLarge ? "object-contain p-8" : "object-contain p-7"}`}
-                    style={{ background: isDark ? "#131314" : "#f4f4f4" }}
-                  />
+                <ImageWithFallback
+                  src={card.image}
+                  alt={card.name}
+                  className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-[1.5s] ease-out"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/14 to-transparent group-hover:from-black/85 transition-all duration-500" />
+                <div className="absolute inset-x-0 top-0 h-[2px] origin-left scale-x-0 bg-primary transition-transform duration-700 group-hover:scale-x-100" />
 
-                  <div className="absolute left-0 right-0 top-0 z-[2] h-[2px] origin-left scale-x-0 bg-primary transition-transform duration-700 group-hover:scale-x-100" />
-
-                  <div className="absolute bottom-0 left-0 right-0 z-[2] p-6">
-                    <p className="mb-2 text-white" style={{ fontFamily: "var(--font-family-figtree)", fontSize: isLarge ? "28px" : "22px", fontWeight: "600", lineHeight: 1.05 }}>
-                      {card.name}
-                    </p>
-                    <p className="mb-4 max-w-[32ch] text-white/55" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.55 }}>
-                      {card.caption}
-                    </p>
-                    <span
-                      className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-1.5 text-white/85 backdrop-blur-sm transition-all duration-500 group-hover:bg-white group-hover:text-black"
-                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.1em" }}
-                    >
-                      VER CATEGORIA
-                      <ArrowUpRight size={11} />
-                    </span>
-                  </div>
-                </Link>
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <p className="text-white mb-1.5" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "clamp(22px, 2vw, 28px)", fontWeight: "600", lineHeight: 1.05 }}>
+                    {card.name}
+                  </p>
+                  <p className="mb-4 max-w-[30ch] text-white/55" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.55 }}>
+                    {card.caption}
+                  </p>
+                  <span
+                    className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-white/10 backdrop-blur-sm text-white/80 group-hover:bg-white group-hover:text-black transition-all duration-500"
+                    style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.08em" }}
+                  >
+                    Ver categoria
+                    <ArrowUpRight size={11} />
+                  </span>
+                </div>
               </motion.div>
-            );
-          })}
+            </Link>
+          ))}
         </div>
       </div>
     </section>
