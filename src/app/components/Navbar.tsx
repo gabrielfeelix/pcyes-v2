@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, type ReactNode } from "react";
+import React, { useState, useEffect, useRef, type ReactNode } from "react";
 import { Link, useNavigate, useLocation } from "react-router";
 import { Search, ShoppingBag, User, Menu, X, Clock, TrendingUp, ArrowUpRight, Heart, ChevronRight, Download, FileText, Sparkles, Grid2x2, Box, Monitor, Cpu, Radio } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
