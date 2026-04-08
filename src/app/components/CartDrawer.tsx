@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import { useTheme } from "./ThemeProvider";
-import { X, Minus, Plus, ShoppingBag, Trash2, Truck, Tag, Loader2, Check, MapPin, ChevronDown } from "lucide-react";
+import { X, Minus, Plus, ShoppingBag, Trash2, Truck, Tag, Loader2, Check, MapPin, ChevronDown, Gift, Sparkles } from "lucide-react";
 import { useCart } from "./CartContext";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { allProducts } from "./productsData";
 
 const MOCK_SHIPPING: Record<string, { name: string; price: number; days: string }[]> = {
   default: [
@@ -21,14 +22,18 @@ const COUPONS: Record<string, number> = {
   PCYES10: 10, PROMO20: 20, BEMVINDO: 15,
 };
 
+const GIFT_THRESHOLD = 350;
+
 export function CartDrawer() {
-  const { items, isOpen, setIsOpen, removeItem, updateQuantity, totalItems, lastAdded } = useCart();
+  const { items, isOpen, setIsOpen, removeItem, updateQuantity, totalItems, lastAdded, setGiftItem } = useCart();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
   const navigate = useNavigate();
 
   const [shippingOpen, setShippingOpen] = useState(false);
   const [couponOpen, setCouponOpen] = useState(false);
+  const [giftModalOpen, setGiftModalOpen] = useState(false);
+  const [giftDismissed, setGiftDismissed] = useState(false);
 
   const [cep, setCep] = useState("");
   const [shippingOptions, setShippingOptions] = useState<typeof MOCK_SHIPPING.default | null>(null);
@@ -42,11 +47,43 @@ export function CartDrawer() {
   const parsePrice = (p: string) => parseFloat(p.replace("R$ ", "").replace(".", "").replace(",", "."));
   const formatPrice = (n: number) => `R$ ${n.toFixed(2).replace(".", ",")}`;
 
-  const subtotal = items.reduce((sum, i) => sum + parsePrice(i.price) * i.quantity, 0);
+  const paidItems = items.filter((item) => !item.isGift);
+  const giftItem = items.find((item) => item.isGift) ?? null;
+  const subtotal = paidItems.reduce((sum, i) => sum + parsePrice(i.price) * i.quantity, 0);
   const discountPct = appliedCoupon ? COUPONS[appliedCoupon] || 0 : 0;
   const discountValue = subtotal * (discountPct / 100);
   const shippingCost = selectedShipping !== null && shippingOptions ? shippingOptions[selectedShipping].price : 0;
   const total = subtotal - discountValue + shippingCost;
+  const giftUnlocked = subtotal >= GIFT_THRESHOLD;
+  const giftProgress = Math.min(100, (subtotal / GIFT_THRESHOLD) * 100);
+  const remainingForGift = Math.max(0, GIFT_THRESHOLD - subtotal);
+
+  const giftOptions = useMemo(
+    () =>
+      [...allProducts]
+        .sort((a, b) => a.priceNum - b.priceNum)
+        .slice(0, 3),
+    [],
+  );
+
+  useEffect(() => {
+    if (!giftUnlocked && giftItem) {
+      setGiftItem(null);
+      setGiftModalOpen(false);
+      setGiftDismissed(false);
+      return;
+    }
+
+    if (!giftUnlocked) {
+      setGiftDismissed(false);
+      setGiftModalOpen(false);
+      return;
+    }
+
+    if (giftUnlocked && !giftItem && !giftDismissed && paidItems.length > 0) {
+      setGiftModalOpen(true);
+    }
+  }, [giftDismissed, giftItem, giftUnlocked, paidItems.length, setGiftItem]);
 
   const handleCepSearch = () => {
     if (cep.replace(/\D/g, "").length < 8) return;
@@ -69,6 +106,21 @@ export function CartDrawer() {
     return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
   };
 
+  const selectGift = (productId: number) => {
+    const product = giftOptions.find((item) => item.id === productId);
+    if (!product) return;
+
+    setGiftItem({
+      id: product.id,
+      name: product.name,
+      price: "R$ 0,00",
+      image: product.image,
+      isGift: true,
+      originalPrice: product.price,
+    });
+    setGiftModalOpen(false);
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -77,11 +129,10 @@ export function CartDrawer() {
             className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm" onClick={() => setIsOpen(false)} />
 
           <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed top-0 right-0 bottom-0 z-[61] w-full max-w-[460px] border-l border-border/10 flex flex-col"
+            className="fixed top-0 right-0 bottom-0 z-[61] flex w-full max-w-[460px] flex-col border-l border-border/10"
             style={{ background: isDark ? "#161617" : "white" }}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between px-7 py-5 border-b border-foreground/5">
+            <div className="flex items-center justify-between border-b border-foreground/5 px-7 py-5">
               <div className="flex items-center gap-3">
                 <ShoppingBag size={18} className="text-foreground" strokeWidth={1.5} />
                 <span className="text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "18px", fontWeight: "var(--font-weight-medium)" }}>Carrinho</span>
@@ -92,11 +143,70 @@ export function CartDrawer() {
               </button>
             </div>
 
-            {/* Items */}
+            {paidItems.length > 0 && (
+              <div className="border-b border-foreground/5 px-7 py-4">
+                <div className={`overflow-hidden rounded-[22px] border ${giftUnlocked ? "border-primary/20 bg-primary/[0.07]" : "border-foreground/8 bg-foreground/[0.03]"}`}>
+                  <div className="px-4 py-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl border border-primary/15 bg-primary/[0.08] text-primary">
+                          <Gift size={17} />
+                        </div>
+                        <div>
+                          <p className="text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "18px", fontWeight: "600" }}>
+                            Ganhe um brinde a partir de {formatPrice(GIFT_THRESHOLD)}
+                          </p>
+                          <p className="mt-1 text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
+                            {giftUnlocked
+                              ? giftItem
+                                ? "Seu brinde já foi selecionado e adicionado ao carrinho."
+                                : "Você desbloqueou o presente. Escolha um item especial da PCYES."
+                              : `Faltam ${formatPrice(remainingForGift)} para desbloquear seu presente.`}
+                          </p>
+                        </div>
+                      </div>
+                      {giftUnlocked && (
+                        <button
+                          onClick={() => { setGiftDismissed(false); setGiftModalOpen(true); }}
+                          className="text-primary hover:opacity-80 transition-opacity cursor-pointer"
+                          style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "700", letterSpacing: "0.08em" }}
+                        >
+                          {giftItem ? "TROCAR" : "ESCOLHER"}
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="mt-4">
+                      <div className="h-2 overflow-hidden rounded-full bg-foreground/6">
+                        <motion.div
+                          initial={false}
+                          animate={{ width: `${giftProgress}%` }}
+                          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                          className="h-full rounded-full bg-linear-to-r from-primary to-primary/65"
+                        />
+                      </div>
+                      <div className="mt-2 flex items-center justify-between">
+                        <span className="text-foreground/25" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "600", letterSpacing: "0.12em" }}>
+                          0
+                        </span>
+                        <span className={`flex items-center gap-1.5 ${giftUnlocked ? "text-primary" : "text-foreground/35"}`} style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.12em" }}>
+                          <Sparkles size={11} />
+                          BRINDE
+                        </span>
+                        <span className="text-foreground/25" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "600", letterSpacing: "0.12em" }}>
+                          {formatPrice(GIFT_THRESHOLD)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex-1 overflow-y-auto px-7 py-5" style={{ scrollbarWidth: "none" }}>
               {items.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <div className="w-20 h-20 bg-foreground/5 rounded-full flex items-center justify-center mb-6">
+                <div className="flex h-full flex-col items-center justify-center text-center">
+                  <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-foreground/5">
                     <ShoppingBag size={28} className="text-foreground/20" strokeWidth={1} />
                   </div>
                   <p className="text-foreground/60 mb-2" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "17px", fontWeight: "var(--font-weight-medium)" }}>Carrinho vazio</p>
@@ -106,25 +216,55 @@ export function CartDrawer() {
                 <div className="flex flex-col gap-4">
                   <AnimatePresence>
                     {items.map((item) => (
-                      <motion.div key={item.id} layout initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30, height: 0 }} transition={{ duration: 0.3 }}
-                        className={`flex gap-4 p-3.5 border ${lastAdded?.id === item.id ? "border-primary/30 bg-primary/5" : "border-foreground/5 bg-foreground/[0.02]"} transition-colors duration-700`}
+                      <motion.div key={item.cartKey} layout initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30, height: 0 }} transition={{ duration: 0.3 }}
+                        className={`flex gap-4 p-3.5 border ${lastAdded?.cartKey === item.cartKey ? "border-primary/30 bg-primary/5" : item.isGift ? "border-primary/20 bg-primary/[0.04]" : "border-foreground/5 bg-foreground/[0.02]"} transition-colors duration-700`}
                         style={{ borderRadius: "var(--radius-card)" }}
                       >
-                        <div className="w-[75px] h-[75px] flex-shrink-0 overflow-hidden" style={{ borderRadius: "var(--radius)", background: isDark ? "#1e1e20" : "#f5f5f5" }}>
+                        <div className="w-[75px] h-[75px] flex-shrink-0 overflow-hidden relative" style={{ borderRadius: "var(--radius)", background: isDark ? "#1e1e20" : "#f5f5f5" }}>
                           <ImageWithFallback src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0 flex flex-col justify-between">
-                          <div>
-                            <p className="text-foreground truncate mb-0.5" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "14px", fontWeight: "var(--font-weight-medium)" }}>{item.name}</p>
-                            <p className="text-foreground/50" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>{item.price}</p>
-                          </div>
-                          <div className="flex items-center justify-between mt-2">
-                            <div className="flex items-center gap-0 border border-foreground/10" style={{ borderRadius: "var(--radius)" }}>
-                              <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="w-7 h-7 flex items-center justify-center text-foreground/40 hover:text-foreground transition-colors cursor-pointer"><Minus size={12} /></button>
-                              <span className="w-7 h-7 flex items-center justify-center text-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>{item.quantity}</span>
-                              <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-7 h-7 flex items-center justify-center text-foreground/40 hover:text-foreground transition-colors cursor-pointer"><Plus size={12} /></button>
+                          {item.isGift && (
+                            <div className="absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">
+                              <Gift size={13} />
                             </div>
-                            <button onClick={() => removeItem(item.id)} className="text-foreground/20 hover:text-primary transition-colors cursor-pointer"><Trash2 size={14} /></button>
+                          )}
+                        </div>
+                        <div className="flex min-w-0 flex-1 flex-col justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="truncate text-foreground mb-0.5" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "14px", fontWeight: "var(--font-weight-medium)" }}>{item.name}</p>
+                              {item.isGift && (
+                                <span className="rounded-full bg-primary/[0.1] px-2 py-0.5 text-primary" style={{ fontFamily: "var(--font-family-inter)", fontSize: "9px", fontWeight: "700", letterSpacing: "0.08em" }}>
+                                  BRINDE
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {item.isGift && item.originalPrice && (
+                                <p className="text-foreground/20 line-through" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>{item.originalPrice}</p>
+                              )}
+                              <p className={item.isGift ? "text-primary" : "text-foreground/50"} style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: item.isGift ? "600" : "400" }}>
+                                {item.price}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-2 flex items-center justify-between">
+                            {item.isGift ? (
+                              <div className="flex items-center gap-2 text-primary/80">
+                                <Gift size={13} />
+                                <span style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "600", letterSpacing: "0.08em" }}>
+                                  1 item gratuito
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-0 border border-foreground/10" style={{ borderRadius: "var(--radius)" }}>
+                                <button onClick={() => updateQuantity(item.cartKey, item.quantity - 1)} className="w-7 h-7 flex items-center justify-center text-foreground/40 hover:text-foreground transition-colors cursor-pointer"><Minus size={12} /></button>
+                                <span className="w-7 h-7 flex items-center justify-center text-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>{item.quantity}</span>
+                                <button onClick={() => updateQuantity(item.cartKey, item.quantity + 1)} className="w-7 h-7 flex items-center justify-center text-foreground/40 hover:text-foreground transition-colors cursor-pointer"><Plus size={12} /></button>
+                              </div>
+                            )}
+                            <button onClick={() => item.isGift ? setGiftItem(null) : removeItem(item.cartKey)} className="text-foreground/20 hover:text-primary transition-colors cursor-pointer">
+                              <Trash2 size={14} />
+                            </button>
                           </div>
                         </div>
                       </motion.div>
@@ -134,11 +274,8 @@ export function CartDrawer() {
               )}
             </div>
 
-            {/* Footer */}
             {items.length > 0 && (
               <div className="border-t border-foreground/5 px-7 py-5 space-y-3 max-h-[55vh] overflow-y-auto" style={{ scrollbarWidth: "none" }}>
-
-                {/* Collapsible: Calcular Frete */}
                 <div>
                   <button onClick={() => setShippingOpen(!shippingOpen)}
                     className="flex items-center justify-between w-full py-1 cursor-pointer group"
@@ -197,7 +334,6 @@ export function CartDrawer() {
                   </AnimatePresence>
                 </div>
 
-                {/* Collapsible: Cupom */}
                 <div>
                   <button onClick={() => setCouponOpen(!couponOpen)}
                     className="flex items-center justify-between w-full py-1 cursor-pointer group"
@@ -247,7 +383,6 @@ export function CartDrawer() {
 
                 <div className="h-px bg-foreground/5" />
 
-                {/* Totals */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-foreground/35" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>Subtotal</span>
@@ -286,6 +421,99 @@ export function CartDrawer() {
               </div>
             )}
           </motion.div>
+
+          <AnimatePresence>
+            {giftModalOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-[62] flex items-center justify-center bg-black/60 backdrop-blur-md p-6"
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: 18, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 18, scale: 0.97 }}
+                  transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full max-w-[780px] overflow-hidden rounded-[32px] border border-white/10 bg-background shadow-[0_40px_120px_rgba(0,0,0,0.32)]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="border-b border-foreground/5 px-8 py-7">
+                    <div className="flex items-start justify-between gap-5">
+                      <div>
+                        <div className="mb-3 flex items-center gap-2 text-primary">
+                          <Gift size={16} />
+                          <span style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.18em" }}>
+                            BRINDE DESBLOQUEADO
+                          </span>
+                        </div>
+                        <h3 className="text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "34px", fontWeight: "600", lineHeight: 0.98 }}>
+                          Escolha seu presente
+                        </h3>
+                        <p className="mt-3 max-w-[560px] text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", lineHeight: 1.6 }}>
+                          Você atingiu o valor de {formatPrice(GIFT_THRESHOLD)}. Selecione um produto para entrar no carrinho com selo de presente e valor zerado.
+                        </p>
+                      </div>
+                      <button onClick={() => { setGiftModalOpen(false); setGiftDismissed(true); }} className="flex h-10 w-10 items-center justify-center rounded-full border border-foreground/8 text-foreground/35 transition-colors hover:text-foreground hover:bg-foreground/[0.04] cursor-pointer">
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-5 px-8 py-8 md:grid-cols-3">
+                    {giftOptions.map((product) => (
+                      <button
+                        key={`gift-option-${product.id}`}
+                        onClick={() => selectGift(product.id)}
+                        className="group overflow-hidden rounded-[26px] border border-foreground/8 bg-linear-to-b from-foreground/[0.03] to-transparent text-left transition-all duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-[0_24px_80px_rgba(0,0,0,0.18)] cursor-pointer"
+                      >
+                        <div className="relative h-[210px] overflow-hidden border-b border-foreground/6 bg-radial-[circle_at_top] from-primary/10 via-transparent to-transparent">
+                          <ImageWithFallback src={product.image} alt={product.name} className="h-full w-full object-contain p-6 transition-transform duration-500 group-hover:scale-[1.04]" />
+                          <div className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">
+                            <Gift size={14} />
+                          </div>
+                        </div>
+                        <div className="px-5 py-5">
+                          <p className="line-clamp-2 text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "21px", fontWeight: "600", lineHeight: 1.05 }}>
+                            {product.name}
+                          </p>
+                          <div className="mt-4 flex items-end gap-2">
+                            <span className="text-foreground/20 line-through" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>
+                              {product.price}
+                            </span>
+                            <span className="text-primary" style={{ fontFamily: "var(--font-family-inter)", fontSize: "22px", fontWeight: "700" }}>
+                              R$ 0,00
+                            </span>
+                          </div>
+                          <div className="mt-4 flex items-center justify-between">
+                            <span className="text-foreground/35" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.14em" }}>
+                              PRESENTE PCYES
+                            </span>
+                            <span className="text-primary" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "700", letterSpacing: "0.08em" }}>
+                              SELECIONAR
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between border-t border-foreground/5 px-8 py-5">
+                    <button
+                      onClick={() => { setGiftModalOpen(false); setGiftDismissed(true); }}
+                      className="text-foreground/35 transition-colors hover:text-foreground/60 cursor-pointer"
+                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: "600", letterSpacing: "0.08em" }}
+                    >
+                      AGORA NÃO
+                    </button>
+                    <p className="text-foreground/25" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>
+                      Você pode abrir essa seleção novamente pelo carrinho enquanto mantiver o subtotal elegível.
+                    </p>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </>
       )}
     </AnimatePresence>
