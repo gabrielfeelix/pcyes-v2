@@ -546,8 +546,8 @@ export function Navbar() {
       </div>
     );
 
-    const elevatedCardClass = "group relative grid h-full min-h-[270px] grid-rows-[150px_auto] overflow-hidden rounded-[24px] border border-foreground/8 bg-linear-to-b from-foreground/[0.05] to-transparent p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-[0_24px_80px_rgba(0,0,0,0.16)]";
-    const layoutElevatedCardClass = "group relative grid h-full min-h-[290px] grid-rows-[170px_auto] overflow-hidden rounded-[24px] border border-foreground/8 bg-linear-to-b from-foreground/[0.05] to-transparent p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-[0_24px_80px_rgba(0,0,0,0.16)]";
+    const elevatedCardClass = "group relative grid h-full min-h-[270px] grid-rows-[150px_auto] overflow-hidden rounded-[24px] border border-foreground/8 bg-linear-to-b from-foreground/[0.05] to-transparent p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[0_24px_80px_rgba(255,43,46,0.12)]";
+    const layoutElevatedCardClass = "group relative grid h-full min-h-[290px] grid-rows-[170px_auto] overflow-hidden rounded-[24px] border border-foreground/8 bg-linear-to-b from-foreground/[0.05] to-transparent p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[0_24px_80px_rgba(255,43,46,0.12)]";
 
     const showcaseCard = (
       href: string,
@@ -565,18 +565,18 @@ export function Navbar() {
       return (
       <Link to={resolveMenuHref(href)} onClick={() => setActiveMega(null)} className={elevatedCardClass}>
         {badge && (
-          <span className="absolute right-4 top-4 z-20 rounded-full bg-primary px-2.5 py-1 text-primary-foreground"
+          <span className="absolute right-4 top-4 z-20 rounded-full bg-primary px-2.5 py-1 text-primary-foreground shadow-[0_0_15px_rgba(255,43,46,0.5)]"
             style={{ fontFamily: "var(--font-family-inter)", fontSize: "9px", fontWeight: "700", letterSpacing: "0.08em" }}>
             {badge}
           </span>
         )}
-        <div className="relative flex h-full items-center justify-center overflow-hidden rounded-[20px] border border-foreground/8 bg-foreground/[0.04] px-4 py-5">
-          <div className="absolute inset-4 rounded-full bg-primary/8 blur-3xl" />
+        <div className="relative flex h-full items-center justify-center overflow-hidden rounded-[20px] border border-foreground/8 bg-foreground/[0.04] px-4 py-5 transition-colors group-hover:bg-primary/[0.02]">
+          <div className="absolute inset-4 rounded-full bg-primary/10 blur-3xl opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
           {visualSrc ? (
             <ImageWithFallback
               src={visualSrc}
               alt={title}
-              className="relative h-full w-full object-contain drop-shadow-[0_18px_32px_rgba(0,0,0,0.3)] transition-transform duration-500 group-hover:scale-[1.04]"
+              className="relative h-full w-full object-contain drop-shadow-[0_18px_32px_rgba(0,0,0,0.3)] transition-transform duration-500 group-hover:scale-[1.08] group-hover:-translate-y-1"
               loading="eager"
               referrerPolicy="no-referrer"
             />
@@ -588,7 +588,7 @@ export function Navbar() {
         </div>
         <div className="flex h-full flex-col justify-end pt-4">
           {meta && (
-            <span className="mb-2 text-foreground/30" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "600", letterSpacing: "0.14em" }}>
+            <span className="mb-2 text-foreground/40 font-medium" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", letterSpacing: "0.05em" }}>
               {meta}
             </span>
           )}
@@ -596,7 +596,7 @@ export function Navbar() {
             {title}
           </p>
           {subtitle && (
-            <p className="mt-2 text-foreground/42" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
+            <p className="mt-2 text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
               {subtitle}
             </p>
           )}
@@ -613,17 +613,52 @@ export function Navbar() {
       <Link
         to={href}
         onClick={() => setActiveMega(null)}
-        className="group rounded-[22px] border border-foreground/8 bg-foreground/[0.03] px-4 py-4 transition-all duration-300 hover:border-primary/20 hover:bg-foreground/[0.05]"
+        className="group flex h-full rounded-[22px] border border-foreground/8 bg-foreground/[0.03] px-4 py-4 transition-all duration-300 hover:border-primary/30 hover:bg-foreground/[0.05] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(255,43,46,0.08)]"
       >
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl border border-foreground/8 bg-background/70 text-primary/75">
+        <div className="flex items-start gap-3 w-full">
+          <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl border border-foreground/8 bg-background/70 text-primary/75 transition-colors duration-300 group-hover:bg-primary group-hover:text-white">
             {icon ?? <ArrowUpRight size={15} />}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-foreground/85 transition-colors group-hover:text-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "600" }}>
               {title}
             </p>
             <p className="mt-1 text-foreground/40" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", lineHeight: 1.45 }}>
+              {subtitle}
+            </p>
+          </div>
+        </div>
+      </Link>
+    );
+
+    const getIconForConceptual = (index: number) => {
+      const icons = [<Monitor size={80} />, <Cpu size={80} />, <Box size={80} />, <Radio size={80} />, <Grid2x2 size={80} />];
+      return icons[index % icons.length];
+    };
+
+    const conceptualLinkCard = (
+      href: string,
+      title: string,
+      subtitle: string,
+      icon: ReactNode,
+    ) => (
+      <Link
+        to={href}
+        onClick={() => setActiveMega(null)}
+        className="group relative overflow-hidden flex h-full flex-col rounded-[22px] border border-foreground/8 bg-foreground/[0.03] px-5 py-5 transition-all duration-300 hover:border-primary/30 hover:bg-foreground/[0.05] hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(255,43,46,0.08)]"
+      >
+        <div className="absolute -bottom-6 -right-6 text-foreground opacity-[0.03] transition-all duration-500 group-hover:text-primary group-hover:opacity-10 group-hover:scale-110 group-hover:-rotate-6">
+          {icon}
+        </div>
+        <div className="relative z-10 flex flex-col items-start gap-3 flex-1">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-foreground/8 bg-background/70 text-primary/80 transition-all duration-500 group-hover:bg-primary group-hover:text-white group-hover:scale-110">
+            {icon ? React.cloneElement(icon as React.ReactElement, { size: 18 }) : <ArrowUpRight size={18} />}
+          </div>
+          <div className="mt-2">
+            <p className="text-foreground/90 transition-colors group-hover:text-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "15px", fontWeight: "600" }}>
+              {title}
+            </p>
+            <p className="mt-1.5 text-foreground/50" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
               {subtitle}
             </p>
           </div>
@@ -639,13 +674,13 @@ export function Navbar() {
       meta?: string,
     ) => (
       <Link to={resolveMenuHref(href)} onClick={() => setActiveMega(null)} className={layoutElevatedCardClass}>
-        <div className="relative flex h-full items-center justify-center overflow-hidden rounded-[20px] border border-foreground/8 bg-foreground/[0.035] px-4 py-4">
-          <div className="absolute inset-3 rounded-full bg-primary/8 blur-3xl" />
+        <div className="relative flex h-full items-center justify-center overflow-hidden rounded-[20px] border border-foreground/8 bg-foreground/[0.035] px-4 py-4 transition-colors group-hover:bg-primary/[0.02]">
+          <div className="absolute inset-3 rounded-full bg-primary/10 blur-3xl opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
           {image ? (
             <ImageWithFallback
               src={image}
               alt={title}
-              className="relative h-[132px] w-auto max-w-[92%] object-contain drop-shadow-[0_18px_32px_rgba(0,0,0,0.32)] transition-transform duration-500 group-hover:scale-[1.05]"
+              className="relative h-[132px] w-auto max-w-[92%] object-contain drop-shadow-[0_18px_32px_rgba(0,0,0,0.32)] transition-transform duration-500 group-hover:scale-[1.08] group-hover:-translate-y-1"
               loading="eager"
               referrerPolicy="no-referrer"
             />
@@ -664,49 +699,64 @@ export function Navbar() {
           <p className="text-foreground transition-colors group-hover:text-primary" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "20px", fontWeight: "600", lineHeight: 1.05 }}>
             {title}
           </p>
-          <p className="mt-2 text-foreground/42" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
+          <p className="mt-2 text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
             {subtitle}
           </p>
         </div>
       </Link>
     );
 
+    const containerVariants = {
+      hidden: { opacity: 0 },
+      show: { opacity: 1, transition: { staggerChildren: 0.04 } }
+    };
+    const itemVariants = {
+      hidden: { opacity: 0, y: 15 },
+      show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }
+    };
+
     if (panel.type === "products") {
       const featured = panel.products.slice(0, 3);
       const quick = panel.products.slice(3, 7);
+      
       return (
-        <div className="flex h-full flex-col">
-          {panelHeader(panel.title, "Produtos em destaque acima e atalhos rápidos abaixo, com uma leitura mais estável e visualmente forte.")}
+        <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex h-full flex-col">
+          <motion.div variants={itemVariants}>
+            {panelHeader(panel.title, "Produtos em destaque acima e atalhos rápidos abaixo, com uma leitura mais estável e visualmente forte.")}
+          </motion.div>
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
             {featured.map((p) => (
-              <div key={`${p.id}-${p.subtitle}`} className="min-h-[190px]">
+              <motion.div key={`${p.id}-${p.subtitle}`} variants={itemVariants} className="min-h-[190px]">
                 {showcaseCard(`/produto/${p.id}`, p.name, p.subtitle, p.image, p.price, p.badge)}
-              </div>
+              </motion.div>
             ))}
           </div>
-          <div className="mt-5 grid flex-1 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className={`mt-5 grid flex-1 grid-cols-1 gap-4 md:grid-cols-2 ${quick.length > 0 ? "xl:grid-cols-4" : "xl:grid-cols-3"}`}>
             {quick.map((p) => (
-              <div key={`quick-${p.id}-${p.subtitle}`}>
+              <motion.div key={`quick-${p.id}-${p.subtitle}`} variants={itemVariants}>
                 {compactLinkCard(`/produto/${p.id}`, p.name, `${p.subtitle} · ${p.price}`, <ArrowUpRight size={15} />)}
-              </div>
+              </motion.div>
             ))}
-            <Link
-              to={resolveMenuHref(activeSubData?.href)}
-              onClick={() => setActiveMega(null)}
-              className="group rounded-[22px] border border-primary/20 bg-primary/[0.08] px-5 py-4 transition-all duration-300 hover:bg-primary/[0.12]"
-            >
-              <p className="text-primary" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.18em" }}>
-                EXPLORAR
-              </p>
-              <p className="mt-3 text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "22px", fontWeight: "600", lineHeight: 1.05 }}>
-                Ver toda a coleção
-              </p>
-              <p className="mt-2 text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
-                Abrir a categoria completa com todos os modelos disponíveis.
-              </p>
-            </Link>
+            <motion.div variants={itemVariants} className={quick.length === 0 ? "xl:col-start-2 xl:col-span-1" : ""}>
+              <Link
+                to={resolveMenuHref(activeSubData?.href)}
+                onClick={() => setActiveMega(null)}
+                className="group flex h-full min-h-[90px] flex-col justify-center rounded-[22px] border border-primary/20 bg-primary/[0.05] px-5 py-4 transition-all duration-300 hover:bg-primary/[0.10] hover:shadow-[0_8px_24px_rgba(255,43,46,0.12)] hover:-translate-y-0.5"
+              >
+                <p className="text-primary" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.18em" }}>
+                  EXPLORAR
+                </p>
+                <p className="mt-2 text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "18px", fontWeight: "600", lineHeight: 1.1 }}>
+                  Ver toda a coleção
+                </p>
+                <div className="mt-2 flex items-center gap-2 text-primary/80 group-hover:text-primary transition-colors">
+                  <span style={{ fontSize: "12px", fontWeight: "500" }}>Acessar catálogo</span>
+                  <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </div>
+              </Link>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       );
     }
 
@@ -716,168 +766,196 @@ export function Navbar() {
         const featured = panel.layouts.slice(0, 3);
         const quick = panel.layouts.slice(3, 8);
         return (
-          <div className="flex h-full flex-col">
-            {panelHeader(panel.title, "Subcategorias visuais com imagem forte e cartões elevados para acelerar o reconhecimento do formato ideal.")}
+          <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex h-full flex-col">
+            <motion.div variants={itemVariants}>
+              {panelHeader(panel.title, "Subcategorias visuais com imagem forte e cartões elevados para acelerar o reconhecimento do formato ideal.")}
+            </motion.div>
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
               {featured.map((l) => (
-                <div key={l.label} className="min-h-[190px]">
+                <motion.div key={l.label} variants={itemVariants} className="min-h-[190px]">
                   {showcaseLayoutCard(l.href, l.label, l.desc, l.image, "SUBCATEGORIA")}
-                </div>
+                </motion.div>
               ))}
             </div>
             <div className="mt-5 grid flex-1 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {quick.map((l) => (
-                <div key={`layout-${l.label}`}>
+                <motion.div key={`layout-${l.label}`} variants={itemVariants}>
                   {compactLinkCard(l.href, l.label, l.desc, <Grid2x2 size={15} />)}
-                </div>
+                </motion.div>
               ))}
-              <div className="rounded-[22px] border border-dashed border-foreground/12 bg-transparent px-5 py-4">
+              <motion.div variants={itemVariants} className="rounded-[22px] border border-dashed border-foreground/15 bg-transparent px-5 py-4 flex flex-col justify-center">
                 <p className="text-foreground/35" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.16em" }}>
                   COMO ESCOLHER
                 </p>
-                <p className="mt-3 text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "21px", fontWeight: "600", lineHeight: 1.08 }}>
+                <p className="mt-2 text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "18px", fontWeight: "600", lineHeight: 1.1 }}>
                   Navegue pelo formato que combina com o seu setup
                 </p>
-                <p className="mt-2 text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
-                  Layout, tamanho e uso ficam mais fáceis de comparar quando cada opção tem identidade própria.
-                </p>
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         );
       }
       const conceptualGridClass = panel.layouts.length <= 4 ? "grid flex-1 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-2" : "grid flex-1 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3";
+      
       return (
-        <div className="flex h-full flex-col">
-          {panelHeader(panel.title, "Uma estrutura fixa e previsível para categorias conceituais, com blocos rápidos em vez de listas soltas.")}
+        <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex h-full flex-col">
+          <motion.div variants={itemVariants}>
+            {panelHeader(panel.title, "Uma estrutura fixa e previsível para categorias conceituais, com blocos rápidos em vez de listas soltas.")}
+          </motion.div>
           <div className={conceptualGridClass}>
             {panel.layouts.map((l, index) => (
-              <div key={l.label}>
-                {compactLinkCard(
+              <motion.div key={l.label} variants={itemVariants}>
+                {conceptualLinkCard(
                   l.href,
                   l.label,
                   l.desc,
-                  index % 4 === 0 ? <Monitor size={15} /> : index % 4 === 1 ? <Cpu size={15} /> : index % 4 === 2 ? <Box size={15} /> : <Radio size={15} />,
+                  getIconForConceptual(index),
                 )}
-              </div>
+              </motion.div>
             ))}
-            <Link
-              to={resolveMenuHref(activeSubData?.href)}
-              onClick={() => setActiveMega(null)}
-              className="group rounded-[22px] border border-primary/20 bg-primary/[0.08] px-5 py-4 transition-all duration-300 hover:bg-primary/[0.12]"
-            >
-              <p className="text-primary" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.18em" }}>
-                VER TUDO
-              </p>
-              <p className="mt-3 text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "21px", fontWeight: "600", lineHeight: 1.05 }}>
-                Abrir categoria completa
-              </p>
-              <p className="mt-2 text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
-                Continue a exploração com todos os filtros e produtos disponíveis.
-              </p>
-            </Link>
+            <motion.div variants={itemVariants}>
+              <Link
+                to={resolveMenuHref(activeSubData?.href)}
+                onClick={() => setActiveMega(null)}
+                className="group flex h-full min-h-[110px] flex-col justify-center rounded-[22px] border border-primary/20 bg-primary/[0.05] px-6 py-5 transition-all duration-300 hover:bg-primary/[0.10] hover:shadow-[0_12px_32px_rgba(255,43,46,0.12)] hover:-translate-y-0.5"
+              >
+                <p className="text-primary" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.18em" }}>
+                  VER TUDO
+                </p>
+                <p className="mt-2 text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "21px", fontWeight: "600", lineHeight: 1.05 }}>
+                  Abrir categoria completa
+                </p>
+                <p className="mt-2 text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
+                  Continue a exploração com todos os filtros e produtos disponíveis.
+                </p>
+                <div className="mt-4 flex items-center gap-2 text-primary group-hover:text-primary transition-colors">
+                  <span style={{ fontSize: "12px", fontWeight: "600" }}>Acessar</span>
+                  <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </div>
+              </Link>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       );
     }
 
     if (panel.type === "featured") {
       return (
-        <div className="flex h-full flex-col">
-          {panelHeader(panel.title, "Destacamos o universo da categoria com uma peça principal e um acesso mais elegante para continuar a navegação.")}
-          <Link to={resolveMenuHref(panel.href)} onClick={() => setActiveMega(null)} className="group grid h-full min-h-[360px] grid-cols-1 gap-5 overflow-hidden rounded-[32px] border border-foreground/8 bg-linear-to-br from-foreground/[0.04] via-transparent to-primary/[0.06] p-6 xl:grid-cols-[1.1fr_1fr]">
-            <div className="flex h-full flex-col justify-between">
-              <div>
-                <p className="text-primary" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.18em" }}>
-                  DESTAQUE
-                </p>
-                <p className="mt-4 text-foreground transition-colors group-hover:text-primary" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "38px", fontWeight: "600", lineHeight: 0.95 }}>
-                  {panel.name}
-                </p>
-                <p className="mt-4 max-w-[460px] text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", lineHeight: 1.6 }}>
-                  {panel.desc}
-                </p>
+        <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex h-full flex-col">
+          <motion.div variants={itemVariants}>
+            {panelHeader(panel.title, "Destacamos o universo da categoria com uma peça principal e um acesso mais elegante para continuar a navegação.")}
+          </motion.div>
+          <motion.div variants={itemVariants} className="flex-1">
+            <Link to={resolveMenuHref(panel.href)} onClick={() => setActiveMega(null)} className="group grid h-full min-h-[360px] grid-cols-1 gap-5 overflow-hidden rounded-[32px] border border-foreground/8 bg-linear-to-br from-foreground/[0.04] via-transparent to-primary/[0.06] p-6 transition-all duration-500 hover:border-primary/30 hover:shadow-[0_24px_80px_rgba(255,43,46,0.15)] xl:grid-cols-[1.1fr_1fr]">
+              <div className="flex h-full flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                    </span>
+                    <p className="text-primary" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.18em" }}>
+                      DESTAQUE ESPECIAL
+                    </p>
+                  </div>
+                  <p className="text-foreground transition-colors group-hover:text-primary" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "42px", fontWeight: "700", lineHeight: 0.95 }}>
+                    {panel.name}
+                  </p>
+                  <p className="mt-5 max-w-[460px] text-foreground/50" style={{ fontFamily: "var(--font-family-inter)", fontSize: "15px", lineHeight: 1.6 }}>
+                    {panel.desc}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-primary mt-6">
+                  <span style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "700", letterSpacing: "0.12em" }}>
+                    EXPLORAR UNIVERSO
+                  </span>
+                  <ArrowUpRight size={16} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-primary">
-                <span style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: "700", letterSpacing: "0.12em" }}>
-                  VER COLEÇÃO
-                </span>
-                <ArrowUpRight size={14} />
+              <div className="relative flex min-h-[260px] items-center justify-center rounded-[28px] border border-foreground/8 bg-background/60 p-6 overflow-hidden">
+                <div className="absolute inset-0 rounded-full bg-primary/10 blur-3xl opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
+                <ImageWithFallback src={panel.image} alt={panel.name} className="relative z-10 h-full max-h-[320px] w-auto max-w-[120%] object-contain drop-shadow-[0_28px_40px_rgba(0,0,0,0.4)] transition-transform duration-700 group-hover:scale-[1.1] group-hover:-translate-x-2 group-hover:-translate-y-2" loading="eager" referrerPolicy="no-referrer" />
               </div>
-            </div>
-            <div className="relative flex min-h-[260px] items-center justify-center rounded-[28px] border border-foreground/8 bg-background/60 p-6">
-              <div className="absolute inset-8 rounded-full bg-primary/10 blur-3xl" />
-              <ImageWithFallback src={panel.image} alt={panel.name} className="relative h-full max-h-[280px] w-auto max-w-full object-contain drop-shadow-[0_28px_40px_rgba(0,0,0,0.3)] transition-transform duration-700 group-hover:scale-[1.03]" loading="eager" referrerPolicy="no-referrer" />
-            </div>
-          </Link>
-        </div>
+            </Link>
+          </motion.div>
+        </motion.div>
       );
     }
 
     if (panel.type === "downloads") {
       return (
-        <div className="flex h-full flex-col">
-          {panelHeader(panel.title, "Documentos e drivers organizados em cards estáveis, evitando aquele sobe-e-desce de altura a cada categoria.")}
+        <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex h-full flex-col">
+          <motion.div variants={itemVariants}>
+            {panelHeader(panel.title, "Documentos e drivers organizados em cards estáveis, evitando aquele sobe-e-desce de altura a cada categoria.")}
+          </motion.div>
           <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {panel.items.map((item) => (
-              isPlaceholderHref(item.href) ? (
-                <div
-                  key={item.name}
-                  className="rounded-[22px] border border-foreground/8 bg-foreground/[0.03] px-5 py-4"
-                >
-                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-foreground/8 bg-background/70">
-                    {item.name.toLowerCase().includes("manual") || item.name.toLowerCase().includes("guia")
-                      ? <FileText size={16} className="text-primary/75" />
-                      : <Download size={16} className="text-primary/75" />
-                    }
+            {panel.items.map((item) => {
+              const isPdf = item.name.toLowerCase().includes("manual") || item.name.toLowerCase().includes("guia");
+              const badgeText = isPdf ? "PDF" : "EXE";
+              
+              const innerCard = (
+                <div className="flex flex-col h-full">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-[18px] border border-foreground/8 bg-background/70 transition-transform duration-300 group-hover:-translate-y-1 group-hover:bg-primary/10">
+                      {isPdf
+                        ? <FileText size={18} className="text-primary/75 group-hover:text-primary transition-colors" />
+                        : <Download size={18} className="text-primary/75 group-hover:text-primary transition-colors" />
+                      }
+                    </div>
+                    <span className="px-2 py-0.5 rounded text-foreground/40 bg-foreground/5 border border-foreground/10" style={{ fontSize: "9px", fontWeight: "700", letterSpacing: "0.1em" }}>
+                      {badgeText}
+                    </span>
                   </div>
-                  <p className="text-foreground/85" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "600", lineHeight: 1.45 }}>
-                    {item.name}
-                  </p>
-                  <p className="mt-2 text-foreground/38" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", lineHeight: 1.5 }}>
-                    {item.version} · {item.date}
-                  </p>
+                  <div className="flex-1">
+                    <p className="text-foreground/85 transition-colors group-hover:text-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", fontWeight: "600", lineHeight: 1.45 }}>
+                      {item.name}
+                    </p>
+                    <p className="mt-2 text-foreground/40" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", lineHeight: 1.5 }}>
+                      {item.version} · {item.date}
+                    </p>
+                  </div>
                 </div>
-              ) : (
-                <a
+              );
+
+              return isPlaceholderHref(item.href) ? (
+                <motion.div
                   key={item.name}
-                  href={item.href}
-                  className="group rounded-[22px] border border-foreground/8 bg-foreground/[0.03] px-5 py-4 transition-all duration-300 hover:border-primary/20 hover:bg-foreground/[0.05]"
+                  variants={itemVariants}
+                  className="group rounded-[24px] border border-foreground/8 bg-foreground/[0.03] px-6 py-5 transition-all duration-300 hover:border-primary/30 hover:bg-foreground/[0.05] hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(255,43,46,0.05)] cursor-pointer"
                 >
-                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-foreground/8 bg-background/70">
-                    {item.name.toLowerCase().includes("manual") || item.name.toLowerCase().includes("guia")
-                      ? <FileText size={16} className="text-primary/75" />
-                      : <Download size={16} className="text-primary/75" />
-                    }
-                  </div>
-                  <p className="text-foreground/85 transition-colors group-hover:text-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "600", lineHeight: 1.45 }}>
-                    {item.name}
-                  </p>
-                  <p className="mt-2 text-foreground/38" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", lineHeight: 1.5 }}>
-                    {item.version} · {item.date}
-                  </p>
-                </a>
+                  {innerCard}
+                </motion.div>
+              ) : (
+                <motion.a
+                  key={item.name}
+                  variants={itemVariants}
+                  href={item.href}
+                  className="group rounded-[24px] border border-foreground/8 bg-foreground/[0.03] px-6 py-5 transition-all duration-300 hover:border-primary/30 hover:bg-foreground/[0.05] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(255,43,46,0.1)]"
+                >
+                  {innerCard}
+                </motion.a>
               )
-            ))}
-            <Link to="/fale-conosco" onClick={() => setActiveMega(null)} className="rounded-[22px] border border-primary/20 bg-primary/[0.08] px-5 py-4 transition-all duration-300 hover:bg-primary/[0.12]">
-              <p className="text-primary" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.18em" }}>
-                CENTRAL
-              </p>
-              <p className="mt-3 text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "22px", fontWeight: "600", lineHeight: 1.05 }}>
-                Ver todos os downloads
-              </p>
-              <p className="mt-2 text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
-                Acesse a biblioteca completa de drivers, manuais e utilitários.
-              </p>
-            </Link>
+            })}
+            <motion.div variants={itemVariants}>
+              <Link to="/fale-conosco" onClick={() => setActiveMega(null)} className="group flex h-full min-h-[140px] flex-col justify-center rounded-[24px] border border-primary/20 bg-primary/[0.05] px-6 py-5 transition-all duration-300 hover:bg-primary/[0.10] hover:shadow-[0_12px_32px_rgba(255,43,46,0.12)] hover:-translate-y-0.5">
+                <p className="text-primary" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.18em" }}>
+                  CENTRAL DE SUPORTE
+                </p>
+                <p className="mt-2 text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "20px", fontWeight: "600", lineHeight: 1.1 }}>
+                  Ver todos os downloads
+                </p>
+                <p className="mt-2 text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
+                  Acesse a biblioteca completa de drivers, manuais e utilitários.
+                </p>
+              </Link>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       );
     }
 
     return null;
   };
-
   const activeMegaData = activeMega ? megaMenus[activeMega] : null;
   const activeSubData = activeMegaData?.subItems.find((s) => s.label === activeSubItem);
 
@@ -957,7 +1035,10 @@ export function Navbar() {
             >
               {navItems.filter(item => ["Novidades", "Hardware", "Periféricos", "Computadores", "PC Gamer", "Collab", "Monte seu PC", "Drivers e Manuais"].includes(item.label)).map((item) => (
                 <div key={item.label}
-                  onMouseEnter={() => item.mega && handleMegaEnter(item.mega)}
+                  onMouseEnter={() => {
+                    if (item.mega) handleMegaEnter(item.mega);
+                    else { if (megaTimeout.current) clearTimeout(megaTimeout.current); setActiveMega(null); }
+                  }}
                   onMouseLeave={handleMegaLeave}
                   className="flex items-center h-full"
                 >
@@ -1003,7 +1084,10 @@ export function Navbar() {
           >
             {navItems.map((item) => (
               <div key={item.label}
-                onMouseEnter={() => item.mega && handleMegaEnter(item.mega)}
+                onMouseEnter={() => {
+                    if (item.mega) handleMegaEnter(item.mega);
+                    else { if (megaTimeout.current) clearTimeout(megaTimeout.current); setActiveMega(null); }
+                  }}
                 onMouseLeave={handleMegaLeave}
               >
                 {!isPlaceholderHref(item.href) ? (
@@ -1055,8 +1139,8 @@ export function Navbar() {
                                   }`}
                                 style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: isActive ? "500" : "400" }}
                               >
-                                <span className={`absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary transition-opacity ${isActive ? "opacity-100" : "opacity-0"}`} />
-                                <span>{sub.label}</span>
+                                <span className={`absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary transition-all duration-300 ${isActive ? "opacity-100 shadow-[0_0_10px_rgba(255,43,46,0.8)]" : "opacity-0"}`} />
+                                <span className={`transition-transform duration-300 ${isActive ? "translate-x-1 font-medium text-foreground" : "group-hover:translate-x-1"}`}>{sub.label}</span>
                                 <ChevronRight size={13} className={`flex-shrink-0 transition-all ${isActive ? "translate-x-0 opacity-60" : "-translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-40"}`} />
                               </button>
                             ) : (
@@ -1070,8 +1154,8 @@ export function Navbar() {
                                   }`}
                                 style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: isActive ? "500" : "400" }}
                               >
-                                <span className={`absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary transition-opacity ${isActive ? "opacity-100" : "opacity-0"}`} />
-                                <span>{sub.label}</span>
+                                <span className={`absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary transition-all duration-300 ${isActive ? "opacity-100 shadow-[0_0_10px_rgba(255,43,46,0.8)]" : "opacity-0"}`} />
+                                <span className={`transition-transform duration-300 ${isActive ? "translate-x-1 font-medium text-foreground" : "group-hover:translate-x-1"}`}>{sub.label}</span>
                                 <ChevronRight size={13} className={`flex-shrink-0 transition-all ${isActive ? "translate-x-0 opacity-60" : "-translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-40"}`} />
                               </Link>
                             )}
