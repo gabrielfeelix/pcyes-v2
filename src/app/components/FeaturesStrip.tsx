@@ -15,9 +15,10 @@ export function FeaturesStrip() {
   const isInView = useInView(ref, { once: true, amount: 0.3 });
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
+  const backgroundColor = isDark ? "#cfcfd3" : "#d9d9dd";
 
   return (
-    <section ref={ref} className="py-24 border-y border-black/8" style={{ background: "#ffffff" }}>
+    <section ref={ref} className="py-24 border-y border-black/8" style={{ background: backgroundColor }}>
       <div className="max-w-[1300px] mx-auto px-8 md:px-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-16">
         {features.map((f, i) => (
           <motion.div
