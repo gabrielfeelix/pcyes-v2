@@ -145,6 +145,8 @@ export function ProductCarousel({
                     className="w-full h-full object-contain p-7 group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
                   />
 
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-500" />
+
                   {product.badge && (
                     <span
                       className="absolute top-4 left-4 bg-primary text-primary-foreground px-3 py-1"
@@ -154,21 +156,27 @@ export function ProductCarousel({
                     </span>
                   )}
 
-                  <div className="absolute bottom-4 right-4 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400">
+                  <div className="absolute bottom-4 left-4 right-4 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400">
                     <button
-                      className="w-11 h-11 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors duration-300"
+                      className="w-full py-2.5 bg-white/95 backdrop-blur-sm text-black flex items-center justify-center gap-2 hover:bg-primary hover:text-white transition-colors duration-300"
+                      style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: "var(--font-weight-medium)" }}
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); addItem(product); }}
                     >
-                      <ShoppingBag size={16} strokeWidth={1.5} />
+                      <ShoppingBag size={13} strokeWidth={1.5} />
+                      Adicionar
                     </button>
                   </div>
 
-                  <div className="absolute top-4 right-4 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400">
+                  <div className="absolute top-4 right-4 opacity-100 transition-all duration-300">
                     <button
-                      className="w-11 h-11 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors duration-300"
+                      className="w-9 h-9 bg-black/35 backdrop-blur-sm border border-white/10 rounded-full flex items-center justify-center text-white/85 hover:text-white hover:bg-black/50 transition-all duration-300"
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); addFavorite({ id: product.id, name: product.name, price: product.price, image: product.image }); }}
                     >
-                      <Heart size={16} strokeWidth={1.5} />
+                      <Heart
+                        size={14}
+                        className="text-current"
+                        strokeWidth={1.6}
+                      />
                     </button>
                   </div>
                 </div>
