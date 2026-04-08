@@ -2,7 +2,7 @@ import { useMemo, useRef } from "react";
 import { motion, useInView } from "motion/react";
 import { useTheme } from "./ThemeProvider";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import { ShoppingBag, Heart, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShoppingBag, Heart, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { useCart } from "./CartContext";
 import { useFavorites } from "./FavoritesContext";
 import { Link } from "react-router";
@@ -42,9 +42,22 @@ export function ProductCarousel({
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
-      const { clientWidth } = scrollRef.current;
+      const { clientWidth, scrollLeft, scrollWidth } = scrollRef.current;
       const scrollAmount = clientWidth > 768 ? 400 : clientWidth;
-      scrollRef.current.scrollBy({ left: direction === "left" ? -scrollAmount : scrollAmount, behavior: "smooth" });
+
+      if (direction === "left") {
+        if (scrollLeft <= 0) {
+           scrollRef.current.scrollTo({ left: scrollWidth, behavior: "smooth" });
+        } else {
+           scrollRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+        }
+      } else {
+        if (scrollLeft + clientWidth >= scrollWidth - 10) {
+           scrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
+        } else {
+           scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+        }
+      }
     }
   };
 
@@ -125,7 +138,7 @@ export function ProductCarousel({
               className="group relative block w-[300px] flex-shrink-0 cursor-pointer snap-center md:w-[360px]"
             >
               <Link to={`/produto/${product.id}`} className="block">
-                <div className="relative mb-6 aspect-square overflow-hidden" style={{ borderRadius: "var(--radius-card)", background: isDark ? "#1a1a1c" : "#f5f5f5" }}>
+                <div className="relative mb-4 aspect-square overflow-hidden" style={{ borderRadius: "var(--radius-card)", background: isDark ? "#1a1a1c" : "#f5f5f5" }}>
                   <ImageWithFallback
                     src={product.image}
                     alt={product.name}
@@ -161,18 +174,31 @@ export function ProductCarousel({
                 </div>
               </Link>
 
-              <p className="mb-1.5 text-foreground/45 tracking-wide" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "600", letterSpacing: "0.08em" }}>
-                {product.category.toUpperCase()}
-              </p>
-              <div className="flex items-baseline justify-between gap-4">
-                <Link to={`/produto/${product.id}`} className="min-w-0">
-                  <p className="truncate text-foreground group-hover:text-primary transition-colors duration-300" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "20px", fontWeight: "var(--font-weight-medium)" }}>
+              <div className="px-1">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Star size={11} className="fill-primary text-primary" />
+                  <span className="text-foreground/60" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>
+                    {product.rating}
+                  </span>
+                  <span className="text-foreground/25" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>
+                    ({product.reviews})
+                  </span>
+                </div>
+                <Link to={`/produto/${product.id}`}>
+                  <p className="text-foreground group-hover:text-primary transition-colors duration-300 mb-1.5 truncate" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "16px", fontWeight: "var(--font-weight-medium)" }}>
                     {product.name}
                   </p>
                 </Link>
-                <p className="flex-shrink-0 text-foreground/60" style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px", fontWeight: "var(--font-weight-normal)" }}>
-                  {product.price}
-                </p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-foreground/60" style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-sm)" }}>
+                    {product.price}
+                  </p>
+                  {product.oldPrice && (
+                    <p className="text-foreground/30 line-through" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>
+                      {product.oldPrice}
+                    </p>
+                  )}
+                </div>
               </div>
             </motion.div>
           ))}
