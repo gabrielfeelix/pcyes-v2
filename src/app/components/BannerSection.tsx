@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router";
 import { motion } from "motion/react";
 
 const backgroundImage =
@@ -14,7 +13,6 @@ const lerp = (start: number, end: number, progress: number) => start + (end - st
 export function BannerSection() {
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [showContent, setShowContent] = useState(false);
   const [mediaFullyExpanded, setMediaFullyExpanded] = useState(false);
   const [touchStartY, setTouchStartY] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -81,7 +79,6 @@ export function BannerSection() {
       const next = clamp(scrollProgress + delta, 0, 1);
       setScrollProgress(next);
       setMediaFullyExpanded(next >= 1);
-      setShowContent(next >= 0.62);
     };
 
     const handleWheel = (e: WheelEvent) => {
@@ -233,73 +230,6 @@ export function BannerSection() {
           </motion.h2>
         </div>
 
-        <motion.div
-          className="absolute inset-x-0 bottom-0 z-30 px-5 pb-8 md:px-8 md:pb-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: showContent ? 1 : 0, y: showContent ? 0 : 24 }}
-          transition={{ duration: 0.45 }}
-        >
-          <div className="mx-auto flex max-w-[1300px] justify-start">
-            <div className="max-w-[520px] rounded-[30px] border border-white/10 bg-black/45 p-6 backdrop-blur-xl md:p-8">
-              <p
-                className="mb-3 text-primary"
-                style={{
-                  fontFamily: "var(--font-family-inter)",
-                  fontSize: "11px",
-                  fontWeight: "var(--font-weight-bold)",
-                  letterSpacing: "0.22em",
-                }}
-              >
-                SETUP GAMER
-              </p>
-              <h3
-                className="mb-4 text-white"
-                style={{
-                  fontFamily: "var(--font-family-figtree)",
-                  fontSize: "clamp(28px, 4vw, 44px)",
-                  fontWeight: 600,
-                  lineHeight: 1.02,
-                }}
-              >
-                Performance, iluminação e presença em uma só experiência.
-              </h3>
-              <p
-                className="mb-7 text-white/62"
-                style={{
-                  fontFamily: "var(--font-family-inter)",
-                  fontSize: "14px",
-                  lineHeight: 1.7,
-                }}
-              >
-                De placas de vídeo a periféricos, monte um setup completo com atmosfera gamer e produtos que conversam entre si.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  to="/produtos"
-                  className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-black transition-all duration-300 hover:bg-primary hover:text-white"
-                  style={{
-                    fontFamily: "var(--font-family-inter)",
-                    fontSize: "13px",
-                    fontWeight: "var(--font-weight-medium)",
-                  }}
-                >
-                  Explorar produtos
-                </Link>
-                <Link
-                  to="/produtos"
-                  className="inline-flex items-center justify-center rounded-full border border-white/12 bg-white/5 px-6 py-3 text-white/86 transition-all duration-300 hover:border-white/25 hover:bg-white/10"
-                  style={{
-                    fontFamily: "var(--font-family-inter)",
-                    fontSize: "13px",
-                    fontWeight: "var(--font-weight-medium)",
-                  }}
-                >
-                  Montar meu setup
-                </Link>
-              </div>
-            </div>
-          </div>
-        </motion.div>
       </div>
     </section>
   );
