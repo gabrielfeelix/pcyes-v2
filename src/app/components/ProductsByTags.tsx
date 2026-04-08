@@ -175,6 +175,11 @@ export function ProductsByTags() {
                   <p className="text-foreground/90" style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-sm)", fontWeight: "500" }}>
                     {product.price}
                   </p>
+                  {product.reviews > 150 && (
+                    <p className="text-foreground/25 mt-1" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px" }}>
+                      {product.reviews}+ vendidos
+                    </p>
+                  )}
                 </div>
               </motion.a>
             ))}

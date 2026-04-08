@@ -301,6 +301,11 @@ export function ProductCarousel({
                     </p>
                   )}
                 </div>
+                {product.reviews > 150 && (
+                  <p className="text-foreground/25 mt-1" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px" }}>
+                    {product.reviews}+ vendidos
+                  </p>
+                )}
               </div>
             </motion.div>
           ))}

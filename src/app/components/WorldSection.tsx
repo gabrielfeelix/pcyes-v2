@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { Link } from "react-router";
 
@@ -29,8 +30,25 @@ const videos = [
 ];
 
 export function WorldSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setLoaded(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "300px" }
+    );
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="py-20 md:py-24 px-5 md:px-8">
+    <section ref={sectionRef} className="py-20 md:py-24 px-5 md:px-8">
       <div className="max-w-[1300px] mx-auto">
         {/* Header */}
         <motion.div
@@ -89,17 +107,19 @@ export function WorldSection() {
               {/* Video container — zoomed in to fill, no black bars */}
               <Link
                 to={video.href}
-                className="block relative overflow-hidden aspect-[9/14] mb-6 cursor-pointer"
+                className="block relative overflow-hidden aspect-[9/14] mb-6 cursor-pointer bg-[#111]"
                 style={{ borderRadius: "var(--radius-card)" }}
               >
-                <iframe
-                  src={`https://www.youtube.com/embed/${video.id}?autoplay=1&mute=1&loop=1&playlist=${video.id}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&iv_load_policy=3&fs=0`}
-                  title={video.title}
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-                  style={{ border: "none", width: "300%", height: "200%", minWidth: "100%", minHeight: "100%" }}
-                  allow="autoplay; encrypted-media"
-                  allowFullScreen={false}
-                />
+                {loaded && (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${video.id}?autoplay=1&mute=1&loop=1&playlist=${video.id}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&iv_load_policy=3&fs=0`}
+                    title={video.title}
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                    style={{ border: "none", width: "300%", height: "200%", minWidth: "100%", minHeight: "100%" }}
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen={false}
+                  />
+                )}
                 {/* Hover overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 {/* CTA at bottom on hover */}

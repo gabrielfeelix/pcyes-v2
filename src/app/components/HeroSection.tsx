@@ -180,7 +180,7 @@ export function HeroSection() {
                   </div>
 
                   <p
-                    className="text-white/40 max-w-md mb-8"
+                    className="text-white/60 max-w-md mb-8"
                     style={{
                       fontFamily: "var(--font-family-inter)",
                       fontSize: "var(--text-base)",

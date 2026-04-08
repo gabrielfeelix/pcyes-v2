@@ -15,7 +15,15 @@ export function Newsletter() {
   const [email, setEmail] = useState("");
 
   return (
-    <section ref={ref} className="py-32 md:py-48 px-8 md:px-16">
+    <section ref={ref} className="py-32 md:py-48 px-8 md:px-16 relative" style={{ background: "#08080a" }}>
+      {/* Subtle dot-grid texture */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.18]"
+        style={{
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.35) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }}
+      />
       <motion.div
         initial={{ opacity: 0, y: 60 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
