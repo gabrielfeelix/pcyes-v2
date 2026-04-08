@@ -10,6 +10,7 @@ import { WorldSection } from "./WorldSection";
 import { InRealLifeSection } from "./InRealLifeSection";
 import { FeaturesStrip } from "./FeaturesStrip";
 import { Newsletter } from "./Newsletter";
+import { BannerSection } from "./BannerSection";
 import { Footer } from "./Footer";
 import { HeroSection } from "./HeroSection";
 
@@ -25,36 +26,6 @@ export function HomePage() {
 
       <ProductCarousel
         label="NOVIDADES"
-        title="Recém-chegados"
-        subtitle="Confira os últimos lançamentos que acabaram de chegar na loja. Equipamentos de última geração para elevar seu jogo."
-        productIds={recentArrivalIds}
-      />
-
-      <FeaturedProduct />
-
-      <div style={{ background: darkerBg }}>
-        <CategoryGrid />
-      </div>
-
-      <div style={{ background: darkBg }}>
-        <ProductsByTags />
-      </div>
-
-      <Marquee words={["Gabinetes", "Teclados", "Mouses", "Headsets", "Fontes", "Coolers", "Cadeiras", "Monitores"]} speed={50} separator="·" />
-
-      <PopularGrid />
-
-      <div style={{ background: darkBg }}>
-        <WorldSection />
-      </div>
-      <InRealLifeSection />
-
-      <FeaturesStrip />
-      <Newsletter />
-      <Footer />
-    </>
-  );
-}
         title="Recém chegados"
         subtitle="Seleção com imagens reais do catálogo PCYES para destacar o que acabou de entrar ou merece atenção agora."
         productIds={recentArrivalIds}
