@@ -48,7 +48,7 @@ export function BannerSection() {
   }, []);
 
   useEffect(() => {
-    if (isActive && !mediaFullyExpanded) {
+    if (isActive && !mediaFullyExpanded && scrollProgress > 0) {
       const previousBodyOverflow = document.body.style.overflow;
       const previousHtmlOverflow = document.documentElement.style.overflow;
       document.body.style.overflow = "hidden";
@@ -60,10 +60,10 @@ export function BannerSection() {
     }
 
     return;
-  }, [isActive, mediaFullyExpanded]);
+  }, [isActive, mediaFullyExpanded, scrollProgress]);
 
   useEffect(() => {
-    if (!isActive || mediaFullyExpanded) return;
+    if (!isActive || mediaFullyExpanded || scrollProgress <= 0) return;
 
     const section = sectionRef.current;
     if (!section) return;
@@ -72,7 +72,7 @@ export function BannerSection() {
     if (Math.abs(window.scrollY - snapTop) > 2) {
       window.scrollTo({ top: snapTop, behavior: "auto" });
     }
-  }, [isActive, mediaFullyExpanded]);
+  }, [isActive, mediaFullyExpanded, scrollProgress]);
 
   useEffect(() => {
     const updateProgress = (delta: number) => {
@@ -83,6 +83,9 @@ export function BannerSection() {
 
     const handleWheel = (e: WheelEvent) => {
       if (!isActive) return;
+
+      const shouldIntercept = e.deltaY > 0 || scrollProgress > 0;
+      if (!shouldIntercept) return;
 
       if (!mediaFullyExpanded || (e.deltaY < 0 && scrollProgress > 0)) {
         e.preventDefault();
@@ -100,6 +103,12 @@ export function BannerSection() {
 
       const touchY = e.touches[0].clientY;
       const deltaY = touchStartY - touchY;
+
+      const shouldIntercept = deltaY > 0 || scrollProgress > 0;
+      if (!shouldIntercept) {
+        setTouchStartY(touchY);
+        return;
+      }
 
       if (!mediaFullyExpanded || (deltaY < 0 && scrollProgress > 0)) {
         e.preventDefault();
