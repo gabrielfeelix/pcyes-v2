@@ -10,6 +10,7 @@ import { InRealLifeSection } from "./InRealLifeSection";
 import { FeaturesStrip } from "./FeaturesStrip";
 import { Newsletter } from "./Newsletter";
 import { BannerSection } from "./BannerSection";
+import { BrandStatement } from "./BrandStatement";
 import { Footer } from "./Footer";
 import { HeroSection } from "./HeroSection";
 
@@ -25,11 +26,13 @@ export function HomePage() {
 
       <ProductCarousel
         label="NOVIDADES"
-        title="Recém chegados"
+        title="Acabou de chegar"
         subtitle="Seleção com imagens reais do catálogo PCYES para destacar o que acabou de entrar ou merece atenção agora."
         productIds={recentArrivalIds}
         compactTop
       />
+
+      <BrandStatement />
 
       <div style={{ background: darkBg }}>
         <CategoryGrid />
@@ -58,7 +61,7 @@ export function HomePage() {
 
       <Marquee words={["Performance", "Precisão", "Design", "Inovação", "Tecnologia", "Gaming"]} speed={40} />
 
-      <div style={{ background: darkerBg }}>
+      <div style={{ background: isDark ? "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,43,46,0.07) 0%, #0d0b0b 100%)" : "transparent" }}>
         <FeaturedProduct
           label="LANÇAMENTO"
           title="Headset Fallen 7.1"
@@ -74,11 +77,11 @@ export function HomePage() {
       </div>
 
       <div style={{ background: darkBg }}>
-        <WorldSection />
+        <ProductsByTags />
       </div>
 
       <div style={{ background: darkBg }}>
-        <ProductsByTags />
+        <WorldSection />
       </div>
 
       <InRealLifeSection />

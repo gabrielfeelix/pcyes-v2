@@ -85,7 +85,7 @@ export function NewReleasesSection() {
                 className="text-foreground"
                 style={{ fontSize: "clamp(36px, 5vw, var(--text-h2))", fontFamily: "var(--font-family-figtree)", fontWeight: "var(--font-weight-light)" }}
               >
-                Recém chegados
+                Em alta agora
               </motion.h2>
             </div>
           </div>
