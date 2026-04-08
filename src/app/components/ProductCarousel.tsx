@@ -40,6 +40,19 @@ export function ProductCarousel({
     return resolved.length > 0 ? resolved : latestIds.map((id) => allProducts.find((product) => product.id === id)).filter(Boolean) as Product[];
   }, [productIds]);
 
+  const showNoveltyTag = useMemo(() => {
+    const tone = `${label} ${title}`.toLowerCase();
+    return tone.includes("novidad") || tone.includes("recém");
+  }, [label, title]);
+
+  const getDiscountBadge = (product: Product) => {
+    if (product.badge) return product.badge.toUpperCase();
+    if (!product.oldPriceNum || !product.priceNum || product.oldPriceNum <= product.priceNum) return null;
+
+    const percentage = Math.round(((product.oldPriceNum - product.priceNum) / product.oldPriceNum) * 100);
+    return `-${percentage}%`;
+  };
+
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
       const { clientWidth, scrollLeft, scrollWidth } = scrollRef.current;
@@ -137,6 +150,10 @@ export function ProductCarousel({
               transition={{ duration: 0.7, delay: 0.08 * i }}
               className="group relative block w-[300px] flex-shrink-0 cursor-pointer snap-center md:w-[360px]"
             >
+              {(() => {
+                const discountBadge = getDiscountBadge(product);
+
+                return (
               <Link to={`/produto/${product.id}`} className="block">
                 <div className="relative mb-4 aspect-square overflow-hidden" style={{ borderRadius: "var(--radius-card)", background: isDark ? "#242427" : "#f5f5f5" }}>
                   <ImageWithFallback
@@ -147,13 +164,25 @@ export function ProductCarousel({
 
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-500" />
 
-                  {product.badge && (
-                    <span
-                      className="absolute top-4 left-4 bg-primary text-primary-foreground px-3 py-1"
-                      style={{ borderRadius: "100px", fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "var(--font-weight-medium)", letterSpacing: "0.1em" }}
-                    >
-                      {product.badge.toUpperCase()}
-                    </span>
+                  {(discountBadge || showNoveltyTag) && (
+                    <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+                      {discountBadge && (
+                        <span
+                          className="bg-primary text-primary-foreground px-3 py-1"
+                          style={{ borderRadius: "100px", fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "var(--font-weight-medium)", letterSpacing: "0.1em" }}
+                        >
+                          {discountBadge}
+                        </span>
+                      )}
+                      {showNoveltyTag && (
+                        <span
+                          className="border border-white/12 bg-black/40 text-white/90 px-3 py-1 backdrop-blur-sm"
+                          style={{ borderRadius: "100px", fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "var(--font-weight-medium)", letterSpacing: "0.1em" }}
+                        >
+                          NOVIDADE
+                        </span>
+                      )}
+                    </div>
                   )}
 
                   <div className="absolute bottom-4 left-4 right-4 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400">
@@ -181,6 +210,8 @@ export function ProductCarousel({
                   </div>
                 </div>
               </Link>
+                );
+              })()}
 
               <div className="px-1">
                 <div className="flex items-center gap-1.5 mb-2">
