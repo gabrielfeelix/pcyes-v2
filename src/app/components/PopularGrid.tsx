@@ -16,8 +16,8 @@ export function PopularGrid() {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
 
-  // Show all 12 products sorted by reviews (popularity proxy)
-  const popular = [...allProducts].sort((a, b) => b.reviews - a.reviews);
+  // Show 12 products sorted by reviews (popularity proxy)
+  const popular = [...allProducts].sort((a, b) => b.reviews - a.reviews).slice(0, 12);
 
   return (
     <section ref={ref} className="py-32 md:py-48 px-5 md:px-8">
