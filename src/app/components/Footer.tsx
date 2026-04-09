@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { useTheme } from "./ThemeProvider";
-import { ArrowUp, Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
+import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 const columns = [
@@ -115,7 +115,6 @@ function SocialIcon({ label }: { label: (typeof socialLinks)[number]["label"] })
 }
 
 export function Footer() {
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
 
@@ -203,20 +202,8 @@ export function Footer() {
 
       {/* Bottom Section */}
       <div className="max-w-[1760px] mx-auto px-5 md:px-8 py-8">
-        <div className="mb-8 flex justify-end">
-          {/* Voltar ao Topo */}
-          <button onClick={scrollToTop}
-            className={`flex items-center gap-3 transition-colors duration-300 cursor-pointer group ${isDark ? "text-foreground/50 hover:text-foreground" : "text-foreground/60 hover:text-foreground"}`}
-          >
-            <span style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "var(--font-weight-medium)" }}>Voltar ao topo</span>
-            <span className={`w-10 h-10 rounded-full border group-hover:border-foreground flex items-center justify-center transition-all duration-300 ${isDark ? "border-foreground/20" : "border-foreground/30"}`}>
-              <ArrowUp size={16} />
-            </span>
-          </button>
-        </div>
-
         {/* Corporate Info */}
-        <div className={`flex flex-col gap-8 pt-6 border-t md:flex-row md:items-center md:justify-between ${isDark ? "border-foreground/5" : "border-foreground/10"}`}>
+        <div className={`flex flex-col gap-10 pt-8 border-t md:flex-row md:items-center md:justify-between ${isDark ? "border-foreground/5" : "border-foreground/10"}`}>
           <div className="flex-1">
             <p className={isDark ? "text-foreground/50 mb-1" : "text-foreground/80 mb-1"} style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "var(--font-weight-bold)" }}>
               Oderço Distribuidora de Eletrônicos LTDA - 09.301.845/0001-91
@@ -229,7 +216,7 @@ export function Footer() {
           </div>
           <div className="flex justify-center md:flex-1">
             <div className={`inline-flex rounded-2xl border p-3 ${isDark ? "border-foreground/10 bg-white/[0.03]" : "border-foreground/10 bg-white"}`}>
-              <ImageWithFallback src={paymentMethodsImage} alt="Formas de pagamento PCYES" className="h-auto w-[260px] max-w-full object-contain" />
+              <ImageWithFallback src={paymentMethodsImage} alt="Formas de pagamento PCYES" className="h-auto w-[300px] max-w-full object-contain" />
             </div>
           </div>
           <div className="md:flex-1 md:text-right">
