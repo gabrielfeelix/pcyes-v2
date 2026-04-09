@@ -3,7 +3,6 @@ import { Link } from "react-router";
 import { motion, useInView } from "motion/react";
 import { useTheme } from "./ThemeProvider";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import { ArrowUpRight } from "lucide-react";
 
 type Audience = "Todos" | "Gamers" | "Escritório";
 
@@ -146,9 +145,16 @@ export function CategoryGrid() {
   const cards = useMemo(() => categoryGroups[activeAudience], [activeAudience]);
 
   return (
-    <section ref={ref} className="px-5 pt-10 pb-16 md:px-8 md:pt-14 md:pb-20" style={{ background: isDark ? "#161617" : "transparent" }} id="explore">
-      <div className="max-w-[1300px] mx-auto">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-10 gap-5">
+    <section
+      ref={ref}
+      className="relative overflow-hidden px-5 pt-14 pb-16 md:px-8 md:pt-18 md:pb-20"
+      style={{ background: isDark ? "#0d0b0b" : "transparent" }}
+      id="explore"
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(255,43,46,0.08)_0%,transparent_72%)]" />
+
+      <div className="relative max-w-[1300px] mx-auto">
+        <div className="mb-12 flex flex-col items-center text-center gap-6">
           <div>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -160,50 +166,39 @@ export function CategoryGrid() {
               CATEGORIAS
             </motion.p>
 
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div className="overflow-hidden">
-                <motion.h2
-                  initial={{ y: 80 }}
-                  animate={isInView ? { y: 0 } : {}}
-                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                  className="text-foreground"
-                  style={{ fontSize: "clamp(36px, 5vw, var(--text-h2))", fontFamily: "var(--font-family-figtree)", fontWeight: "var(--font-weight-light)" }}
-                >
-                  Explore por categoria
-                </motion.h2>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                {(["Todos", "Gamers", "Escritório"] as Audience[]).map((audience) => {
-                  const active = activeAudience === audience;
-                  return (
-                    <button
-                      key={audience}
-                      onClick={() => setActiveAudience(audience)}
-                      onMouseEnter={() => setActiveAudience(audience)}
-                      className={`cursor-pointer rounded-full border px-4 py-2 transition-all duration-300 ${
-                        active
-                          ? "border-primary/25 bg-primary/[0.1] text-foreground"
-                          : "border-foreground/8 bg-transparent text-foreground/35 hover:text-foreground/70 hover:border-foreground/15"
-                      }`}
-                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "600" }}
-                    >
-                      {audience}
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="overflow-hidden">
+              <motion.h2
+                initial={{ y: 80 }}
+                animate={isInView ? { y: 0 } : {}}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                className="text-foreground"
+                style={{ fontSize: "clamp(42px, 6vw, 74px)", fontFamily: "var(--font-family-figtree)", fontWeight: "var(--font-weight-light)", letterSpacing: "-0.03em" }}
+              >
+                Explore por categoria
+              </motion.h2>
             </div>
           </div>
 
-          <Link
-            to="/produtos"
-            className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground hover:brightness-110 transition-all duration-300 self-start md:self-auto"
-            style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "var(--font-weight-medium)" }}
-          >
-            Ver todas categorias
-            <ArrowUpRight size={13} />
-          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {(["Todos", "Gamers", "Escritório"] as Audience[]).map((audience) => {
+              const active = activeAudience === audience;
+              return (
+                <button
+                  key={audience}
+                  onClick={() => setActiveAudience(audience)}
+                  onMouseEnter={() => setActiveAudience(audience)}
+                  className={`cursor-pointer rounded-full border px-4 py-2 transition-all duration-300 ${
+                    active
+                      ? "border-primary/30 bg-primary/[0.12] text-foreground"
+                      : "border-white/10 bg-transparent text-white/45 hover:text-white/75 hover:border-white/20"
+                  }`}
+                  style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "600" }}
+                >
+                  {audience}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 auto-rows-[220px] gap-4">
