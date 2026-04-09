@@ -138,7 +138,7 @@ export function ProductCarousel({
 
   return (
     <section ref={ref} className={compactTop ? "pt-4 pb-16 md:pt-8 md:pb-20" : "py-16 md:py-20"}>
-      <div className="max-w-[1920px] mx-auto px-4 md:px-6 mb-10">
+      <div className="max-w-[1760px] mx-auto px-5 md:px-8 mb-10">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <div>
             <motion.p
@@ -201,7 +201,7 @@ export function ProductCarousel({
       >
         <div
           ref={scrollRef}
-          className="flex gap-6 overflow-x-auto px-4 md:px-6 pb-4 scrollbar-hide snap-x md:snap-none"
+          className="flex gap-6 overflow-x-auto px-5 md:px-8 pb-4 scrollbar-hide snap-x md:snap-none"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}
         >
           {repeatedProducts.map(({ product, key }, i) => (

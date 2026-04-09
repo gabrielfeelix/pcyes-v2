@@ -737,7 +737,7 @@ export function MonteSeuPcPage() {
   return (
     <div className="bg-[#080808] pt-[92px] text-[#f5f5f5]">
       <header className="sticky top-[92px] z-40 border-b border-white/[0.06] bg-[#090909]/92 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[1920px] items-center justify-between gap-4 px-4 py-3 md:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-[1760px] items-center justify-between gap-4 px-4 py-3 md:px-6 lg:px-8">
           <div className="flex items-center gap-2 md:gap-3">
             <Button
               variant="ghost"
@@ -783,7 +783,7 @@ export function MonteSeuPcPage() {
         </div>
       </header>
 
-      <main className="mx-auto flex max-w-[1920px] flex-col gap-0 md:h-[calc(100vh-151px)] md:overflow-hidden md:flex-row">
+      <main className="mx-auto flex max-w-[1760px] flex-col gap-0 md:h-[calc(100vh-151px)] md:overflow-hidden md:flex-row">
         <section className="border-b border-white/[0.05] md:h-full md:w-[63%] md:border-b-0 md:border-r md:border-white/[0.04]">
           <div className="flex h-full flex-col px-4 pb-6 pt-4 md:px-6 md:pb-8 lg:px-8">
             <div

@@ -48,8 +48,8 @@ export function WorldSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-20 md:py-24 px-4 md:px-6">
-      <div className="max-w-[1920px] mx-auto">
+    <section ref={sectionRef} className="py-20 md:py-24 px-5 md:px-8">
+      <div className="max-w-[1760px] mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}

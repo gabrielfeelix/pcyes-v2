@@ -33,7 +33,7 @@ export function FeaturedProduct({ label, title, description, image, imageAlt, re
 
   return (
     <section ref={sectionRef} className="py-20 md:py-28 px-6 md:px-12">
-      <div className={`max-w-[1920px] mx-auto flex flex-col ${reverse ? "md:flex-row-reverse" : "md:flex-row"} items-center gap-16 md:gap-28`}>
+      <div className={`max-w-[1760px] mx-auto flex flex-col ${reverse ? "md:flex-row-reverse" : "md:flex-row"} items-center gap-16 md:gap-28`}>
         {/* Image */}
         <motion.div className="flex-1 w-full" style={{ y: imageY }}>
           <motion.div

@@ -140,8 +140,8 @@ export function CheckoutPage() {
 
   return (
     <div className="pt-[92px]">
-      <div className="px-4 md:px-6 pt-8 pb-4">
-        <div className="max-w-[1920px] mx-auto">
+      <div className="px-5 md:px-8 pt-8 pb-4">
+        <div className="max-w-[1760px] mx-auto">
           <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-foreground/30 hover:text-foreground/60 transition-colors mb-6 cursor-pointer"
             style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}
           ><ArrowLeft size={14} /> Voltar</button>
@@ -169,8 +169,8 @@ export function CheckoutPage() {
         </div>
       </div>
 
-      <div className="px-4 md:px-6 pb-24">
-        <div className="max-w-[1920px] mx-auto flex flex-col lg:flex-row gap-10">
+      <div className="px-5 md:px-8 pb-24">
+        <div className="max-w-[1760px] mx-auto flex flex-col lg:flex-row gap-10">
           {/* Left - Form */}
           <div className="flex-1 min-w-0">
             <AnimatePresence mode="wait">

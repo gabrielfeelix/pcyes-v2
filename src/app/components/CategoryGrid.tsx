@@ -154,7 +154,7 @@ export function CategoryGrid() {
     >
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(255,43,46,0.08)_0%,transparent_72%)]" />
 
-      <div className="relative max-w-[1920px] mx-auto">
+      <div className="relative max-w-[1760px] mx-auto">
         <div className="mb-12 flex flex-col items-center text-center gap-6">
           <div>
             <motion.p

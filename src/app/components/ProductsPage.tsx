@@ -427,7 +427,7 @@ export function ProductsPage() {
   return (
     <div ref={mainRef} className="pt-[92px] min-h-screen">
       {/* ── Hero Header (compact) ── */}
-      <div className="px-4 md:px-6 pt-10 pb-8" style={{ background: isDark ? "#161617" : "#f5f5f7" }}>
+      <div className="px-5 md:px-8 pt-10 pb-8" style={{ background: isDark ? "#161617" : "#f5f5f7" }}>
         <div style={{ maxWidth: "1600px", margin: "0 auto" }}>
           <div className="flex items-center gap-2 mb-5">
             <Link to="/" className="text-foreground/30 hover:text-foreground/60 transition-colors" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>Home</Link>
@@ -453,7 +453,7 @@ export function ProductsPage() {
       </div>
 
       {/* ── Main Content — Insider layout ── */}
-      <div className="px-4 md:px-6 py-6">
+      <div className="px-5 md:px-8 py-6">
         <div style={{ maxWidth: "1600px", margin: "0 auto" }}>
           <div className="flex gap-8 lg:gap-12">
             {/* ── Sidebar (Insider: narrow, left-aligned, auto-height) ── */}

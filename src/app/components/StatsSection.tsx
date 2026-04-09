@@ -37,8 +37,8 @@ export function StatsSection() {
   const isInView = useInView(ref, { once: true, amount: 0.5 });
 
   return (
-    <section ref={ref} className="py-32 md:py-48 px-4 md:px-6">
-      <div className="max-w-[1920px] mx-auto">
+    <section ref={ref} className="py-32 md:py-48 px-5 md:px-8">
+      <div className="max-w-[1760px] mx-auto">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 md:gap-8">
           {stats.map((stat, i) => (
             <motion.div

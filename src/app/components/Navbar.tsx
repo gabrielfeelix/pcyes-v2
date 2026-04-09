@@ -1017,7 +1017,7 @@ export function Navbar() {
           }}
         >
           {/* Top row */}
-          <div className="max-w-[1920px] mx-auto px-4 md:px-6 flex items-center justify-between transition-all duration-700"
+          <div className="max-w-[1760px] mx-auto px-5 md:px-8 flex items-center justify-between transition-all duration-700"
             style={{ height: showExpanded ? 50 : 56 }}
           >
             {/* Left: logo */}
@@ -1118,7 +1118,7 @@ export function Navbar() {
                 style={{ backgroundColor: isDark ? "rgba(20,20,21,0.99)" : "rgba(252,252,252,0.99)", backdropFilter: "blur(60px)" }}
                 onMouseEnter={() => handleMegaEnter(activeMega)} onMouseLeave={handleMegaLeave}
               >
-                <div className="mx-auto flex h-[640px] max-w-[1920px] px-4 md:px-6">
+                <div className="mx-auto flex h-[640px] max-w-[1760px] px-5 md:px-8">
                   {/* Left sidebar */}
                   <div className="h-full w-[220px] flex-shrink-0 border-r border-foreground/5 py-7 pr-6 xl:w-[240px]">
                     <p className="mb-3 px-3 text-foreground/30 tracking-widest" style={{ fontFamily: "var(--font-family-inter)", fontSize: "9px", fontWeight: "600" }}>
@@ -1210,7 +1210,7 @@ export function Navbar() {
               className="fixed left-0 right-0 z-[51] border-t border-foreground/5 shadow-2xl"
               style={{ top: promoTop + (showExpanded ? 170 : 56), backgroundColor: isDark ? "rgba(22,22,23,0.98)" : "rgba(250,250,250,0.98)", backdropFilter: "blur(40px)" }}
             >
-              <div className="max-w-[640px] mx-auto px-4 md:px-6">
+              <div className="max-w-[640px] mx-auto px-5 md:px-8">
                 <div className="flex items-center gap-4 py-4 border-b border-foreground/5">
                   <Search size={20} className="text-foreground/30 flex-shrink-0" />
                   <input ref={searchInputRef} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}

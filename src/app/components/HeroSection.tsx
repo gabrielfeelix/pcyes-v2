@@ -154,7 +154,7 @@ export function HeroSection() {
           className="absolute bottom-0 left-0 right-0 px-6 md:px-12 pb-16 md:pb-20"
           style={{ y: contentY, opacity: contentOpacity }}
         >
-          <div className="max-w-[1920px] mx-auto flex items-end justify-between">
+          <div className="max-w-[1760px] mx-auto flex items-end justify-between">
             {/* Left — text */}
             <div>
               <AnimatePresence mode="wait">

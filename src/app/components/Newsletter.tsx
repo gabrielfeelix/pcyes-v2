@@ -28,7 +28,7 @@ export function Newsletter() {
         initial={{ opacity: 0, y: 60 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        className="max-w-[1920px] mx-auto"
+        className="max-w-[1760px] mx-auto"
       >
         <div className="relative overflow-hidden border border-border/10 p-10 md:p-20" style={{ borderRadius: "var(--radius-card)" }}>
           {/* Subtle background glow */}

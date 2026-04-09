@@ -40,8 +40,8 @@ export function ProductsByTags() {
   };
 
   return (
-    <section ref={ref} className="py-20 md:py-24 px-4 md:px-6" style={{ background: isDark ? "#161617" : "transparent" }}>
-      <div className="max-w-[1920px] mx-auto">
+    <section ref={ref} className="py-20 md:py-24 px-5 md:px-8" style={{ background: isDark ? "#161617" : "transparent" }}>
+      <div className="max-w-[1760px] mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
           <motion.p

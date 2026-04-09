@@ -121,7 +121,7 @@ export function Footer() {
 
   return (
     <footer className={`${isDark ? "bg-[#0a0a0a]" : "bg-[#f5f5f5]"} border-t ${isDark ? "border-foreground/5" : "border-foreground/10"} text-foreground`}>
-      <div className="max-w-[1920px] mx-auto px-4 md:px-6 pt-16 pb-12">
+      <div className="max-w-[1760px] mx-auto px-5 md:px-8 pt-16 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8">
           
           {/* Brand & Mission & Socials */}
@@ -199,10 +199,10 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="max-w-[1920px] mx-auto px-4 md:px-6"><div className={`h-px ${isDark ? "bg-foreground/5" : "bg-foreground/10"}`} /></div>
+      <div className="max-w-[1760px] mx-auto px-5 md:px-8"><div className={`h-px ${isDark ? "bg-foreground/5" : "bg-foreground/10"}`} /></div>
 
       {/* Bottom Section */}
-      <div className="max-w-[1920px] mx-auto px-4 md:px-6 py-8">
+      <div className="max-w-[1760px] mx-auto px-5 md:px-8 py-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-8">
           {/* Formas de Pagamento */}
           <div className="w-full md:w-auto">

@@ -19,7 +19,7 @@ export function FeaturesStrip() {
 
   return (
     <section ref={ref} className="py-24 border-y border-black/8" style={{ background: backgroundColor }}>
-      <div className="max-w-[1920px] mx-auto px-6 md:px-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-16">
+      <div className="max-w-[1760px] mx-auto px-6 md:px-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-16">
         {features.map((f, i) => (
           <motion.div
             key={f.title}
