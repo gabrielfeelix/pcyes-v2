@@ -311,18 +311,21 @@ export function ProductCarousel({
               })()}
 
               <div className="px-1">
-                {swatches.length > 1 && (
-                  <div className="mb-2.5 flex items-center gap-1.5">
-                    {swatches.map((swatch) => (
-                      <span
-                        key={`${product.id}-${swatch.label}`}
-                        className="h-3.5 w-3.5 rounded-full border border-foreground/10 shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset]"
-                        style={{ backgroundColor: swatch.color }}
-                        title={swatch.label}
-                      />
-                    ))}
-                  </div>
-                )}
+                {(() => {
+                  const swatches = getProductSwatches(product);
+                  return swatches.length > 1 ? (
+                    <div className="mb-2.5 flex items-center gap-1.5">
+                      {swatches.map((swatch) => (
+                        <span
+                          key={`${product.id}-${swatch.label}`}
+                          className="h-3.5 w-3.5 rounded-full border border-foreground/10 shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset]"
+                          style={{ backgroundColor: swatch.color }}
+                          title={swatch.label}
+                        />
+                      ))}
+                    </div>
+                  ) : null;
+                })()}
                 <div className="flex items-center gap-1.5 mb-2">
                   <Star size={11} className="fill-primary text-primary" />
                   <span className="text-foreground/60" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>
