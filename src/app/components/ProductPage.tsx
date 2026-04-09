@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useMemo, useState, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router";
 import { motion, useInView } from "motion/react";
 import {
@@ -10,6 +10,13 @@ import { useCart } from "./CartContext";
 import { useTheme } from "./ThemeProvider";
 import { allProducts } from "./productsData";
 import { Footer } from "./Footer";
+
+function sanitizeProductHtml(value: string) {
+  return value
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
+    .replace(/\son\w+=(?:"[^"]*"|'[^']*')/gi, "");
+}
 
 export function ProductPage() {
   const { id } = useParams();
@@ -27,6 +34,10 @@ export function ProductPage() {
 
   const relatedRef = useRef<HTMLDivElement>(null);
   const relatedInView = useInView(relatedRef, { once: true, amount: 0.1 });
+  const productHtmlDescription = useMemo(
+    () => sanitizeProductHtml(product?.htmlDescription ?? ""),
+    [product?.htmlDescription],
+  );
 
   if (!product) {
     return (
@@ -50,7 +61,6 @@ export function ProductPage() {
 
   // Use same image repeated as gallery mockup
   const galleryImages = product.images && product.images.length > 0 ? product.images : [product.image];
-
   const related = allProducts.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
   if (related.length < 4) {
     const extras = allProducts.filter((p) => p.id !== product.id && !related.find((r) => r.id === p.id)).slice(0, 4 - related.length);
@@ -402,6 +412,16 @@ export function ProductPage() {
           </motion.div>
         </div>
       </div>
+
+      {productHtmlDescription && (
+        <section className="px-5 md:px-8 pb-24">
+          <div
+            className="mx-auto max-w-[1180px] rounded-[28px] border border-foreground/10 bg-foreground/[0.025] px-6 py-8 text-foreground/70 md:px-12 md:py-12 [&_.produto-descricao]:space-y-5 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:tracking-[-0.02em] [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-primary [&_li]:mb-2 [&_p]:leading-8 [&_strong]:text-foreground [&_ul]:list-disc [&_ul]:pl-6"
+            style={{ fontFamily: "var(--font-family-inter)" }}
+            dangerouslySetInnerHTML={{ __html: productHtmlDescription }}
+          />
+        </section>
+      )}
 
       {/* ─── Related products ─── */}
       <div ref={relatedRef} className="px-5 md:px-8 py-24 border-t border-foreground/5">

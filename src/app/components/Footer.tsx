@@ -42,6 +42,11 @@ const socialLinks = [
 
 const certifications = [
   {
+    label: "PCYES",
+    image: brandLogo,
+    imageClassName: "w-[82px] h-[42px] object-contain",
+  },
+  {
     label: "RA 1000",
     href: "https://www.reclameaqui.com.br/empresa/pc-yes/",
     image: "https://www.insiderstore.com.br/cdn/shop/files/SELO-RA_1.png?v=1773463245&width=140",
@@ -115,16 +120,19 @@ export function Footer() {
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
 
   return (
-    <footer className={`${isDark ? "bg-[#0a0a0a]" : "bg-[#f5f5f5]"} border-t ${isDark ? "border-foreground/5" : "border-foreground/10"} text-foreground`}>
-      <div className="max-w-[1760px] mx-auto px-5 md:px-8 pt-16 pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8">
+    <footer className={`${isDark ? "bg-[#040404]" : "bg-[#f5f5f5]"} border-t ${isDark ? "border-white/5" : "border-foreground/10"} text-foreground`}>
+      <div className="mx-auto max-w-[1434px] px-5 pt-[65px] pb-4 md:px-12 xl:px-0">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_400px] md:gap-8">
           
           {/* Brand & Mission & Socials */}
-          <div className="md:col-span-4 flex flex-col items-start">
+          <div className="flex flex-col items-start">
             <Link to="/" className="mb-5 block hover:opacity-80 transition-opacity" aria-label="PCYES">
               <ImageWithFallback src={brandLogo} alt="PCYES" className="h-[34px] w-auto object-contain" />
             </Link>
-            <p className={`mb-8 text-sm leading-relaxed pr-4 ${isDark ? "text-foreground/60" : "text-foreground/70"}`} style={{ fontFamily: "var(--font-family-inter)" }}>
+            <p className="mb-4 text-foreground tracking-[0.04em]" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "var(--font-weight-bold)" }}>
+              NOSSA MISSÃO
+            </p>
+            <p className={`mb-8 max-w-[503px] text-sm pr-4 ${isDark ? "text-foreground/60" : "text-foreground/70"}`} style={{ fontFamily: "var(--font-family-inter)", lineHeight: "22.75px" }}>
               A PCYES nasceu para impulsionar a performance dos gamers e profissionais, entregando produtos de alta qualidade, tecnologia e design inovador para o seu setup.
             </p>
             <div className="flex items-center gap-3 flex-wrap">
@@ -142,7 +150,7 @@ export function Footer() {
           </div>
 
           {/* Links Columns */}
-          <div className="md:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-8 md:pl-8">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:justify-center md:gap-[82px]">
             {columns.map((col) => (
               <div key={col.title}>
                 <p className={isDark ? "text-foreground mb-6 tracking-wide" : "text-foreground mb-6 tracking-wide"}
@@ -161,24 +169,21 @@ export function Footer() {
           </div>
 
           {/* Certificados */}
-          <div className="md:col-span-3">
+          <div>
             <p className={isDark ? "text-foreground mb-6 tracking-wide" : "text-foreground mb-6 tracking-wide"}
               style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "var(--font-weight-bold)", letterSpacing: "0.04em" }}
             >CERTIFICADOS</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {certifications.map((cert) => {
-                const cardClassName = `min-h-[96px] rounded-2xl border px-3 py-3 transition-all duration-300 ${
+                const cardClassName = `min-h-[113px] rounded-2xl border px-3 py-3 transition-all duration-300 ${
                   isDark
                     ? "border-foreground/10 bg-white/[0.03] hover:border-foreground/20 hover:bg-white/[0.06]"
                     : "border-foreground/10 bg-white hover:border-foreground/20"
                 }`;
 
                 const cardContent = (
-                  <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+                  <div className="flex h-full items-center justify-center text-center">
                     <ImageWithFallback src={cert.image} alt={cert.label} className={cert.imageClassName} />
-                    <p className="text-foreground/60" style={{ fontFamily: "var(--font-family-inter)", fontSize: "9px", fontWeight: "var(--font-weight-bold)", letterSpacing: "0.04em" }}>
-                      {cert.label}
-                    </p>
                   </div>
                 );
 
@@ -208,12 +213,10 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="max-w-[1760px] mx-auto px-5 md:px-8"><div className={`h-px ${isDark ? "bg-foreground/5" : "bg-foreground/10"}`} /></div>
-
       {/* Bottom Section */}
-      <div className="max-w-[1760px] mx-auto px-5 md:px-8 py-8">
+      <div className="mx-auto max-w-[1434px] px-5 py-8 md:px-12 xl:px-0">
         {/* Corporate Info */}
-        <div className={`flex flex-col gap-10 pt-8 border-t md:flex-row md:items-center md:justify-between ${isDark ? "border-foreground/5" : "border-foreground/10"}`}>
+        <div className={`flex flex-col gap-10 pt-[33px] border-t md:grid md:grid-cols-3 md:items-center ${isDark ? "border-foreground/5" : "border-foreground/10"}`}>
           <div className="flex-1">
             <p className={isDark ? "text-foreground/50 mb-1" : "text-foreground/80 mb-1"} style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "var(--font-weight-bold)" }}>
               Oderço Distribuidora de Eletrônicos LTDA - 09.301.845/0001-91
@@ -224,10 +227,8 @@ export function Footer() {
               &copy; {new Date().getFullYear()} Oderço Distribuidora | Todos os direitos reservados.
             </p>
           </div>
-          <div className="flex justify-center md:flex-1">
-            <div className={`inline-flex rounded-2xl border p-3 ${isDark ? "border-foreground/10 bg-white/[0.03]" : "border-foreground/10 bg-white"}`}>
-              <ImageWithFallback src={paymentMethodsImage} alt="Formas de pagamento PCYES" className="h-auto w-[300px] max-w-full object-contain" />
-            </div>
+          <div className="flex justify-center">
+            <ImageWithFallback src={paymentMethodsImage} alt="Formas de pagamento PCYES" className="h-auto w-[373px] max-w-full object-contain" />
           </div>
           <div className="md:flex-1 md:text-right">
             <p className={isDark ? "text-foreground/30" : "text-foreground/50"} style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "var(--font-weight-bold)" }}>

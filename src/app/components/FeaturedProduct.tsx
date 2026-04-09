@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { Link } from "react-router";
 import { motion, useScroll, useTransform, useInView } from "motion/react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import { ArrowUpRight, ShoppingBag, Heart } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ShoppingBag, Heart } from "lucide-react";
 import { useCart } from "./CartContext";
 import { useFavorites } from "./FavoritesContext";
 
@@ -55,6 +55,9 @@ export function FeaturedProduct({ label, title, description, image, imageAlt, re
                 style={{ borderRadius: "8px" }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute right-0 top-1/2 hidden h-[61px] w-[61px] translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white/10 bg-[#1d1d1d] text-white/80 shadow-[0_18px_50px_rgba(0,0,0,0.28)] transition-all duration-300 group-hover:border-white/20 group-hover:text-white md:flex">
+                <ArrowRight size={20} strokeWidth={1.6} />
+              </div>
               <div className="absolute bottom-6 right-6 w-12 h-12 bg-primary/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
                 <ArrowUpRight size={18} className="text-primary-foreground" />
               </div>

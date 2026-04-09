@@ -3,6 +3,9 @@ import { allProducts, type Product } from "./productsData";
 export interface ProductSwatch {
   color: string;
   label: string;
+  productId: number;
+  image: string;
+  name: string;
 }
 
 export interface ProductHoverMedia {
@@ -71,6 +74,10 @@ function getFamilySignature(product: Pick<Product, "name" | "category">) {
   return `${normalizeText(product.category)}::${familyTokens.join("-")}`;
 }
 
+export function findProductBySwatch(swatch: ProductSwatch, catalog: Product[] = allProducts) {
+  return catalog.find((product) => product.id === swatch.productId) ?? null;
+}
+
 export function getProductSwatches(
   product: Pick<Product, "id" | "name" | "category">,
   catalog: Product[] = allProducts,
@@ -82,7 +89,15 @@ export function getProductSwatches(
 
     variants.forEach((variant) => {
       const rule = getColorRule(variant.name);
-      if (rule) deduped.set(rule.label, { color: rule.color, label: rule.label });
+      if (rule) {
+        deduped.set(rule.label, {
+          color: rule.color,
+          label: rule.label,
+          productId: variant.id,
+          image: variant.image,
+          name: variant.name,
+        });
+      }
     });
 
     if (deduped.size > 1) {

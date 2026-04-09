@@ -7,7 +7,7 @@ import { useCart } from "./CartContext";
 import { useFavorites } from "./FavoritesContext";
 import { Link } from "react-router";
 import { allProducts, type Product } from "./productsData";
-import { getProductHoverMedia, getProductSwatches } from "./productPresentation";
+import { findProductBySwatch, getProductHoverMedia, getProductSwatches } from "./productPresentation";
 
 interface ProductCarouselProps {
   label?: string;
@@ -17,8 +17,8 @@ interface ProductCarouselProps {
   compactTop?: boolean;
 }
 
-const curatedIds = [6, 16, 41, 1, 37, 35];
-const latestIds = [43, 40, 35, 30, 18, 27];
+const curatedIds = [436, 72, 329, 433, 446, 199];
+const latestIds = [375, 295, 128, 30, 199, 433];
 
 export function ProductCarousel({
   label = "MAIS VENDIDOS",
@@ -30,6 +30,7 @@ export function ProductCarousel({
   const ref = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [hoveredProductId, setHoveredProductId] = useState<number | null>(null);
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, Product>>({});
   const isInView = useInView(ref, { once: true, amount: 0.1 });
   const { addItem } = useCart();
   const { addFavorite } = useFavorites();
@@ -220,12 +221,12 @@ export function ProductCarousel({
               data-carousel-card="true"
             >
               {(() => {
-                const discountBadge = getDiscountBadge(product);
-                const hoverMedia = getProductHoverMedia(product);
-                const swatches = getProductSwatches(product);
+                const displayProduct = selectedVariants[key] ?? product;
+                const discountBadge = getDiscountBadge(displayProduct);
+                const hoverMedia = getProductHoverMedia(displayProduct);
 
                 return (
-              <Link to={`/produto/${product.id}`} className="block">
+              <Link to={`/produto/${displayProduct.id}`} className="block">
                 <div
                   className="relative mb-4 aspect-square overflow-hidden"
                   style={{
@@ -234,12 +235,12 @@ export function ProductCarousel({
                       ? "linear-gradient(180deg, rgba(33,33,36,0.1) 0%, rgba(82,82,83,0.1) 100%)"
                       : "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(242,242,242,1) 100%)",
                   }}
-                  onMouseEnter={() => setHoveredProductId(product.id)}
-                  onMouseLeave={() => setHoveredProductId((current) => (current === product.id ? null : current))}
+                  onMouseEnter={() => setHoveredProductId(displayProduct.id)}
+                  onMouseLeave={() => setHoveredProductId((current) => (current === displayProduct.id ? null : current))}
                 >
                   <ImageWithFallback
-                    src={product.image}
-                    alt={product.name}
+                    src={displayProduct.image}
+                    alt={displayProduct.name}
                     className={`absolute inset-0 w-full h-full object-contain p-7 transition-all duration-[900ms] ease-out ${
                       hoverMedia ? "group-hover:scale-[1.02] group-hover:opacity-0" : "group-hover:scale-105"
                     }`}
@@ -248,15 +249,15 @@ export function ProductCarousel({
                   {hoverMedia?.type === "image" && (
                     <ImageWithFallback
                       src={hoverMedia.src}
-                      alt={`${product.name} em destaque`}
+                      alt={`${displayProduct.name} em destaque`}
                       className="absolute inset-0 h-full w-full object-contain p-7 opacity-0 scale-[1.04] transition-all duration-[900ms] ease-out group-hover:scale-100 group-hover:opacity-100"
                     />
                   )}
 
-                  {hoverMedia?.type === "video" && hoveredProductId === product.id && (
+                  {hoverMedia?.type === "video" && hoveredProductId === displayProduct.id && (
                     <iframe
                       src={`${hoverMedia.src}${hoverMedia.src.includes("?") ? "&" : "?"}autoplay=1&mute=1&loop=1&controls=0&playsinline=1`}
-                      title={`${product.name} video`}
+                      title={`${displayProduct.name} video`}
                       className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                       style={{ border: "none" }}
                       allow="autoplay; encrypted-media"
@@ -290,7 +291,7 @@ export function ProductCarousel({
                     <button
                       className="w-full py-2.5 bg-white/95 backdrop-blur-sm text-black flex items-center justify-center gap-2 hover:bg-primary hover:text-white transition-colors duration-300"
                       style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: "var(--font-weight-medium)" }}
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); addItem(product); }}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); addItem(displayProduct); }}
                     >
                       <ShoppingBag size={13} strokeWidth={1.5} />
                       Adicionar
@@ -300,7 +301,7 @@ export function ProductCarousel({
                   <div className="absolute top-4 right-4 opacity-100 transition-all duration-300">
                     <button
                       className="w-9 h-9 bg-black/35 backdrop-blur-sm border border-white/10 rounded-full flex items-center justify-center text-white/85 hover:text-white hover:bg-black/50 transition-all duration-300"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); addFavorite({ id: product.id, name: product.name, price: product.price, image: product.image }); }}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); addFavorite({ id: displayProduct.id, name: displayProduct.name, price: displayProduct.price, image: displayProduct.image }); }}
                     >
                       <Heart
                         size={14}
@@ -316,15 +317,24 @@ export function ProductCarousel({
 
               <div className="px-1">
                 {(() => {
-                  const swatches = getProductSwatches(product);
+                  const displayProduct = selectedVariants[key] ?? product;
+                  const swatches = getProductSwatches(displayProduct);
                   return swatches.length > 1 ? (
                     <div className="mb-2.5 flex items-center gap-1.5">
                       {swatches.map((swatch) => (
-                        <span
+                        <button
                           key={`${product.id}-${swatch.label}`}
-                          className="h-3.5 w-3.5 rounded-full border border-foreground/10 shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset]"
+                          className={`h-3.5 w-3.5 rounded-full border border-foreground/10 shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset] transition-transform hover:scale-125 ${
+                            swatch.productId === displayProduct.id ? "ring-2 ring-primary/70 ring-offset-2 ring-offset-background" : ""
+                          }`}
                           style={{ backgroundColor: swatch.color }}
                           title={swatch.label}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const variant = findProductBySwatch(swatch);
+                            if (variant) setSelectedVariants((prev) => ({ ...prev, [key]: variant }));
+                          }}
                         />
                       ))}
                     </div>
@@ -333,30 +343,30 @@ export function ProductCarousel({
                 <div className="flex items-center gap-1.5 mb-2">
                   <Star size={11} className="fill-primary text-primary" />
                   <span className="text-foreground/60" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>
-                    {product.rating}
+                    {(selectedVariants[key] ?? product).rating}
                   </span>
                   <span className="text-foreground/25" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>
-                    ({product.reviews})
+                    ({(selectedVariants[key] ?? product).reviews})
                   </span>
                 </div>
-                <Link to={`/produto/${product.id}`}>
+                <Link to={`/produto/${(selectedVariants[key] ?? product).id}`}>
                   <p className="text-foreground group-hover:text-primary transition-colors duration-300 mb-1.5 truncate" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "16px", fontWeight: "var(--font-weight-medium)" }}>
-                    {product.name}
+                    {(selectedVariants[key] ?? product).name}
                   </p>
                 </Link>
                 <div className="flex items-baseline gap-2">
                   <p className="text-foreground/90" style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px", lineHeight: "21px", fontWeight: "500" }}>
-                    {product.price}
+                    {(selectedVariants[key] ?? product).price}
                   </p>
-                  {product.oldPrice && (
+                  {(selectedVariants[key] ?? product).oldPrice && (
                     <p className="text-foreground/40 line-through" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>
-                      {product.oldPrice}
+                      {(selectedVariants[key] ?? product).oldPrice}
                     </p>
                   )}
                 </div>
-                {product.reviews > 150 && (
+                {(selectedVariants[key] ?? product).reviews > 150 && (
                   <p className="text-foreground/25 mt-1" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px" }}>
-                    {product.reviews}+ vendidos
+                    {(selectedVariants[key] ?? product).reviews}+ vendidos
                   </p>
                 )}
               </div>

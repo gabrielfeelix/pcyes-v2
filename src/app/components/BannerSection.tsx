@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { Link } from "react-router";
-import { motion, useScroll, useTransform, useMotionTemplate } from "motion/react";
+import { motion } from "motion/react";
 
 const backgroundImage =
   "https://www.oderco.com.br/media/descricoes/Imagens/293948/2.png";
@@ -8,10 +8,23 @@ const backgroundImage =
 const youtubeEmbed =
   "https://www.youtube.com/embed/g-QIHcPg1Ko?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&disablekb=1&modestbranding=1&playlist=g-QIHcPg1Ko";
 
+const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+const lerp = (from: number, to: number, progress: number) => from + (to - from) * progress;
+
 export function BannerSection() {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLElement>(null);
+  const progressRef = useRef(0);
+  const touchStartYRef = useRef<number | null>(null);
   
   const [isMobile, setIsMobile] = useState(false);
+  const [progress, setProgressState] = useState(0);
+
+  const setProgress = (value: number) => {
+    const next = clamp(value);
+    progressRef.current = next;
+    setProgressState(next);
+  };
+
   useEffect(() => {
     const checkIfMobile = () => setIsMobile(window.innerWidth < 768);
     checkIfMobile();
@@ -19,30 +32,75 @@ export function BannerSection() {
     return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
-  });
+  useEffect(() => {
+    const snapToSection = () => {
+      const section = containerRef.current;
+      if (!section) return;
+      const rect = section.getBoundingClientRect();
+      if (Math.abs(rect.top) > 1) {
+        window.scrollTo({ top: window.scrollY + rect.top, behavior: "auto" });
+      }
+    };
 
-  const mediaWidth = useTransform(scrollYProgress, [0, 1], [isMobile ? 76 : 26, 100]);
-  const mediaWidthWithUnit = useMotionTemplate`${mediaWidth}vw`;
-  
-  const mediaHeight = useTransform(scrollYProgress, [0, 1], [isMobile ? 54 : 58, 100]);
-  const mediaHeightWithUnit = useMotionTemplate`${mediaHeight}vh`;
+    const shouldLock = (deltaY: number) => {
+      const section = containerRef.current;
+      if (!section) return false;
+      const rect = section.getBoundingClientRect();
+      const progressValue = progressRef.current;
+      const enteringFromAbove = deltaY > 0 && rect.top <= window.innerHeight * 0.12 && rect.top >= -4 && progressValue < 1;
+      const insidePinnedFrame = rect.top <= 1 && rect.bottom >= window.innerHeight - 1;
+      const stillExpanding = deltaY > 0 && progressValue < 1;
+      const stillCollapsingBack = deltaY < 0 && progressValue > 0;
 
-  const mediaRadius = useTransform(scrollYProgress, [0, 1], [28, 0]);
-  const mediaRadiusWithUnit = useMotionTemplate`${mediaRadius}px`;
+      return enteringFromAbove || (insidePinnedFrame && (stillExpanding || stillCollapsingBack));
+    };
 
-  const textTranslateX = useTransform(scrollYProgress, [0, 1], [0, isMobile ? 20 : 14]);
-  const textTranslateXWithUnitLeft = useMotionTemplate`-${textTranslateX}vw`;
-  const textTranslateXWithUnitRight = useMotionTemplate`${textTranslateX}vw`;
-  const headlineOpacity = useTransform(scrollYProgress, [0, 0.72, 0.9], [1, 1, 0]);
-  const headlineScale = useTransform(scrollYProgress, [0, 0.9], [1, 0.96]);
-  const ctaOpacity = useTransform(scrollYProgress, [0.78, 1], [0, 1]);
-  const ctaY = useTransform(scrollYProgress, [0.78, 1], [28, 0]);
+    const applyDelta = (deltaY: number) => {
+      snapToSection();
+      setProgress(progressRef.current + deltaY * 0.0016);
+    };
 
-  const backgroundOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.5]);
-  const videoOverlayOpacity = useTransform(scrollYProgress, [0, 1], [0.38, 0.08]);
+    const handleWheel = (event: WheelEvent) => {
+      if (!shouldLock(event.deltaY)) return;
+      event.preventDefault();
+      applyDelta(event.deltaY);
+    };
+
+    const handleTouchStart = (event: TouchEvent) => {
+      touchStartYRef.current = event.touches[0]?.clientY ?? null;
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (touchStartYRef.current === null) return;
+      const currentY = event.touches[0]?.clientY ?? touchStartYRef.current;
+      const deltaY = touchStartYRef.current - currentY;
+      if (!shouldLock(deltaY)) return;
+      event.preventDefault();
+      applyDelta(deltaY * 1.8);
+      touchStartYRef.current = currentY;
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, []);
+
+  const mediaWidth = `${lerp(isMobile ? 76 : 26, 100, progress)}vw`;
+  const mediaHeight = `${lerp(isMobile ? 54 : 58, 100, progress)}dvh`;
+  const mediaRadius = `${lerp(28, 0, progress)}px`;
+  const textTranslate = lerp(0, isMobile ? 20 : 14, progress);
+  const headlineOpacity = progress < 0.72 ? 1 : clamp(1 - (progress - 0.72) / 0.18);
+  const headlineScale = lerp(1, 0.96, progress);
+  const ctaOpacity = progress < 0.78 ? 0 : clamp((progress - 0.78) / 0.22);
+  const ctaY = lerp(28, 0, ctaOpacity);
+  const backgroundOpacity = lerp(1, 0.5, progress);
+  const videoOverlayOpacity = lerp(0.38, 0.08, progress);
 
   const iframeCoverWidth = isMobile ? "178vh" : "177.78vh";
   const iframeCoverHeight = "100vh";
@@ -50,8 +108,7 @@ export function BannerSection() {
   return (
     <section
       ref={containerRef}
-      className="relative bg-[#0f1011]"
-      style={{ height: "220dvh" }}
+      className="relative min-h-[100dvh] bg-[#0f1011]"
     >
       <div className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden">
         <motion.div
@@ -70,10 +127,11 @@ export function BannerSection() {
           <motion.div
             className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-transparent"
             style={{
-              width: mediaWidthWithUnit,
-              height: mediaHeightWithUnit,
-              borderRadius: mediaRadiusWithUnit,
+              width: mediaWidth,
+              height: mediaHeight,
+              borderRadius: mediaRadius,
               boxShadow: "0 30px 90px rgba(0,0,0,0.38)",
+              transition: "width 80ms linear, height 80ms linear, border-radius 80ms linear",
             }}
           >
             <iframe
@@ -103,7 +161,7 @@ export function BannerSection() {
             <motion.p
               className="text-primary"
               style={{
-                x: textTranslateXWithUnitLeft,
+                x: `-${textTranslate}vw`,
                 fontFamily: "var(--font-family-inter)",
                 fontSize: "12px",
                 fontWeight: "var(--font-weight-bold)",
@@ -116,7 +174,7 @@ export function BannerSection() {
             <motion.h2
               className="text-white"
               style={{
-                x: textTranslateXWithUnitLeft,
+                x: `-${textTranslate}vw`,
                 fontFamily: "var(--font-family-figtree)",
                 fontSize: "clamp(52px, 8vw, 116px)",
                 fontWeight: 700,
@@ -129,7 +187,7 @@ export function BannerSection() {
             <motion.h2
               className="text-white"
               style={{
-                x: textTranslateXWithUnitRight,
+                x: `${textTranslate}vw`,
                 fontFamily: "var(--font-family-figtree)",
                 fontSize: "clamp(52px, 8vw, 116px)",
                 fontWeight: 700,

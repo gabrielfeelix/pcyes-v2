@@ -11,16 +11,17 @@ import { useCart } from "./CartContext";
 import { useFavorites } from "./FavoritesContext";
 import { useTheme } from "./ThemeProvider";
 import { Footer } from "./Footer";
-import { allProducts } from "./productsData";
+import { allProducts, allTags as productTags, brands as productBrands, categories as productCategories, type Product } from "./productsData";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { findProductBySwatch, getProductSwatches } from "./productPresentation";
 
 const categoryMap: Record<string, string> = {
-  "Gabinetes": "Gabinetes", "Periféricos": "Periféricos", "Coolers": "Refrigeração",
-  "Fontes": "Fontes", "Cadeiras": "Cadeiras", "Monitores": "Monitores",
-  "Streaming": "Streaming", "Linha BrTT": "Periféricos", "Placas de Vídeo": "Placas de Vídeo", "SSD e HD": "SSD e HD", "Refrigeração": "Refrigeração"
+  ...Object.fromEntries(productCategories.map((category) => [category, category])),
+  "Coolers": "Refrigeração",
+  "Linha BrTT": "Periféricos",
 };
 const categories = Object.keys(categoryMap);
-const allTags = ["Gaming", "RGB", "Wireless", "Streaming", "Escritório"];
+const allTags = productTags.filter((tag) => ["Gaming", "RGB", "Wireless", "Streaming", "Escritório"].includes(tag));
 const sortOptions = [
   { label: "Relevância", value: "relevance" },
   { label: "Mais vendidos", value: "bestselling" },
@@ -31,13 +32,30 @@ const sortOptions = [
   { label: "Mais avaliados", value: "rating" },
   { label: "Maior desconto", value: "discount" },
 ];
-const brandsList = ["PCYES", "Mancer", "Fallen"];
+const brandsList = productBrands;
 const GLOBAL_MIN = 0;
 const GLOBAL_MAX = 15000;
 
-function getDiscount(p: typeof allProducts[0]) {
+function getDiscount(p: Product) {
   if (!p.oldPriceNum || p.oldPriceNum <= p.priceNum) return 0;
   return Math.round(((p.oldPriceNum - p.priceNum) / p.oldPriceNum) * 100);
+}
+
+function getProductSubcategory(product: Product) {
+  const name = product.name.toLowerCase();
+  const compactName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (compactName.includes("teclado")) {
+    const size = compactName.match(/\b(100|80|75|65|60)%/);
+    return size ? `Teclados ${size[1]}%` : "Teclados";
+  }
+  if (name.includes("teclado")) return "Teclados";
+  if (name.includes("mousepad") || name.includes("mouse pad")) return "Mousepads";
+  if (name.includes("mouse")) return "Mouses";
+  if (name.includes("headset") || name.includes("fone")) return "Headsets";
+  if (name.includes("water cooler")) return "Water Coolers";
+  if (name.includes("cooler")) return "Coolers";
+  if (product.subcategory) return product.subcategory;
+  return product.category;
 }
 
 /* ── Color extraction ── */
@@ -183,8 +201,9 @@ export function ProductsPage() {
 
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
-    initialCategory ? new Set([initialCategory]) : new Set()
+    initialCategory ? new Set([categoryMap[initialCategory] ?? initialCategory]) : new Set()
   );
+  const [selectedSubcategories, setSelectedSubcategories] = useState<Set<string>>(new Set());
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [selectedBrands, setSelectedBrands] = useState<Set<string>>(new Set());
   const [priceMin, setPriceMin] = useState(GLOBAL_MIN);
@@ -201,7 +220,8 @@ export function ProductsPage() {
   const [colsCount, setColsCount] = useState(3);
   const [isLoading, setIsLoading] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState<Record<number, number>>({});
-  const [quickViewProduct, setQuickViewProduct] = useState<typeof allProducts[0] | null>(null);
+  const [selectedVariants, setSelectedVariants] = useState<Record<number, Product>>({});
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     categories: true, brands: true, tags: false, price: true, rating: false, promo: false,
   });
@@ -213,7 +233,10 @@ export function ProductsPage() {
 
   useEffect(() => {
     const cat = searchParams.get("category");
-    if (cat && categoryMap[cat]) setSelectedCategories(new Set([cat]));
+    if (cat && categoryMap[cat]) {
+      setSelectedCategories(new Set([categoryMap[cat]]));
+      setSelectedSubcategories(new Set());
+    }
     const sq = searchParams.get("search");
     if (sq) setSearchQuery(sq);
   }, [searchParams]);
@@ -251,13 +274,13 @@ export function ProductsPage() {
   const toggleSection = (key: string) => setExpandedSections((p) => ({ ...p, [key]: !p[key] }));
 
   const clearAll = () => {
-    setSelectedCategories(new Set()); setSelectedTags(new Set()); setSelectedBrands(new Set());
+    setSelectedCategories(new Set()); setSelectedSubcategories(new Set()); setSelectedTags(new Set()); setSelectedBrands(new Set());
     setPriceMin(GLOBAL_MIN); setPriceMax(GLOBAL_MAX); setOnlyDiscount(false); setMinDiscount(null); setMinRating(null);
     setInStockOnly(false); setSearchQuery("");
     const sp = new URLSearchParams(searchParams); sp.delete("category"); sp.delete("search"); setSearchParams(sp, { replace: true });
   };
 
-  const activeFilterCount = selectedCategories.size + selectedTags.size + selectedBrands.size
+  const activeFilterCount = selectedCategories.size + selectedSubcategories.size + selectedTags.size + selectedBrands.size
     + (priceMin > GLOBAL_MIN || priceMax < GLOBAL_MAX ? 1 : 0) + (onlyDiscount ? 1 : 0)
     + (minDiscount !== null ? 1 : 0)
     + (minRating !== null ? 1 : 0) + (searchQuery ? 1 : 0) + (inStockOnly ? 1 : 0);
@@ -270,6 +293,7 @@ export function ProductsPage() {
       result = result.filter(p => p.name.toLowerCase().includes(lowerQ) || p.category.toLowerCase().includes(lowerQ));
     }
     if (selectedCategories.size > 0) result = result.filter((p) => selectedCategories.has(p.category));
+    if (selectedSubcategories.size > 0) result = result.filter((p) => selectedSubcategories.has(getProductSubcategory(p)));
     if (selectedTags.size > 0) result = result.filter((p) => p.tags.some((t) => selectedTags.has(t)));
     if (selectedBrands.size > 0) result = result.filter((p) => p.brand && selectedBrands.has(p.brand));
     if (priceMin > GLOBAL_MIN) result = result.filter((p) => p.priceNum >= priceMin);
@@ -289,7 +313,15 @@ export function ProductsPage() {
       case "za": result.sort((a, b) => b.name.localeCompare(a.name)); break;
     }
     return result;
-  }, [selectedCategories, selectedTags, selectedBrands, priceMin, priceMax, onlyDiscount, minDiscount, minRating, inStockOnly, sortBy, searchQuery]);
+  }, [selectedCategories, selectedSubcategories, selectedTags, selectedBrands, priceMin, priceMax, onlyDiscount, minDiscount, minRating, inStockOnly, sortBy, searchQuery]);
+
+  const subcategories = useMemo(() => {
+    const productsForCurrentCategory = selectedCategories.size > 0
+      ? allProducts.filter((product) => selectedCategories.has(product.category))
+      : allProducts;
+
+    return Array.from(new Set(productsForCurrentCategory.map(getProductSubcategory))).sort((a, b) => a.localeCompare(b));
+  }, [selectedCategories]);
 
   /* ── Apply filters with loading ── */
   const applyFilters = () => {
@@ -318,17 +350,21 @@ export function ProductsPage() {
 
   const filterSidebar = (
     <div className="space-y-6 pr-2">
-      {/* Categorias */}
-      <FilterSection title="Categorias" expanded={expandedSections.categories} onToggle={() => toggleSection("categories")}>
-        {categories.map((cat) => {
-          const count = allProducts.filter((p) => p.category === cat).length;
-          const active = selectedCategories.has(cat);
+      {/* Subcategorias */}
+      <FilterSection title="Subcategorias" expanded={expandedSections.categories} onToggle={() => toggleSection("categories")}>
+        {subcategories.map((subcat) => {
+          const count = allProducts.filter((p) => {
+            const categoryMatches = selectedCategories.size === 0 || selectedCategories.has(p.category);
+            return categoryMatches && getProductSubcategory(p) === subcat;
+          }).length;
+          const active = selectedSubcategories.has(subcat);
           return (
-            <label key={cat} className="flex items-center gap-3 py-2 cursor-pointer group/item">
+            <label key={subcat} className="flex items-center gap-3 py-2 cursor-pointer group/item">
+              <input type="checkbox" className="hidden" checked={active} onChange={() => toggleSet(setSelectedSubcategories, subcat)} />
               <span className={`w-4 h-4 border flex items-center justify-center flex-shrink-0 transition-colors ${active ? "border-foreground bg-foreground" : "border-foreground/20 group-hover/item:border-foreground/40"}`} style={{ borderRadius: "4px" }}>
                 {active && <svg width="10" height="10" viewBox="0 0 8 8"><path d="M1.5 4L3 5.5L6.5 2.5" stroke={isDark ? "#0a0a0a" : "#fff"} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>}
               </span>
-              <span className="text-foreground/70 group-hover/item:text-foreground transition-colors flex-1 truncate" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}>{cat}</span>
+              <span className="text-foreground/70 group-hover/item:text-foreground transition-colors flex-1 truncate" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}>{subcat}</span>
               <span className="text-foreground/30 flex-shrink-0" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>({count})</span>
             </label>
           );
@@ -551,6 +587,7 @@ export function ProductsPage() {
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="flex flex-wrap items-center gap-2 mb-6">
                     {searchQuery && <FilterPill label={`"${searchQuery}"`} onRemove={() => { setSearchQuery(""); const sp = new URLSearchParams(searchParams); sp.delete("search"); setSearchParams(sp, { replace: true }); }} />}
                     {[...selectedCategories].map((c) => <FilterPill key={c} label={c} onRemove={() => toggleCategory(c)} />)}
+                    {[...selectedSubcategories].map((c) => <FilterPill key={c} label={c} onRemove={() => toggleSet(setSelectedSubcategories, c)} />)}
                     {[...selectedBrands].map((b) => <FilterPill key={b} label={b} onRemove={() => toggleSet(setSelectedBrands, b)} />)}
                     {[...selectedTags].map((t) => <FilterPill key={t} label={t} onRemove={() => toggleSet(setSelectedTags, t)} />)}
                     {(priceMin > GLOBAL_MIN || priceMax < GLOBAL_MAX) && <FilterPill label={`R$ ${priceMin} – R$ ${priceMax}`} onRemove={() => { setPriceMin(GLOBAL_MIN); setPriceMax(GLOBAL_MAX); }} />}
@@ -592,10 +629,11 @@ export function ProductsPage() {
                 <div className={`grid gap-x-6 gap-y-10 grid-cols-1 sm:grid-cols-2 xl:grid-cols-${colsCount}`}>
                   <AnimatePresence mode="popLayout">
                     {filtered.map((product, i) => {
-                      const discount = getDiscount(product);
-                      const productImages = product.images && product.images.length > 0 ? product.images : [product.image];
-                      const imgIdx = getImageIndex(product.id, productImages.length);
-                      const swatches = colorSwatches[product.id] ?? [{ color: "#3f3f46", label: "Default" }];
+                      const displayProduct = selectedVariants[product.id] ?? product;
+                      const discount = getDiscount(displayProduct);
+                      const productImages = displayProduct.images && displayProduct.images.length > 0 ? displayProduct.images : [displayProduct.image];
+                      const imgIdx = getImageIndex(displayProduct.id, productImages.length);
+                      const swatches = getProductSwatches(displayProduct);
 
                       return (
                         <motion.div key={product.id} layout initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96 }}
@@ -603,10 +641,10 @@ export function ProductsPage() {
                           className="group relative"
                         >
                           <div className="relative overflow-hidden mb-4 aspect-square" style={{ borderRadius: "var(--radius-card)", background: isDark ? "#1a1a1c" : "#f0f0f0" }}>
-                            <Link to={`/produto/${product.id}`} className="block h-full">
+                            <Link to={`/produto/${displayProduct.id}`} className="block h-full">
                               <ImageWithFallback
                                 src={productImages[imgIdx]}
-                                alt={product.name}
+                                alt={displayProduct.name}
                                 loading="lazy"
                                 decoding="async"
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[1s] ease-out"
@@ -621,13 +659,13 @@ export function ProductsPage() {
                                   {discount}% OFF
                                 </span>
                               )}
-                              {product.badge && (
-                                <span className={`px-2.5 py-1 text-white shadow-sm ${product.badge.toUpperCase().includes('BLUE') ? 'bg-blue-600' : product.badge.toUpperCase().includes('RED') ? 'bg-red-600' : product.badge.toUpperCase().includes('BROWN') ? 'bg-amber-700' : 'bg-foreground'}`}
+                              {displayProduct.badge && (
+                                <span className={`px-2.5 py-1 text-white shadow-sm ${displayProduct.badge.toUpperCase().includes('BLUE') ? 'bg-blue-600' : displayProduct.badge.toUpperCase().includes('RED') ? 'bg-red-600' : displayProduct.badge.toUpperCase().includes('BROWN') ? 'bg-amber-700' : 'bg-foreground'}`}
                                   style={{ borderRadius: "4px", fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "600", letterSpacing: "0.03em" }}>
-                                  {product.badge}
+                                  {displayProduct.badge}
                                 </span>
                               )}
-                              {product.inStock === false && (
+                              {displayProduct.inStock === false && (
                                 <span className="px-2.5 py-1 bg-foreground/80 text-background shadow-sm" style={{ borderRadius: "4px", fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "600" }}>
                                   Esgotado
                                 </span>
@@ -636,13 +674,13 @@ export function ProductsPage() {
 
                             {/* Favorite + Quick View — top-right */}
                             <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
-                              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(product.id); }}
+                              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(displayProduct.id); }}
                                 className="w-9 h-9 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black/50 hover:scale-105"
-                                aria-label={isFavorite(product.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                                aria-label={isFavorite(displayProduct.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
                               >
-                                <Heart size={16} className={isFavorite(product.id) ? "fill-red-500 text-red-500" : "text-white"} strokeWidth={2} />
+                                <Heart size={16} className={isFavorite(displayProduct.id) ? "fill-red-500 text-red-500" : "text-white"} strokeWidth={2} />
                               </button>
-                              <button onClick={(e) => { e.preventDefault(); setQuickViewProduct(product); }}
+                              <button onClick={(e) => { e.preventDefault(); setQuickViewProduct(displayProduct); }}
                                 className="w-9 h-9 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all duration-300 delay-75 hover:bg-black/50 hover:scale-105 hidden lg:flex"
                                 aria-label="Visualização Rápida"
                               >
@@ -654,14 +692,14 @@ export function ProductsPage() {
                             {productImages.length > 1 && (
                               <>
                                 <button
-                                  onClick={(e) => { e.preventDefault(); setImageIdx(product.id, imgIdx - 1, productImages.length); }}
+                                  onClick={(e) => { e.preventDefault(); setImageIdx(displayProduct.id, imgIdx - 1, productImages.length); }}
                                   className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 text-white hover:bg-black/50 z-10"
                                   aria-label="Imagem anterior"
                                 >
                                   <ChevronLeft size={18} />
                                 </button>
                                 <button
-                                  onClick={(e) => { e.preventDefault(); setImageIdx(product.id, imgIdx + 1, productImages.length); }}
+                                  onClick={(e) => { e.preventDefault(); setImageIdx(displayProduct.id, imgIdx + 1, productImages.length); }}
                                   className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 delay-75 text-white hover:bg-black/50 z-10"
                                   aria-label="Próxima imagem"
                                 >
@@ -671,7 +709,7 @@ export function ProductsPage() {
                                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10">
                                   {productImages.map((_, idx) => (
                                     <button key={idx}
-                                      onClick={(e) => { e.preventDefault(); setImageIdx(product.id, idx, productImages.length); }}
+                                      onClick={(e) => { e.preventDefault(); setImageIdx(displayProduct.id, idx, productImages.length); }}
                                       aria-label={`Ir para imagem ${idx + 1}`}
                                       className={`h-1.5 rounded-full transition-all ${idx === imgIdx ? "bg-white w-5" : "bg-white/50 w-1.5 hover:bg-white/80"}`}
                                     />
@@ -683,7 +721,7 @@ export function ProductsPage() {
                             {/* Quick add — Insider "Compra Rápida" style */}
                             <div className="absolute bottom-0 left-0 right-0 z-10">
                               <button
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAddToCart(product); }}
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAddToCart(displayProduct); }}
                                 className="w-full py-3.5 bg-foreground/95 backdrop-blur-md text-background flex items-center justify-center gap-2 lg:opacity-0 lg:translate-y-full group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300"
                                 style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: "700", letterSpacing: "0.06em", textTransform: "uppercase" }}
                               >
@@ -697,22 +735,30 @@ export function ProductsPage() {
                             {/* Color swatches */}
                             {swatches.length > 1 && (
                               <div className="flex items-center gap-1.5 mb-3">
-                                {swatches.map((sw, idx) => (
-                                  <span
-                                    key={idx}
-                                    className="w-4 h-4 rounded-full border border-foreground/15 transition-transform hover:scale-125 cursor-pointer"
+                                {swatches.map((sw) => (
+                                  <button
+                                    key={sw.productId}
+                                    className={`w-4 h-4 rounded-full border border-foreground/15 transition-transform hover:scale-125 cursor-pointer ${
+                                      sw.productId === displayProduct.id ? "ring-2 ring-primary/70 ring-offset-2 ring-offset-background" : ""
+                                    }`}
                                     style={{ backgroundColor: sw.color }}
                                     title={sw.label}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      const variant = findProductBySwatch(sw);
+                                      if (variant) setSelectedVariants((prev) => ({ ...prev, [product.id]: variant }));
+                                    }}
                                   />
                                 ))}
                               </div>
                             )}
 
                             {/* Name */}
-                            <Link to={`/produto/${product.id}`}>
+                            <Link to={`/produto/${displayProduct.id}`}>
                               <p className="text-foreground group-hover:text-foreground/70 transition-colors mb-2 truncate leading-snug"
                                 style={{ fontFamily: "var(--font-family-figtree)", fontSize: "16px", fontWeight: "var(--font-weight-medium)", lineHeight: 1.4 }}>
-                                {product.name}
+                                {displayProduct.name}
                               </p>
                             </Link>
 
@@ -721,19 +767,19 @@ export function ProductsPage() {
                               <div className="flex items-center gap-1.5">
                                 <Star size={12} className="fill-foreground text-foreground" />
                                 <span className="text-foreground/60 font-medium" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>
-                                  {product.rating}
+                                  {displayProduct.rating}
                                 </span>
                                 <span className="text-foreground/30" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>
-                                  ({product.reviews})
+                                  ({displayProduct.reviews})
                                 </span>
                               </div>
                               <div className="text-right">
                                 <p className="text-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px", fontWeight: "700" }}>
-                                  {product.price}
+                                  {displayProduct.price}
                                 </p>
-                                {product.oldPrice && (
+                                {displayProduct.oldPrice && (
                                   <p className="text-foreground/40 line-through mt-0.5" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>
-                                    {product.oldPrice}
+                                    {displayProduct.oldPrice}
                                   </p>
                                 )}
                               </div>

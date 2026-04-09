@@ -5,8 +5,8 @@ import { useTheme } from "./ThemeProvider";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { ShoppingBag, Heart, Star } from "lucide-react";
 import { useCart } from "./CartContext";
-import { allProducts as catalogProducts } from "./productsData";
-import { getProductHoverMedia, getProductSwatches } from "./productPresentation";
+import { allProducts as catalogProducts, type Product } from "./productsData";
+import { findProductBySwatch, getProductHoverMedia, getProductSwatches } from "./productPresentation";
 
 const tags = ["Todos", "Gaming", "Streaming", "Escritório", "RGB", "Wireless"];
 
@@ -21,17 +21,29 @@ const tagProducts = [
   { id: 8, name: "Electra 750W Fonte", price: "R$ 449,90", rating: 4.9, reviews: 421, tags: ["Gaming"], image: "https://images.unsplash.com/photo-1630831506636-5209d7349db9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21wdXRlciUyMHBvd2VyJTIwc3VwcGx5JTIwdW5pdCUyMGRhcmt8ZW58MXx8fHwxNzczODM5Nzk2fDA&ixlib=rb-4.1.0&q=80&w=1080" },
 ];
 
+const catalogTagProducts = [
+  { id: 72, name: "Arkeum Black Vulcan", price: "R$ 399,90", rating: 4.9, reviews: 306, tags: ["Gaming", "RGB"], image: "/home/release-keyboard-context.png" },
+  { id: 128, name: "Mouse Rest Silent", price: "R$ 249,90", rating: 4.6, reviews: 459, tags: ["Escritório"], image: "/home/release-mouse-context.png" },
+  { id: 329, name: "Headset Kamar", price: "R$ 279,90", rating: 4.9, reviews: 373, tags: ["Gaming", "Streaming"], image: "/home/featured-headset.png" },
+  { id: 436, name: "Forcefield Dome", price: "R$ 599,90", rating: 4.8, reviews: 212, tags: ["Gaming", "RGB"], image: "/home/category-hardware.png" },
+  { id: 446, name: "Cadeira Maringá FC", price: "R$ 1299,90", rating: 4.8, reviews: 232, tags: ["Gaming", "Escritório"], image: "/home/release-chair-context.png" },
+  { id: 199, name: "Fonte Aether 1000W", price: "R$ 449,90", rating: 4.5, reviews: 343, tags: ["Gaming"], image: "/home/release-psu-context.png" },
+  { id: 375, name: "Water Cooler Vision", price: "R$ 349,90", rating: 4.7, reviews: 365, tags: ["RGB"], image: "/home/category-cooling.png" },
+  { id: 295, name: "Mouse Pad Obsidian", price: "R$ 149,90", rating: 4.5, reviews: 205, tags: ["Gaming", "RGB"], image: "/home/release-deskpad-context.png" },
+];
+
 export function ProductsByTags() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.05 });
   const [activeTag, setActiveTag] = useState("Todos");
   const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
   const [hoveredProductId, setHoveredProductId] = useState<number | null>(null);
+  const [selectedVariants, setSelectedVariants] = useState<Record<number, Product>>({});
   const { addItem } = useCart();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
 
-  const filtered = activeTag === "Todos" ? tagProducts : tagProducts.filter((p) => p.tags.includes(activeTag));
+  const filtered = activeTag === "Todos" ? catalogTagProducts : catalogTagProducts.filter((p) => p.tags.includes(activeTag));
 
   const toggleLike = (id: number, e: React.MouseEvent) => {
     e.preventDefault();
@@ -115,9 +127,10 @@ export function ProductsByTags() {
               >
                 {(() => {
                   const catalogProduct = catalogProducts.find((item) => item.id === product.id);
-                  const hoverMedia = getProductHoverMedia(catalogProduct ?? { id: product.id, image: product.image, images: [product.image] });
-                  const swatches = catalogProduct ? getProductSwatches(catalogProduct) : [];
-                  const primaryImage = catalogProduct?.image ?? product.image;
+                  const displayProduct = selectedVariants[product.id] ?? catalogProduct ?? product;
+                  const hoverMedia = getProductHoverMedia(displayProduct);
+                  const swatches = catalogProduct ? getProductSwatches(displayProduct) : [];
+                  const primaryImage = displayProduct.image;
 
                   return (
                     <>
@@ -129,13 +142,13 @@ export function ProductsByTags() {
                       ? "#1e1e20"
                       : "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(242,242,242,1) 100%)",
                   }}
-                  onMouseEnter={() => setHoveredProductId(product.id)}
-                  onMouseLeave={() => setHoveredProductId((current) => (current === product.id ? null : current))}
+                  onMouseEnter={() => setHoveredProductId(displayProduct.id)}
+                  onMouseLeave={() => setHoveredProductId((current) => (current === displayProduct.id ? null : current))}
                 >
-                  <Link to={`/produto/${product.id}`} className="block h-full">
+                  <Link to={`/produto/${displayProduct.id}`} className="block h-full">
                     <ImageWithFallback
                       src={primaryImage}
-                      alt={product.name}
+                      alt={displayProduct.name}
                       className={`absolute inset-0 w-full h-full object-cover transition-all duration-[900ms] ease-out ${
                         hoverMedia ? "group-hover:scale-[1.02] group-hover:opacity-0" : "group-hover:scale-105"
                       }`}
@@ -144,15 +157,15 @@ export function ProductsByTags() {
                     {hoverMedia?.type === "image" && (
                       <ImageWithFallback
                         src={hoverMedia.src}
-                        alt={`${product.name} em destaque`}
+                        alt={`${displayProduct.name} em destaque`}
                         className="absolute inset-0 h-full w-full object-cover opacity-0 scale-[1.04] transition-all duration-[900ms] ease-out group-hover:scale-100 group-hover:opacity-100"
                       />
                     )}
 
-                    {hoverMedia?.type === "video" && hoveredProductId === product.id && (
+                    {hoverMedia?.type === "video" && hoveredProductId === displayProduct.id && (
                       <iframe
                         src={`${hoverMedia.src}${hoverMedia.src.includes("?") ? "&" : "?"}autoplay=1&mute=1&loop=1&controls=0&playsinline=1`}
-                        title={`${product.name} video`}
+                        title={`${displayProduct.name} video`}
                         className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                         style={{ border: "none" }}
                         allow="autoplay; encrypted-media"
@@ -178,7 +191,7 @@ export function ProductsByTags() {
                   {/* Quick add */}
                   <div className="absolute bottom-4 left-4 right-4 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400">
                     <button
-                      onClick={(e) => { e.preventDefault(); addItem(product); }}
+                      onClick={(e) => { e.preventDefault(); addItem(displayProduct); }}
                       className="w-full py-2.5 bg-white/95 backdrop-blur-sm text-black flex items-center justify-center gap-2 hover:bg-primary hover:text-white transition-colors duration-300"
                       style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: "var(--font-weight-medium)" }}
                     >
@@ -205,11 +218,19 @@ export function ProductsByTags() {
                   {swatches.length > 1 && (
                     <div className="mb-2.5 flex items-center gap-1.5">
                       {swatches.map((swatch) => (
-                        <span
+                        <button
                           key={`${product.id}-${swatch.label}`}
-                          className="h-3.5 w-3.5 rounded-full border border-foreground/10 shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset]"
+                          className={`h-3.5 w-3.5 rounded-full border border-foreground/10 shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset] transition-transform hover:scale-125 ${
+                            swatch.productId === displayProduct.id ? "ring-2 ring-primary/70 ring-offset-2 ring-offset-background" : ""
+                          }`}
                           style={{ backgroundColor: swatch.color }}
                           title={swatch.label}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const variant = findProductBySwatch(swatch);
+                            if (variant) setSelectedVariants((prev) => ({ ...prev, [product.id]: variant }));
+                          }}
                         />
                       ))}
                     </div>
@@ -217,21 +238,21 @@ export function ProductsByTags() {
                   <div className="flex items-center gap-1.5 mb-2">
                     <Star size={11} className="fill-primary text-primary" />
                     <span className="text-foreground/60" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>
-                      {product.rating}
+                      {displayProduct.rating}
                     </span>
                     <span className="text-foreground/25" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>
-                      ({product.reviews})
+                      ({displayProduct.reviews})
                     </span>
                   </div>
                   <p className="text-foreground group-hover:text-primary transition-colors duration-300 mb-1.5 truncate" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "16px", fontWeight: "var(--font-weight-medium)" }}>
-                    {product.name}
+                    {displayProduct.name}
                   </p>
                   <p className="text-foreground/90" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", lineHeight: "21px", fontWeight: "500" }}>
-                    {product.price}
+                    {displayProduct.price}
                   </p>
-                  {product.reviews > 150 && (
+                  {displayProduct.reviews > 150 && (
                     <p className="text-foreground/25 mt-1" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px" }}>
-                      {product.reviews}+ vendidos
+                      {displayProduct.reviews}+ vendidos
                     </p>
                   )}
                 </div>

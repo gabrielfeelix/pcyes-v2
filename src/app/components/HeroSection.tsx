@@ -14,28 +14,20 @@ interface Slide {
 
 const slides: Slide[] = [
   {
-    type: "image",
-    src: "https://images.unsplash.com/photo-1624841971466-1e2b679f4a9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxSR0IlMjBjb21wdXRlciUyMGNhc2UlMjBnbGFzcyUyMHBhbmVsfGVufDF8fHx8MTc3Mzg0Mzc1Mnww&ixlib=rb-4.1.0&q=80&w=1080",
-    title: "Gabinetes Premium",
-    subtitle: "Vidro temperado, fluxo de ar otimizado e iluminação ARGB. Engenharia em cada detalhe.",
-    cta: "Ver gabinetes",
-    ctaLink: "/produtos?category=Gabinetes",
-  },
-  {
-    type: "image",
-    src: "https://images.unsplash.com/photo-1552503711-1fac14efc47f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBwZXJpcGhlcmFscyUyMGRhcmslMjBtb29keXxlbnwxfHx8fDE3NzM4NDM3NTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    title: "Periféricos de Precisão",
-    subtitle: "Teclados mecânicos, mouses e headsets projetados para quem busca a melhor resposta.",
-    cta: "Ver periféricos",
-    ctaLink: "/produtos?category=Periféricos",
-  },
-  {
     type: "video",
     src: "Xh2S_T-SQtw",
     title: "Nova Coleção Performance 2026",
     subtitle: "Periféricos e componentes que elevam sua experiência ao máximo nível de performance e design.",
     cta: "Compre agora",
     ctaLink: "/produtos",
+  },
+  {
+    type: "image",
+    src: "/home/hero-videogame.png",
+    title: "Videogame e setup em sintonia",
+    subtitle: "Acessórios, cabos e periféricos para completar sua experiência de jogo.",
+    cta: "Ver periféricos",
+    ctaLink: "/produtos?category=Periféricos",
   },
 ];
 
