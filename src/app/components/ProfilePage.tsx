@@ -69,7 +69,7 @@ export function ProfilePage() {
   return (
     <div className="pt-[92px]">
       {/* Header */}
-      <div className="px-3 md:px-4 pt-12 pb-8" style={{ background: isDark ? "#161617" : "#f5f5f7" }}>
+      <div className="px-4 md:px-6 pt-12 pb-8" style={{ background: isDark ? "#161617" : "#f5f5f7" }}>
         <div className="max-w-[1920px] mx-auto flex items-center gap-5">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
             <span className="text-primary" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "22px", fontWeight: "var(--font-weight-medium)" }}>
@@ -85,7 +85,7 @@ export function ProfilePage() {
         </div>
       </div>
 
-      <div className="px-3 md:px-4 py-10">
+      <div className="px-4 md:px-6 py-10">
         <div className="max-w-[1920px] mx-auto flex flex-col lg:flex-row gap-10">
           {/* Sidebar */}
           <aside className="w-full lg:w-[220px] flex-shrink-0">

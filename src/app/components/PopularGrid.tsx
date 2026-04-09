@@ -20,7 +20,7 @@ export function PopularGrid() {
   const popular = [...allProducts].sort((a, b) => b.reviews - a.reviews).slice(0, 12);
 
   return (
-    <section ref={ref} className="py-32 md:py-48 px-3 md:px-4">
+    <section ref={ref} className="py-32 md:py-48 px-4 md:px-6">
       <div className="max-w-[1920px] mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-6">

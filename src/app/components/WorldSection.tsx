@@ -48,7 +48,7 @@ export function WorldSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-20 md:py-24 px-3 md:px-4">
+    <section ref={sectionRef} className="py-20 md:py-24 px-4 md:px-6">
       <div className="max-w-[1920px] mx-auto">
         {/* Header */}
         <motion.div

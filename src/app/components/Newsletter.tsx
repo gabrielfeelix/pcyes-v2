@@ -15,7 +15,7 @@ export function Newsletter() {
   const [email, setEmail] = useState("");
 
   return (
-    <section ref={ref} className="py-32 md:py-48 px-4 md:px-8 relative" style={{ background: "#08080a" }}>
+    <section ref={ref} className="py-32 md:py-48 px-6 md:px-12 relative" style={{ background: "#08080a" }}>
       {/* Subtle dot-grid texture */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.18]"

@@ -16,7 +16,7 @@ export function BrandStatement() {
       {/* Subtle red radial glow */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_100%,rgba(255,43,46,0.07),transparent)]" />
 
-      <div className="relative max-w-[1920px] mx-auto px-3 md:px-4 py-16 md:py-24">
+      <div className="relative max-w-[1920px] mx-auto px-4 md:px-6 py-16 md:py-24">
         {/* Top rule */}
         <motion.div
           initial={{ scaleX: 0 }}

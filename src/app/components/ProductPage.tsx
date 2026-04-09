@@ -69,7 +69,7 @@ export function ProductPage() {
   return (
     <div className="pt-[92px]">
       {/* Breadcrumb */}
-      <div className="px-3 md:px-4 pt-8 pb-4">
+      <div className="px-4 md:px-6 pt-8 pb-4">
         <div className="max-w-[1920px] mx-auto flex items-center gap-2 flex-wrap">
           <Link to="/" className="text-foreground/25 hover:text-foreground/50 transition-colors" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>
             Home
@@ -94,7 +94,7 @@ export function ProductPage() {
       </div>
 
       {/* ─── Main PDP section ─── */}
-      <div className="px-3 md:px-4 pb-24">
+      <div className="px-4 md:px-6 pb-24">
         <div className="max-w-[1920px] mx-auto flex flex-col lg:flex-row gap-12 lg:gap-20">
 
           {/* ── Left: Gallery ── */}
@@ -404,7 +404,7 @@ export function ProductPage() {
       </div>
 
       {/* ─── Related products ─── */}
-      <div ref={relatedRef} className="px-3 md:px-4 py-24 border-t border-foreground/5">
+      <div ref={relatedRef} className="px-4 md:px-6 py-24 border-t border-foreground/5">
         <div className="max-w-[1920px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

@@ -151,7 +151,7 @@ export function HeroSection() {
 
         {/* Content at bottom-left */}
         <motion.div
-          className="absolute bottom-0 left-0 right-0 px-4 md:px-8 pb-16 md:pb-20"
+          className="absolute bottom-0 left-0 right-0 px-6 md:px-12 pb-16 md:pb-20"
           style={{ y: contentY, opacity: contentOpacity }}
         >
           <div className="max-w-[1920px] mx-auto flex items-end justify-between">
