@@ -10,6 +10,7 @@ import { ResellerPage } from "./components/pages/ResellerPage";
 import { ContactPage } from "./components/pages/ContactPage";
 import { StoreLocatorPage } from "./components/pages/StoreLocatorPage";
 import { MaringaFCCollabPage } from "./components/pages/MaringaFCCollabPage";
+import { MonteSeuPcPage } from "./pages/MonteSeuPcPage";
 
 export const router = createBrowserRouter([
   {
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
       { path: "fale-conosco", Component: ContactPage },
       { path: "onde-encontrar", Component: StoreLocatorPage },
       { path: "maringa-fc", Component: MaringaFCCollabPage },
+      { path: "monte-seu-pc", Component: MonteSeuPcPage },
     ],
   },
 ]);

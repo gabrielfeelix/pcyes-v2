@@ -373,7 +373,7 @@ const navItems: NavItem[] = [
   { label: "Computadores", mega: "computadores", href: "/produtos" },
   { label: "PC Gamer", mega: "pcgamer", href: "/produtos" },
   { label: "Collab", mega: "collab", href: "/maringa-fc" },
-  { label: "Monte seu PC", href: "/produtos" },
+  { label: "Monte seu PC", href: "/monte-seu-pc" },
   { label: "Seja Influenciador", href: "/influenciadores" },
   { label: "Seja Revendedor", href: "/revendedor" },
   { label: "Drivers e Manuais", mega: "drivers", href: "#" },
