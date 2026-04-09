@@ -18,7 +18,6 @@ export function HomePage() {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
   const darkBg = isDark ? "#161617" : "transparent";
-  const darkerBg = isDark ? "#0f0f10" : "transparent";
 
   return (
     <>
@@ -45,19 +44,6 @@ export function HomePage() {
       </div>
 
       <NewReleasesSection />
-
-      <div style={{ background: darkerBg }}>
-        <FeaturedProduct
-          label="DESTAQUE"
-          title="Gabinete Spectrum Pro"
-          description="Design em vidro temperado com fluxo de ar otimizado, iluminação ARGB integrada e espaço para builds de alta performance. Engenharia pensada em cada detalhe."
-          image="https://images.unsplash.com/photo-1695120485648-0b6eed4707aa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21wdXRlciUyMGNhc2UlMjB0b3dlciUyMGRhcmt8ZW58MXx8fHwxNzczODM5Nzk1fDA&ixlib=rb-4.1.0&q=80&w=1080"
-          imageAlt="Gabinete Spectrum Pro"
-          price="R$ 599,90"
-          specs={["ATX", "Vidro Temperado", "6 Fans", "USB-C"]}
-          productId={4}
-        />
-      </div>
 
       <Marquee words={["Performance", "Precisão", "Design", "Inovação", "Tecnologia", "Gaming"]} speed={40} />
 

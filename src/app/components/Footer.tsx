@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { useTheme } from "./ThemeProvider";
-import { ArrowUp, Facebook, Instagram, Linkedin, ShieldCheck, Youtube } from "lucide-react";
+import { ArrowUp, Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 const columns = [
@@ -48,8 +48,10 @@ const certifications = [
     imageClassName: "w-[66px] h-[66px] object-contain",
   },
   {
-    label: "Site Seguro",
-    custom: "site-secure",
+    label: "Loja Protegida",
+    href: "https://www.lojaprotegida.com.br/",
+    image: "https://www.insiderstore.com.br/cdn/shop/files/Image_52_2x_85487a22-7eb0-4ae3-a7d7-75cc3910f11f.png?v=1773456501&width=140",
+    imageClassName: "w-[66px] h-[66px] object-contain",
   },
   {
     label: "GPTW",
@@ -182,28 +184,12 @@ export function Footer() {
                   }`}
                 >
                   <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-                    {"custom" in cert && cert.custom === "site-secure" ? (
-                      <>
-                        <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isDark ? "bg-primary/[0.14] text-primary" : "bg-primary/[0.1] text-primary"}`}>
-                          <ShieldCheck size={24} strokeWidth={1.9} />
-                        </div>
-                        <div className="space-y-0.5">
-                          <p className="text-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "var(--font-weight-bold)", letterSpacing: "0.05em" }}>
-                            SITE SEGURO
-                          </p>
-                          <p className="text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "9px" }}>
-                            Compra protegida
-                          </p>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <ImageWithFallback src={cert.image} alt={cert.label} className={cert.imageClassName} />
-                        <p className="text-foreground/60" style={{ fontFamily: "var(--font-family-inter)", fontSize: "9px", fontWeight: "var(--font-weight-bold)", letterSpacing: "0.04em" }}>
-                          {cert.label}
-                        </p>
-                      </>
-                    )}
+                    <>
+                      <ImageWithFallback src={cert.image} alt={cert.label} className={cert.imageClassName} />
+                      <p className="text-foreground/60" style={{ fontFamily: "var(--font-family-inter)", fontSize: "9px", fontWeight: "var(--font-weight-bold)", letterSpacing: "0.04em" }}>
+                        {cert.label}
+                      </p>
+                    </>
                   </div>
                 </a>
               ))}
