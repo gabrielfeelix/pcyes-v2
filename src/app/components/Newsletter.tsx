@@ -15,7 +15,7 @@ export function Newsletter() {
   const [email, setEmail] = useState("");
 
   return (
-    <section ref={ref} className="py-32 md:py-48 px-8 md:px-16 relative" style={{ background: "#08080a" }}>
+    <section ref={ref} className="py-32 md:py-48 px-4 md:px-8 relative" style={{ background: "#08080a" }}>
       {/* Subtle dot-grid texture */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.18]"
@@ -28,7 +28,7 @@ export function Newsletter() {
         initial={{ opacity: 0, y: 60 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        className="max-w-[1300px] mx-auto"
+        className="max-w-[1920px] mx-auto"
       >
         <div className="relative overflow-hidden border border-border/10 p-10 md:p-20" style={{ borderRadius: "var(--radius-card)" }}>
           {/* Subtle background glow */}

@@ -483,11 +483,11 @@ export function Navbar() {
 
   const renderIcons = () => (
     <div className="flex items-center gap-1">
-      <button onClick={() => setSearchOpen(!searchOpen)} className={`relative w-9 h-9 flex items-center justify-center transition-colors cursor-pointer ${iconColor}`}>
-        <Search size={16} strokeWidth={1.5} />
+      <button onClick={() => setSearchOpen(!searchOpen)} className={`relative w-10 h-10 flex items-center justify-center transition-colors cursor-pointer ${iconColor}`}>
+        <Search size={20} strokeWidth={1.5} />
       </button>
-      <button onClick={() => navigate("/perfil")} className={`relative w-9 h-9 flex items-center justify-center transition-colors cursor-pointer ${iconColor}`}>
-        <Heart size={16} strokeWidth={1.5} />
+      <button onClick={() => navigate("/perfil")} className={`relative w-10 h-10 flex items-center justify-center transition-colors cursor-pointer ${iconColor}`}>
+        <Heart size={20} strokeWidth={1.5} />
         <AnimatePresence>
           {favCount > 0 && (
             <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
@@ -498,15 +498,15 @@ export function Navbar() {
         </AnimatePresence>
       </button>
       <ThemeToggle showExpanded={showExpanded} navbarIsDark={isDark} />
-      <button onClick={handleUserClick} className={`relative w-9 h-9 flex items-center justify-center transition-colors cursor-pointer ${iconColor}`}>
+      <button onClick={handleUserClick} className={`relative w-10 h-10 flex items-center justify-center transition-colors cursor-pointer ${iconColor}`}>
         {isLoggedIn ? (
           <span className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
             <span className="text-primary" style={{ fontSize: "10px", fontFamily: "var(--font-family-inter)", fontWeight: "var(--font-weight-medium)" }}>J</span>
           </span>
-        ) : <User size={16} strokeWidth={1.5} />}
+        ) : <User size={20} strokeWidth={1.5} />}
       </button>
-      <button onClick={() => setCartOpen(true)} className={`relative w-9 h-9 flex items-center justify-center transition-colors cursor-pointer ${iconColor}`}>
-        <ShoppingBag size={16} strokeWidth={1.5} />
+      <button onClick={() => setCartOpen(true)} className={`relative w-10 h-10 flex items-center justify-center transition-colors cursor-pointer ${iconColor}`}>
+        <ShoppingBag size={20} strokeWidth={1.5} />
         <AnimatePresence>
           {totalItems > 0 && (
             <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
@@ -652,7 +652,7 @@ export function Navbar() {
         </div>
         <div className="relative z-10 flex flex-col items-start gap-3 flex-1">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-foreground/8 bg-background/70 text-primary/80 transition-all duration-500 group-hover:bg-primary group-hover:text-white group-hover:scale-110">
-            {icon ? React.cloneElement(icon as React.ReactElement, { size: 18 }) : <ArrowUpRight size={18} />}
+            {icon ? React.cloneElement(icon as React.ReactElement, { size: 18 }) : <ArrowUpRight size={22} />}
           </div>
           <div className="mt-2">
             <p className="text-foreground/90 transition-colors group-hover:text-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "15px", fontWeight: "600" }}>
@@ -869,7 +869,7 @@ export function Navbar() {
                   <span style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "700", letterSpacing: "0.12em" }}>
                     EXPLORAR UNIVERSO
                   </span>
-                  <ArrowUpRight size={16} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                  <ArrowUpRight size={20} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                 </div>
               </div>
               <div className="relative flex min-h-[260px] items-center justify-center rounded-[28px] border border-foreground/8 bg-background/60 p-6 overflow-hidden">
@@ -898,8 +898,8 @@ export function Navbar() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex h-12 w-12 items-center justify-center rounded-[18px] border border-foreground/8 bg-background/70 transition-transform duration-300 group-hover:-translate-y-1 group-hover:bg-primary/10">
                       {isPdf
-                        ? <FileText size={18} className="text-primary/75 group-hover:text-primary transition-colors" />
-                        : <Download size={18} className="text-primary/75 group-hover:text-primary transition-colors" />
+                        ? <FileText size={22} className="text-primary/75 group-hover:text-primary transition-colors" />
+                        : <Download size={22} className="text-primary/75 group-hover:text-primary transition-colors" />
                       }
                     </div>
                     <span className="px-2 py-0.5 rounded text-foreground/40 bg-foreground/5 border border-foreground/10" style={{ fontSize: "9px", fontWeight: "700", letterSpacing: "0.1em" }}>
@@ -907,7 +907,7 @@ export function Navbar() {
                     </span>
                   </div>
                   <div className="flex-1">
-                    <p className="text-foreground/85 transition-colors group-hover:text-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", fontWeight: "600", lineHeight: 1.45 }}>
+                    <p className="text-foreground/85 transition-colors group-hover:text-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px", fontWeight: "600", lineHeight: 1.45 }}>
                       {item.name}
                     </p>
                     <p className="mt-2 text-foreground/40" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", lineHeight: 1.5 }}>
@@ -1017,7 +1017,7 @@ export function Navbar() {
           }}
         >
           {/* Top row */}
-          <div className="max-w-[1440px] mx-auto px-5 md:px-8 flex items-center justify-between transition-all duration-700"
+          <div className="max-w-[1920px] mx-auto px-3 md:px-4 flex items-center justify-between transition-all duration-700"
             style={{ height: showExpanded ? 50 : 56 }}
           >
             {/* Left: logo */}
@@ -1047,13 +1047,13 @@ export function Navbar() {
                       className={`relative flex h-full items-center rounded-full px-3 py-1.5 transition-all duration-300 ${activeMega === item.mega
                         ? "bg-primary/[0.10] text-foreground"
                         : navTextColor}`}
-                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
+                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px" }}
                     >{item.label}</Link>
                   ) : (
                     <button className={`relative flex h-full cursor-pointer items-center rounded-full px-3 py-1.5 transition-all duration-300 ${activeMega === item.mega
                       ? "bg-primary/[0.10] text-foreground"
                       : navTextColor}`}
-                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
+                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px" }}
                     >{item.label}</button>
                   )}
                 </div>
@@ -1063,9 +1063,9 @@ export function Navbar() {
             {/* Right */}
             <div className="flex items-center gap-1.5">
               {renderIcons()}
-              <button className={`lg:hidden w-9 h-9 flex items-center justify-center transition-colors cursor-pointer ${iconColor}`}
+              <button className={`lg:hidden w-10 h-10 flex items-center justify-center transition-colors cursor-pointer ${iconColor}`}
                 onClick={() => setMobileOpen(!mobileOpen)}
-              >{mobileOpen ? <X size={18} /> : <Menu size={18} />}</button>
+              >{mobileOpen ? <X size={22} /> : <Menu size={22} />}</button>
             </div>
           </div>
 
@@ -1095,13 +1095,13 @@ export function Navbar() {
                     className={`relative rounded-full px-4 py-1.5 transition-all duration-300 ${activeMega === item.mega
                       ? "bg-primary/[0.12] text-foreground"
                       : (showExpanded && !promoHovered ? "text-white/45 hover:text-white" : (isDark ? "text-foreground/45 hover:text-foreground" : "text-foreground/50 hover:text-foreground"))}`}
-                    style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
+                    style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px" }}
                   >{item.label}</Link>
                 ) : (
                   <button className={`relative rounded-full px-4 py-1.5 transition-all duration-300 cursor-pointer ${activeMega === item.mega
                     ? "bg-primary/[0.12] text-foreground"
                     : (showExpanded && !promoHovered ? "text-white/45 hover:text-white" : (isDark ? "text-foreground/45 hover:text-foreground" : "text-foreground/50 hover:text-foreground"))}`}
-                    style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
+                    style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px" }}
                   >{item.label}</button>
                 )}
               </div>
@@ -1118,7 +1118,7 @@ export function Navbar() {
                 style={{ backgroundColor: isDark ? "rgba(20,20,21,0.99)" : "rgba(252,252,252,0.99)", backdropFilter: "blur(60px)" }}
                 onMouseEnter={() => handleMegaEnter(activeMega)} onMouseLeave={handleMegaLeave}
               >
-                <div className="mx-auto flex h-[640px] max-w-[1440px] px-5 md:px-8">
+                <div className="mx-auto flex h-[640px] max-w-[1920px] px-3 md:px-4">
                   {/* Left sidebar */}
                   <div className="h-full w-[220px] flex-shrink-0 border-r border-foreground/5 py-7 pr-6 xl:w-[240px]">
                     <p className="mb-3 px-3 text-foreground/30 tracking-widest" style={{ fontFamily: "var(--font-family-inter)", fontSize: "9px", fontWeight: "600" }}>
@@ -1210,9 +1210,9 @@ export function Navbar() {
               className="fixed left-0 right-0 z-[51] border-t border-foreground/5 shadow-2xl"
               style={{ top: promoTop + (showExpanded ? 170 : 56), backgroundColor: isDark ? "rgba(22,22,23,0.98)" : "rgba(250,250,250,0.98)", backdropFilter: "blur(40px)" }}
             >
-              <div className="max-w-[640px] mx-auto px-6 md:px-8">
+              <div className="max-w-[640px] mx-auto px-3 md:px-4">
                 <div className="flex items-center gap-4 py-4 border-b border-foreground/5">
-                  <Search size={16} className="text-foreground/30 flex-shrink-0" />
+                  <Search size={20} className="text-foreground/30 flex-shrink-0" />
                   <input ref={searchInputRef} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && searchQuery.trim().length > 0) {
@@ -1252,7 +1252,7 @@ export function Navbar() {
                         {recent.map((r) => (
                           <button key={r} onClick={() => setSearchQuery(r)}
                             className="flex items-center gap-3 w-full px-3 py-2.5 text-foreground/40 hover:text-foreground hover:bg-foreground/[0.03] transition-all duration-200 cursor-pointer"
-                            style={{ borderRadius: "var(--radius)", fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
+                            style={{ borderRadius: "var(--radius)", fontFamily: "var(--font-family-inter)", fontSize: "16px" }}
                           ><Clock size={13} className="text-foreground/15" />{r}</button>
                         ))}
                       </div>
@@ -1272,7 +1272,7 @@ export function Navbar() {
                             <ImageWithFallback src={product.image} alt={product.name} className="w-full h-full object-cover" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-foreground group-hover:text-primary transition-colors truncate" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "14px", fontWeight: "var(--font-weight-medium)" }}>{product.name}</p>
+                            <p className="text-foreground group-hover:text-primary transition-colors truncate" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "16px", fontWeight: "var(--font-weight-medium)" }}>{product.name}</p>
                             <p className="text-foreground/25" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>{product.category}</p>
                           </div>
                           <span className="text-foreground/40 flex-shrink-0" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>{product.price}</span>
