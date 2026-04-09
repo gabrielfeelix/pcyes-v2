@@ -14,12 +14,12 @@ interface Slide {
 
 const slides: Slide[] = [
   {
-    type: "video",
-    src: "Xh2S_T-SQtw",
-    title: "Nova Coleção Performance 2026",
-    subtitle: "Periféricos e componentes que elevam sua experiência ao máximo nível de performance e design.",
-    cta: "Compre agora",
-    ctaLink: "/produtos",
+    type: "image",
+    src: "https://images.unsplash.com/photo-1624841971466-1e2b679f4a9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxSR0IlMjBjb21wdXRlciUyMGNhc2UlMjBnbGFzcyUyMHBhbmVsfGVufDF8fHx8MTc3Mzg0Mzc1Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+    title: "Gabinetes Premium",
+    subtitle: "Vidro temperado, fluxo de ar otimizado e iluminação ARGB. Engenharia em cada detalhe.",
+    cta: "Ver gabinetes",
+    ctaLink: "/produtos?category=Gabinetes",
   },
   {
     type: "image",
@@ -30,12 +30,12 @@ const slides: Slide[] = [
     ctaLink: "/produtos?category=Periféricos",
   },
   {
-    type: "image",
-    src: "https://images.unsplash.com/photo-1624841971466-1e2b679f4a9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxSR0IlMjBjb21wdXRlciUyMGNhc2UlMjBnbGFzcyUyMHBhbmVsfGVufDF8fHx8MTc3Mzg0Mzc1Mnww&ixlib=rb-4.1.0&q=80&w=1080",
-    title: "Gabinetes Premium",
-    subtitle: "Vidro temperado, fluxo de ar otimizado e iluminação ARGB. Engenharia em cada detalhe.",
-    cta: "Ver gabinetes",
-    ctaLink: "/produtos?category=Gabinetes",
+    type: "video",
+    src: "Xh2S_T-SQtw",
+    title: "Nova Coleção Performance 2026",
+    subtitle: "Periféricos e componentes que elevam sua experiência ao máximo nível de performance e design.",
+    cta: "Compre agora",
+    ctaLink: "/produtos",
   },
 ];
 
@@ -111,8 +111,8 @@ export function HeroSection() {
   }, [current, slide.type, nextSlide]);
 
   return (
-    <section ref={containerRef} className="relative h-[105vh]">
-      <div className="sticky top-0 h-screen overflow-hidden">
+    <section ref={containerRef} className="relative h-[102vh] min-h-[880px] md:h-[945px]">
+      <div className="sticky top-0 h-screen min-h-[880px] overflow-hidden">
         {/* Slides */}
         <AnimatePresence mode="wait">
           <motion.div
@@ -151,7 +151,7 @@ export function HeroSection() {
 
         {/* Content at bottom-left */}
         <motion.div
-          className="absolute bottom-0 left-0 right-0 px-6 md:px-12 pb-16 md:pb-20"
+          className="absolute bottom-0 left-0 right-0 px-6 md:px-[72px] pb-20 md:pb-[80px]"
           style={{ y: contentY, opacity: contentOpacity }}
         >
           <div className="max-w-[1760px] mx-auto flex items-end justify-between">
@@ -169,7 +169,7 @@ export function HeroSection() {
                     <h1
                       className="text-white"
                       style={{
-                        fontSize: "clamp(28px, 5vw, 56px)",
+                        fontSize: "clamp(34px, 5vw, 56px)",
                         fontFamily: "var(--font-family-figtree)",
                         fontWeight: "var(--font-weight-light)",
                         lineHeight: "1.1",
@@ -180,7 +180,7 @@ export function HeroSection() {
                   </div>
 
                   <p
-                    className="text-white/60 max-w-md mb-8"
+                    className="text-white/60 max-w-[448px] mb-8"
                     style={{
                       fontFamily: "var(--font-family-inter)",
                       fontSize: "var(--text-base)",

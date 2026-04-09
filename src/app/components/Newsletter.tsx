@@ -15,27 +15,15 @@ export function Newsletter() {
   const [email, setEmail] = useState("");
 
   return (
-    <section ref={ref} className="py-32 md:py-48 px-6 md:px-12 relative" style={{ background: "#08080a" }}>
-      {/* Subtle dot-grid texture */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.18]"
-        style={{
-          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.35) 1px, transparent 1px)",
-          backgroundSize: "28px 28px",
-        }}
-      />
+    <section ref={ref} className="bg-[#0e0e0e] px-6 py-[72px] md:px-12 md:pb-10" style={{ background: "#0e0e0e" }}>
       <motion.div
         initial={{ opacity: 0, y: 60 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        className="max-w-[1760px] mx-auto"
+        className="mx-auto max-w-[1474px]"
       >
-        <div className="relative overflow-hidden border border-border/10 p-10 md:p-20" style={{ borderRadius: "var(--radius-card)" }}>
-          {/* Subtle background glow */}
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/[0.03] rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-primary/[0.02] rounded-full blur-[80px] translate-y-1/2 -translate-x-1/3 pointer-events-none" />
-
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="relative overflow-hidden border border-border/10 bg-[#040404] p-10 md:rounded-[8px] md:border md:px-[81px] md:py-[81px]" style={{ borderRadius: "8px" }}>
+          <div className="relative z-10 grid grid-cols-1 items-center gap-16 lg:grid-cols-[531px_481px] lg:justify-center lg:gap-[50px]">
             {/* Left: Content */}
             <div>
               <motion.p
@@ -53,9 +41,9 @@ export function Newsletter() {
                   animate={isInView ? { y: 0 } : {}}
                   transition={{ delay: 0.3, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                   className="text-foreground"
-                  style={{ fontSize: "clamp(32px, 4vw, var(--text-h3))", fontFamily: "var(--font-family-figtree)", fontWeight: "var(--font-weight-light)" }}
+                  style={{ fontSize: "clamp(32px, 4vw, 40px)", fontFamily: "var(--font-family-figtree)", fontWeight: "var(--font-weight-light)", lineHeight: 1 }}
                 >
-                  Junte-se ao<br />clube PCYES
+                  Junte-se ao
                 </motion.h2>
               </div>
               <motion.p
@@ -63,7 +51,7 @@ export function Newsletter() {
                 animate={isInView ? { opacity: 1 } : {}}
                 transition={{ delay: 0.5, duration: 0.6 }}
                 className="text-foreground/30 mb-10"
-                style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-base)", lineHeight: "1.8" }}
+                style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px", lineHeight: "1.8" }}
               >
                 Mais de 50.000 entusiastas já fazem parte. Receba conteúdo exclusivo direto no seu e-mail.
               </motion.p>
@@ -80,7 +68,7 @@ export function Newsletter() {
                     <div className="w-8 h-8 bg-primary/8 rounded-full flex items-center justify-center flex-shrink-0">
                       <perk.icon size={13} className="text-primary" strokeWidth={1.5} />
                     </div>
-                    <span className="text-foreground/50" style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-sm)" }}>
+                    <span className="text-foreground/50" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}>
                       {perk.text}
                     </span>
                   </div>
@@ -106,8 +94,8 @@ export function Newsletter() {
                     <input
                       type="text"
                       placeholder="Seu nome"
-                      className="w-full px-5 py-3.5 bg-foreground/[0.03] border border-border/10 text-foreground placeholder:text-foreground/15 focus:outline-none focus:border-primary/40 transition-all duration-500"
-                      style={{ borderRadius: "var(--radius)", fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
+                      className="w-full px-[21px] py-[17px] bg-foreground/[0.03] border border-border/10 text-foreground placeholder:text-foreground/15 focus:outline-none focus:border-primary/40 transition-all duration-500"
+                      style={{ borderRadius: "4px", fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
                     />
                   </div>
                   <div>
@@ -120,14 +108,14 @@ export function Newsletter() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="seu@email.com"
-                      className="w-full px-5 py-3.5 bg-foreground/[0.03] border border-border/10 text-foreground placeholder:text-foreground/15 focus:outline-none focus:border-primary/40 transition-all duration-500"
-                      style={{ borderRadius: "var(--radius)", fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
+                      className="w-full px-[21px] py-[17px] bg-foreground/[0.03] border border-border/10 text-foreground placeholder:text-foreground/15 focus:outline-none focus:border-primary/40 transition-all duration-500"
+                      style={{ borderRadius: "4px", fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
                     />
                   </div>
                   <button
                     type="submit"
-                    className="group relative w-full mt-2 px-8 py-4 bg-primary text-primary-foreground overflow-hidden transition-all duration-500 hover:shadow-[0_0_40px_rgba(255,43,46,0.25)] flex items-center justify-center gap-2"
-                    style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "14px", fontWeight: "var(--font-weight-medium)" }}
+                    className="group relative w-full mt-2 flex items-center justify-center gap-2 overflow-hidden bg-primary px-8 py-4 text-primary-foreground transition-all duration-500 hover:shadow-[0_0_40px_rgba(255,43,46,0.25)]"
+                    style={{ borderRadius: "4px", fontFamily: "var(--font-family-inter)", fontSize: "14px", fontWeight: "var(--font-weight-medium)" }}
                   >
                     <span className="relative z-10 flex items-center gap-2">
                       Inscrever-se <ArrowRight size={15} />

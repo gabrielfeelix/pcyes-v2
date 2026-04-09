@@ -1,5 +1,4 @@
 import { useTheme } from "./ThemeProvider";
-import { Marquee } from "./Marquee";
 import { FeaturedProduct } from "./FeaturedProduct";
 import { CategoryGrid } from "./CategoryGrid";
 import { NewReleasesSection } from "./NewReleasesSection";
@@ -22,28 +21,6 @@ export function HomePage() {
     <>
       <HeroSection />
 
-      <ProductCarousel
-        label="NOVIDADES"
-        title="Acabou de chegar"
-        subtitle="Seleção com imagens reais do catálogo PCYES para destacar o que acabou de entrar ou merece atenção agora."
-        productIds={recentArrivalIds}
-        compactTop
-      />
-
-      <div style={{ background: darkBg }}>
-        <CategoryGrid />
-      </div>
-
-      <ProductCarousel />
-
-      <div style={{ background: darkBg }}>
-        <BannerSection />
-      </div>
-
-      <NewReleasesSection />
-
-      <Marquee words={["Performance", "Precisão", "Design", "Inovação", "Tecnologia", "Gaming"]} speed={40} />
-
       <div style={{ background: darkBg }}>
         <FeaturedProduct
           label="LANÇAMENTO"
@@ -60,17 +37,37 @@ export function HomePage() {
       </div>
 
       <div style={{ background: darkBg }}>
-        <ProductsByTags />
+        <CategoryGrid />
       </div>
+
+      <div style={{ background: darkBg }}>
+        <BannerSection />
+      </div>
+
+      <ProductCarousel
+        label="NOVIDADES"
+        title="Acabou de chegar"
+        subtitle="Seleção com imagens reais do catálogo PCYES para destacar o que acabou de entrar ou merece atenção agora."
+        productIds={recentArrivalIds}
+        compactTop
+      />
+
+      <ProductCarousel />
 
       <div style={{ background: darkBg }}>
         <WorldSection />
       </div>
 
+      <NewReleasesSection />
+
+      <div style={{ background: darkBg }}>
+        <ProductsByTags />
+      </div>
+
       <InRealLifeSection />
 
-      <FeaturesStrip />
       <Newsletter />
+      <FeaturesStrip />
       <Footer />
     </>
   );

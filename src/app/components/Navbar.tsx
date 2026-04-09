@@ -1013,8 +1013,8 @@ export function Navbar() {
           style={{
             backgroundColor: showExpanded
               ? (promoHovered ? (isDark ? "rgba(0,0,0,0.95)" : "rgba(255,255,255,0.95)") : "transparent")
-              : (isDark ? "rgba(10,12,16,0.72)" : "rgba(248,249,251,0.82)"),
-            backdropFilter: showExpanded ? (promoHovered ? "blur(40px)" : "none") : "blur(22px) saturate(160%)",
+              : (isDark ? "rgba(4,4,4,0.92)" : "rgba(248,249,251,0.88)"),
+            backdropFilter: showExpanded ? (promoHovered ? "blur(40px)" : "none") : "blur(11px)",
             borderBottom: showExpanded
               ? "1px solid transparent"
               : `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)"}`,
@@ -1051,13 +1051,13 @@ export function Navbar() {
                       className={`relative flex h-full items-center px-3 py-1.5 transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:bg-primary after:transition-transform after:duration-300 ${activeMega === item.mega
                         ? "text-foreground after:scale-x-100"
                         : `${navTextColor} after:scale-x-0 hover:after:scale-x-100`}`}
-                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px" }}
+                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px", lineHeight: "24px" }}
                     >{item.label}</Link>
                   ) : (
                     <button className={`relative flex h-full cursor-pointer items-center px-3 py-1.5 transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:bg-primary after:transition-transform after:duration-300 ${activeMega === item.mega
                       ? "text-foreground after:scale-x-100"
                       : `${navTextColor} after:scale-x-0 hover:after:scale-x-100`}`}
-                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px" }}
+                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px", lineHeight: "24px" }}
                     >{item.label}</button>
                   )}
                 </div>

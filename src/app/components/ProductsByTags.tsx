@@ -5,10 +5,12 @@ import { useTheme } from "./ThemeProvider";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { ShoppingBag, Heart, Star } from "lucide-react";
 import { useCart } from "./CartContext";
+import { allProducts as catalogProducts } from "./productsData";
+import { getProductHoverMedia, getProductSwatches } from "./productPresentation";
 
 const tags = ["Todos", "Gaming", "Streaming", "Escritório", "RGB", "Wireless"];
 
-const allProducts = [
+const tagProducts = [
   { id: 1, name: "Cobra V2 Mouse", price: "R$ 189,90", rating: 4.8, reviews: 234, tags: ["Gaming", "RGB"], image: "https://images.unsplash.com/photo-1768561327952-119a4c9c76f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBtb3VzZSUyMGRhcmslMjBtaW5pbWFsfGVufDF8fHx8MTc3MzgzOTc5NHww&ixlib=rb-4.1.0&q=80&w=1080" },
   { id: 2, name: "Mancer Pro Teclado", price: "R$ 349,90", rating: 4.9, reviews: 512, tags: ["Gaming", "RGB", "Wireless"], image: "https://images.unsplash.com/photo-1718803448073-90ebd0d982e0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWNoYW5pY2FsJTIwa2V5Ym9hcmQlMjBjbG9zZXVwJTIwZGFya3xlbnwxfHx8fDE3NzM4Mzk3OTZ8MA&ixlib=rb-4.1.0&q=80&w=1080" },
   { id: 3, name: "Fallen 7.1 Headset", price: "R$ 279,90", rating: 4.7, reviews: 189, tags: ["Gaming", "Streaming"], image: "https://images.unsplash.com/photo-1673669231301-09baa4d7761b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBoZWFkc2V0JTIwZGFyayUyMGJhY2tncm91bmR8ZW58MXx8fHwxNzczODM5Nzk1fDA&ixlib=rb-4.1.0&q=80&w=1080" },
@@ -24,11 +26,12 @@ export function ProductsByTags() {
   const isInView = useInView(ref, { once: true, amount: 0.05 });
   const [activeTag, setActiveTag] = useState("Todos");
   const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
+  const [hoveredProductId, setHoveredProductId] = useState<number | null>(null);
   const { addItem } = useCart();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
 
-  const filtered = activeTag === "Todos" ? allProducts : allProducts.filter((p) => p.tags.includes(activeTag));
+  const filtered = activeTag === "Todos" ? tagProducts : tagProducts.filter((p) => p.tags.includes(activeTag));
 
   const toggleLike = (id: number, e: React.MouseEvent) => {
     e.preventDefault();
@@ -101,9 +104,8 @@ export function ProductsByTags() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <AnimatePresence mode="popLayout">
             {filtered.map((product, i) => (
-              <motion.a
+              <motion.div
                 key={product.id}
-                href={`/produto/${product.id}`}
                 layout
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -111,12 +113,52 @@ export function ProductsByTags() {
                 transition={{ duration: 0.4, delay: i * 0.05 }}
                 className="group"
               >
-                <div className="relative overflow-hidden mb-5 aspect-square" style={{ borderRadius: "var(--radius-card)", background: isDark ? "#1e1e20" : "#f5f5f5" }}>
-                  <ImageWithFallback
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
-                  />
+                {(() => {
+                  const catalogProduct = catalogProducts.find((item) => item.id === product.id);
+                  const hoverMedia = getProductHoverMedia(catalogProduct ?? { id: product.id, image: product.image, images: [product.image] });
+                  const swatches = catalogProduct ? getProductSwatches(catalogProduct) : [];
+                  const primaryImage = catalogProduct?.image ?? product.image;
+
+                  return (
+                    <>
+                <div
+                  className="relative overflow-hidden mb-5 aspect-square"
+                  style={{
+                    borderRadius: "var(--radius-card)",
+                    background: isDark
+                      ? "linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.015) 100%)"
+                      : "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(242,242,242,1) 100%)",
+                  }}
+                  onMouseEnter={() => setHoveredProductId(product.id)}
+                  onMouseLeave={() => setHoveredProductId((current) => (current === product.id ? null : current))}
+                >
+                  <Link to={`/produto/${product.id}`} className="block h-full">
+                    <ImageWithFallback
+                      src={primaryImage}
+                      alt={product.name}
+                      className={`absolute inset-0 w-full h-full object-cover transition-all duration-[900ms] ease-out ${
+                        hoverMedia ? "group-hover:scale-[1.02] group-hover:opacity-0" : "group-hover:scale-105"
+                      }`}
+                    />
+
+                    {hoverMedia?.type === "image" && (
+                      <ImageWithFallback
+                        src={hoverMedia.src}
+                        alt={`${product.name} em destaque`}
+                        className="absolute inset-0 h-full w-full object-cover opacity-0 scale-[1.04] transition-all duration-[900ms] ease-out group-hover:scale-100 group-hover:opacity-100"
+                      />
+                    )}
+
+                    {hoverMedia?.type === "video" && hoveredProductId === product.id && (
+                      <iframe
+                        src={`${hoverMedia.src}${hoverMedia.src.includes("?") ? "&" : "?"}autoplay=1&mute=1&loop=1&controls=0&playsinline=1`}
+                        title={`${product.name} video`}
+                        className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                        style={{ border: "none" }}
+                        allow="autoplay; encrypted-media"
+                      />
+                    )}
+                  </Link>
 
                   {/* Hover overlay actions */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-500" />
@@ -160,6 +202,18 @@ export function ProductsByTags() {
                 </div>
 
                 <div className="px-1">
+                  {swatches.length > 1 && (
+                    <div className="mb-2.5 flex items-center gap-1.5">
+                      {swatches.map((swatch) => (
+                        <span
+                          key={`${product.id}-${swatch.label}`}
+                          className="h-3.5 w-3.5 rounded-full border border-foreground/10 shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset]"
+                          style={{ backgroundColor: swatch.color }}
+                          title={swatch.label}
+                        />
+                      ))}
+                    </div>
+                  )}
                   <div className="flex items-center gap-1.5 mb-2">
                     <Star size={11} className="fill-primary text-primary" />
                     <span className="text-foreground/60" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>
@@ -181,7 +235,10 @@ export function ProductsByTags() {
                     </p>
                   )}
                 </div>
-              </motion.a>
+                    </>
+                  );
+                })()}
+              </motion.div>
             ))}
           </AnimatePresence>
         </div>

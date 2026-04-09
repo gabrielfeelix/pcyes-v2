@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView } from "motion/react";
 import { useTheme } from "./ThemeProvider";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
@@ -7,6 +7,7 @@ import { useCart } from "./CartContext";
 import { useFavorites } from "./FavoritesContext";
 import { Link } from "react-router";
 import { allProducts, type Product } from "./productsData";
+import { getProductHoverMedia, getProductSwatches } from "./productPresentation";
 
 interface ProductCarouselProps {
   label?: string;
@@ -28,6 +29,7 @@ export function ProductCarousel({
 }: ProductCarouselProps) {
   const ref = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [hoveredProductId, setHoveredProductId] = useState<number | null>(null);
   const isInView = useInView(ref, { once: true, amount: 0.1 });
   const { addItem } = useCart();
   const { addFavorite } = useFavorites();
@@ -215,17 +217,49 @@ export function ProductCarousel({
             >
               {(() => {
                 const discountBadge = getDiscountBadge(product);
+                const hoverMedia = getProductHoverMedia(product);
+                const swatches = getProductSwatches(product);
 
                 return (
               <Link to={`/produto/${product.id}`} className="block">
-                <div className="relative mb-4 aspect-square overflow-hidden" style={{ borderRadius: "var(--radius-card)", background: isDark ? "#242427" : "#f5f5f5" }}>
+                <div
+                  className="relative mb-4 aspect-square overflow-hidden"
+                  style={{
+                    borderRadius: "var(--radius-card)",
+                    background: isDark
+                      ? "linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.015) 100%)"
+                      : "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(242,242,242,1) 100%)",
+                  }}
+                  onMouseEnter={() => setHoveredProductId(product.id)}
+                  onMouseLeave={() => setHoveredProductId((current) => (current === product.id ? null : current))}
+                >
                   <ImageWithFallback
                     src={product.image}
                     alt={product.name}
-                    className="w-full h-full object-contain p-7 group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
+                    className={`absolute inset-0 w-full h-full object-contain p-7 transition-all duration-[900ms] ease-out ${
+                      hoverMedia ? "group-hover:scale-[1.02] group-hover:opacity-0" : "group-hover:scale-105"
+                    }`}
                   />
 
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-500" />
+                  {hoverMedia?.type === "image" && (
+                    <ImageWithFallback
+                      src={hoverMedia.src}
+                      alt={`${product.name} em destaque`}
+                      className="absolute inset-0 h-full w-full object-contain p-7 opacity-0 scale-[1.04] transition-all duration-[900ms] ease-out group-hover:scale-100 group-hover:opacity-100"
+                    />
+                  )}
+
+                  {hoverMedia?.type === "video" && hoveredProductId === product.id && (
+                    <iframe
+                      src={`${hoverMedia.src}${hoverMedia.src.includes("?") ? "&" : "?"}autoplay=1&mute=1&loop=1&controls=0&playsinline=1`}
+                      title={`${product.name} video`}
+                      className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                      style={{ border: "none" }}
+                      allow="autoplay; encrypted-media"
+                    />
+                  )}
+
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/18 transition-colors duration-500" />
 
                   {(discountBadge || showNoveltyTag) && (
                     <div className="absolute top-4 left-4 flex flex-wrap gap-2">
@@ -277,6 +311,18 @@ export function ProductCarousel({
               })()}
 
               <div className="px-1">
+                {swatches.length > 1 && (
+                  <div className="mb-2.5 flex items-center gap-1.5">
+                    {swatches.map((swatch) => (
+                      <span
+                        key={`${product.id}-${swatch.label}`}
+                        className="h-3.5 w-3.5 rounded-full border border-foreground/10 shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset]"
+                        style={{ backgroundColor: swatch.color }}
+                        title={swatch.label}
+                      />
+                    ))}
+                  </div>
+                )}
                 <div className="flex items-center gap-1.5 mb-2">
                   <Star size={11} className="fill-primary text-primary" />
                   <span className="text-foreground/60" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>
