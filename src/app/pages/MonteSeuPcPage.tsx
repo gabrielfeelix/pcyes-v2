@@ -211,18 +211,65 @@ const findCatalogProduct = (...needles: string[]) =>
     needles.every((needle) => product.name.toLowerCase().includes(needle.toLowerCase())),
   );
 
-const blackCase = findCatalogProduct("forcefield", "black vulcan");
-const whiteCase = findCatalogProduct("forcefield", "white ghost");
-const setCase = findCatalogProduct("set black");
-const coolerAir = findCatalogProduct("nótus st");
-const coolerWhite = findCatalogProduct("sangue frio 3 white ghost");
-const coolerArgb = findCatalogProduct("sangue frio 3 argb");
-const nvme256 = findCatalogProduct("ssd pcyes 256gb m.2 nvme");
-const nvme512 = findCatalogProduct("ssd pcyes 512gb m.2 nvme");
-const sata1tb = findCatalogProduct("ssd pcyes 1tb sata");
-const keyboardBlack = findCatalogProduct("kuromori black vulcan blue");
-const keyboardWhite = findCatalogProduct("kuromori white ghost blue");
-const mouseBlack = findCatalogProduct("basaran black vulcan");
+const cpuImages = {
+  intelI5: "https://target.scene7.com/is/image/Target/GUEST_cb002eb7-a18f-41a8-9ca4-da7d187ec009?fmt=png-alpha&wid=1000&hei=1000",
+  intelI7: "https://target.scene7.com/is/image/Target/GUEST_3bd1957a-5a46-4a0c-9956-8f52ddd6b783?fmt=png-alpha&wid=1000&hei=1000",
+  amdR5: "https://target.scene7.com/is/image/Target/GUEST_ab1cb31e-6374-4b48-88ac-940a79c03dbc?fmt=png-alpha&wid=1000&hei=1000",
+  amdR7: "https://target.scene7.com/is/image/Target/GUEST_42af582b-5e8c-42c1-b09a-6a073c63494c?fmt=png-alpha&wid=1000&hei=1000",
+};
+
+const motherboardImages = {
+  b75: "https://cdn.oderco.com.br/produtos/270409/401F35F0C97D26C2E0630300A8C0FD75",
+  h470: "https://cdn.oderco.com.br/produtos/270433/401F35F0C98926C2E0630300A8C0FD75",
+  b650: "https://target.scene7.com/is/image/Target/GUEST_78e5082f-9e18-41c4-8d16-f3bf7fcda0c9?fmt=png-alpha&wid=1000&hei=1000",
+  b650a: "https://target.scene7.com/is/image/Target/GUEST_cd497457-a7eb-4150-80fa-138e8444ce1e?fmt=png-alpha&wid=1000&hei=1000",
+};
+
+const ramImages = {
+  ddr4_8: "https://cdn.oderco.com.br/produtos/34162/402EA1867FDB6E2DE0630300A8C0D98B",
+  ddr4_32: "https://cdn.oderco.com.br/produtos/34689/4520E92D669EC021E0630300A8C02B6F",
+  ddr4_32_front: "https://cdn.oderco.com.br/produtos/34689/4520E92D66A0C021E0630300A8C02B6F",
+};
+
+const psuImages = {
+  electro550: "https://cdn.oderco.com.br/produtos/28742/4B7EC28153D51D2DE0630300A8C0552F",
+  aether850: "https://cdn.oderco.com.br/produtos/244627/3D5C192CB9DE45B0E0630300A8C0C0C1",
+  aether1000: "https://cdn.oderco.com.br/produtos/244628/3D5C192CB9E445B0E0630300A8C0C0C1",
+};
+
+const getProductsByCategory = (category: string, limit = 5) =>
+  allProducts.filter((product) => product.category === category).slice(0, limit);
+
+const getCaseType = (name: string) => {
+  const lowerName = name.toLowerCase();
+  if (lowerName.includes("white")) return "white";
+  if (lowerName.includes("rgb") || lowerName.includes("argb")) return "rgb";
+  return "black";
+};
+
+const toOptionFromProduct = (
+  prefix: string,
+  product: (typeof allProducts)[number],
+  index: number,
+  extras: Partial<Option> = {},
+): Option => ({
+  id: `${prefix}-${index + 1}`,
+  name: product.name,
+  price: product.priceNum,
+  image: product.image,
+  gallery: product.images?.length ? product.images : [product.image],
+  summary: extras.summary ?? product.description,
+  highlights: extras.highlights ?? product.features?.slice(0, 3) ?? product.tags.slice(0, 3),
+  standard: extras.standard,
+  req: extras.req,
+  type: extras.type,
+});
+
+const gpuProducts = getProductsByCategory("Placas de Vídeo", 5);
+const coolingProducts = getProductsByCategory("Refrigeração", 5);
+const storageProducts = getProductsByCategory("SSD e HD", 5);
+const caseProducts = getProductsByCategory("Gabinetes", 5);
+const peripheralProducts = getProductsByCategory("Periféricos", 5);
 
 const categories: Category[] = [
   {
@@ -235,85 +282,37 @@ const categories: Category[] = [
         name: "Intel Core i5-13400F",
         price: 1200,
         standard: true,
-        summary: "Intel 10 núcleos com ótimo custo para começar a montagem.",
+        summary: "Imagem real de caixa, boa leitura visual e ótimo ponto de partida para a vitrine do configurador.",
         highlights: ["LGA1700", "10 núcleos", "Até 4.6GHz"],
-        image: buildComponentVisual({
-          title: "Intel Core i5",
-          subtitle: "LGA1700 · 10 núcleos",
-          accent: "#00AEEF",
-          kind: "cpu",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "Intel Core i5",
-            subtitle: "LGA1700 · 10 núcleos",
-            accent: "#00AEEF",
-            kind: "cpu",
-          }),
-        ],
+        image: cpuImages.intelI5,
+        gallery: [cpuImages.intelI5],
       },
       {
         id: "cpu-2",
-        name: "Intel Core i7-13700K",
+        name: "Intel Core i7-14700K",
         price: 2500,
-        summary: "Mais fôlego para multitarefa e placas de vídeo mais fortes.",
-        highlights: ["LGA1700", "16 núcleos", "Até 5.4GHz"],
-        image: buildComponentVisual({
-          title: "Intel Core i7",
-          subtitle: "LGA1700 · 16 núcleos",
-          accent: "#0EA5E9",
-          kind: "cpu",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "Intel Core i7",
-            subtitle: "LGA1700 · 16 núcleos",
-            accent: "#0EA5E9",
-            kind: "cpu",
-          }),
-        ],
+        summary: "Outra foto real de produto para a etapa ficar mais parecida com um e-commerce montável de verdade.",
+        highlights: ["LGA1700", "20 núcleos", "Até 5.6GHz"],
+        image: cpuImages.intelI7,
+        gallery: [cpuImages.intelI7],
       },
       {
         id: "cpu-3",
         name: "AMD Ryzen 5 7600",
         price: 1400,
-        summary: "Entrada forte na plataforma AM5 com ótimo equilíbrio.",
+        summary: "Caixa real do Ryzen para validar como a direita se comporta com fotos de marca conhecidas.",
         highlights: ["AM5", "6 núcleos", "Até 5.1GHz"],
-        image: buildComponentVisual({
-          title: "AMD Ryzen 5",
-          subtitle: "AM5 · 6 núcleos",
-          accent: "#F97316",
-          kind: "cpu",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "AMD Ryzen 5",
-            subtitle: "AM5 · 6 núcleos",
-            accent: "#F97316",
-            kind: "cpu",
-          }),
-        ],
+        image: cpuImages.amdR5,
+        gallery: [cpuImages.amdR5],
       },
       {
         id: "cpu-4",
         name: "AMD Ryzen 7 7800X3D",
         price: 2800,
-        summary: "Opção premium para foco em games e alto FPS.",
+        summary: "Produto real forte para games, útil para testar visual premium dentro do fluxo.",
         highlights: ["AM5", "8 núcleos", "3D V-Cache"],
-        image: buildComponentVisual({
-          title: "AMD Ryzen 7",
-          subtitle: "AM5 · 3D V-Cache",
-          accent: "#FB923C",
-          kind: "cpu",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "AMD Ryzen 7",
-            subtitle: "AM5 · 3D V-Cache",
-            accent: "#FB923C",
-            kind: "cpu",
-          }),
-        ],
+        image: cpuImages.amdR7,
+        gallery: [cpuImages.amdR7],
       },
     ],
   },
@@ -328,88 +327,40 @@ const categories: Category[] = [
         price: 1100,
         req: ["cpu-1", "cpu-2"],
         standard: true,
-        summary: "Base sólida para Intel com boa expansão e visual limpo.",
-        highlights: ["LGA1700", "DDR5", "mATX"],
-        image: buildComponentVisual({
-          title: "B760M AORUS",
-          subtitle: "Intel · DDR5 · mATX",
-          accent: "#38BDF8",
-          kind: "motherboard",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "B760M AORUS",
-            subtitle: "Intel · DDR5 · mATX",
-            accent: "#38BDF8",
-            kind: "motherboard",
-          }),
-        ],
+        summary: "Foto real de placa-mãe para validar melhor leitura de produto escolhido no accordion.",
+        highlights: ["LGA1155", "DDR3", "mATX"],
+        image: motherboardImages.b75,
+        gallery: [motherboardImages.b75],
       },
       {
         id: "mb-2",
-        name: "Z790 GAMING X (Intel)",
+        name: "H470 PCYES (Intel)",
         price: 1800,
         req: ["cpu-1", "cpu-2"],
-        summary: "Mais robusta para extrair tudo dos Intel de nível mais alto.",
-        highlights: ["LGA1700", "PCIe 5.0", "ATX"],
-        image: buildComponentVisual({
-          title: "Z790 GAMING X",
-          subtitle: "Intel · PCIe 5.0",
-          accent: "#0EA5E9",
-          kind: "motherboard",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "Z790 GAMING X",
-            subtitle: "Intel · PCIe 5.0",
-            accent: "#0EA5E9",
-            kind: "motherboard",
-          }),
-        ],
+        summary: "Outra placa real da PCYES para comparação visual no fluxo.",
+        highlights: ["LGA1200", "DDR4", "mATX"],
+        image: motherboardImages.h470,
+        gallery: [motherboardImages.h470],
       },
       {
         id: "mb-3",
-        name: "B650M TUF GAMING (AMD)",
+        name: "TUF GAMING B650-PLUS WIFI (AMD)",
         price: 1300,
         req: ["cpu-3", "cpu-4"],
-        summary: "Opção enxuta para plataforma AM5 com base muito segura.",
-        highlights: ["AM5", "DDR5", "mATX"],
-        image: buildComponentVisual({
-          title: "B650M TUF",
-          subtitle: "AMD · DDR5 · mATX",
-          accent: "#F97316",
-          kind: "motherboard",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "B650M TUF",
-            subtitle: "AMD · DDR5 · mATX",
-            accent: "#F97316",
-            kind: "motherboard",
-          }),
-        ],
+        summary: "Imagem real com motherboard e bundle, ótima para testar cards mais densos.",
+        highlights: ["AM5", "DDR5", "ATX"],
+        image: motherboardImages.b650,
+        gallery: [motherboardImages.b650],
       },
       {
         id: "mb-4",
-        name: "X670E ROG STRIX (AMD)",
+        name: "ROG STRIX B650-A GAMING WIFI (AMD)",
         price: 2500,
         req: ["cpu-3", "cpu-4"],
-        summary: "Placa mais premium para AM5, preparada para build topo.",
-        highlights: ["AM5", "PCIe 5.0", "ATX"],
-        image: buildComponentVisual({
-          title: "X670E ROG",
-          subtitle: "AMD · PCIe 5.0",
-          accent: "#FB923C",
-          kind: "motherboard",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "X670E ROG",
-            subtitle: "AMD · PCIe 5.0",
-            accent: "#FB923C",
-            kind: "motherboard",
-          }),
-        ],
+        summary: "Uma opção mais premium com foto real para ver como o bloco aguenta um produto mais sofisticado.",
+        highlights: ["AM5", "DDR5", "ATX"],
+        image: motherboardImages.b650a,
+        gallery: [motherboardImages.b650a],
       },
     ],
   },
@@ -420,67 +371,40 @@ const categories: Category[] = [
     options: [
       {
         id: "ram-1",
-        name: "16GB (2x8GB) DDR5 5200MHz",
+        name: "8GB DDR4 3200MHz UDIMM PCYES",
         price: 400,
         standard: true,
-        summary: "Ponto de partida para jogos competitivos e uso geral.",
-        highlights: ["16GB", "DDR5", "5200MHz"],
-        image: buildComponentVisual({
-          title: "DDR5 16GB",
-          subtitle: "2x8GB · 5200MHz",
-          accent: "#8B5CF6",
-          kind: "ram",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "DDR5 16GB",
-            subtitle: "2x8GB · 5200MHz",
-            accent: "#8B5CF6",
-            kind: "ram",
-          }),
-        ],
+        summary: "Foto real do módulo PCYES, mais coerente com a proposta do configurador.",
+        highlights: ["8GB", "DDR4", "3200MHz"],
+        image: ramImages.ddr4_8,
+        gallery: [ramImages.ddr4_8],
       },
       {
         id: "ram-2",
-        name: "32GB (2x16GB) DDR5 6000MHz",
+        name: "16GB DDR4 3200MHz UDIMM PCYES",
         price: 800,
-        summary: "Melhor equilíbrio para jogos AAA, multitarefa e criação.",
-        highlights: ["32GB", "DDR5", "6000MHz"],
-        image: buildComponentVisual({
-          title: "DDR5 32GB",
-          subtitle: "2x16GB · 6000MHz",
-          accent: "#A855F7",
-          kind: "ram",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "DDR5 32GB",
-            subtitle: "2x16GB · 6000MHz",
-            accent: "#A855F7",
-            kind: "ram",
-          }),
-        ],
+        summary: "Mantém a vitrine com módulo real e deixa a comparação de cards mais fiel ao catálogo.",
+        highlights: ["16GB", "DDR4", "3200MHz"],
+        image: ramImages.ddr4_32_front,
+        gallery: [ramImages.ddr4_32_front],
       },
       {
         id: "ram-3",
-        name: "64GB (2x32GB) DDR5 6400MHz",
+        name: "16GB DDR5 5600MHz UDIMM PCYES",
         price: 1600,
-        summary: "Para streaming pesado, edição e longevidade do setup.",
-        highlights: ["64GB", "DDR5", "6400MHz"],
-        image: buildComponentVisual({
-          title: "DDR5 64GB",
-          subtitle: "2x32GB · 6400MHz",
-          accent: "#C084FC",
-          kind: "ram",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "DDR5 64GB",
-            subtitle: "2x32GB · 6400MHz",
-            accent: "#C084FC",
-            kind: "ram",
-          }),
-        ],
+        summary: "Outra opção visualmente realista para testar como a etapa de memória se comporta com variações.",
+        highlights: ["16GB", "DDR5", "5600MHz"],
+        image: ramImages.ddr4_32,
+        gallery: [ramImages.ddr4_32],
+      },
+      {
+        id: "ram-4",
+        name: "32GB DDR4 3200MHz UDIMM PCYES",
+        price: 1900,
+        summary: "Módulo real em ângulo, útil para ver diferença de leitura dentro do card e no cabeçalho.",
+        highlights: ["32GB", "DDR4", "3200MHz"],
+        image: ramImages.ddr4_32,
+        gallery: [ramImages.ddr4_32, ramImages.ddr4_32_front],
       },
     ],
   },
@@ -488,346 +412,46 @@ const categories: Category[] = [
     id: "gpu",
     title: "Placa de Vídeo",
     icon: <Monitor className="h-4 w-4" />,
-    options: [
-      {
-        id: "gpu-1",
-        name: "RTX 4060 8GB",
-        price: 1800,
-        standard: true,
-        summary: "Entrada sólida para Full HD com ray tracing acessível.",
-        highlights: ["8GB", "DLSS", "Full HD"],
-        image: buildComponentVisual({
-          title: "RTX 4060",
-          subtitle: "8GB · DLSS",
-          accent: "#22C55E",
-          kind: "gpu",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "RTX 4060",
-            subtitle: "8GB · DLSS",
-            accent: "#22C55E",
-            kind: "gpu",
-          }),
-        ],
-      },
-      {
-        id: "gpu-2",
-        name: "RTX 4070 SUPER 12GB",
-        price: 3800,
-        summary: "Ponto de equilíbrio para QHD com sobra para os próximos anos.",
-        highlights: ["12GB", "QHD", "DLSS 3"],
-        image: buildComponentVisual({
-          title: "RTX 4070 SUPER",
-          subtitle: "12GB · QHD",
-          accent: "#16A34A",
-          kind: "gpu",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "RTX 4070 SUPER",
-            subtitle: "12GB · QHD",
-            accent: "#16A34A",
-            kind: "gpu",
-          }),
-        ],
-      },
-      {
-        id: "gpu-3",
-        name: "RX 7800 XT 16GB",
-        price: 3500,
-        summary: "Entrega muita memória de vídeo e ótimo custo em QHD.",
-        highlights: ["16GB", "QHD", "RDNA 3"],
-        image: buildComponentVisual({
-          title: "RX 7800 XT",
-          subtitle: "16GB · RDNA 3",
-          accent: "#F97316",
-          kind: "gpu",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "RX 7800 XT",
-            subtitle: "16GB · RDNA 3",
-            accent: "#F97316",
-            kind: "gpu",
-          }),
-        ],
-      },
-      {
-        id: "gpu-4",
-        name: "RTX 4090 24GB",
-        price: 12000,
-        summary: "Build máxima para 4K e uso extremo sem concessões.",
-        highlights: ["24GB", "4K", "Flagship"],
-        image: buildComponentVisual({
-          title: "RTX 4090",
-          subtitle: "24GB · 4K",
-          accent: "#22C55E",
-          kind: "gpu",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "RTX 4090",
-            subtitle: "24GB · 4K",
-            accent: "#22C55E",
-            kind: "gpu",
-          }),
-        ],
-      },
-    ],
+    options: gpuProducts.map((product, index) =>
+      toOptionFromProduct("gpu", product, index, {
+        standard: index === 0,
+        summary: "Produto real do catálogo para a gente validar densidade visual, foto e nome ao mesmo tempo.",
+      }),
+    ),
   },
   {
     id: "cooling",
     title: "Refrigeração",
     icon: <Settings className="h-4 w-4" />,
-    options: [
-      {
-        id: "cooling-1",
-        name: coolerAir?.name ?? "Cooler PCYES Nótus ST Intel",
-        price: coolerAir?.priceNum ?? 350,
-        image:
-          coolerAir?.image ??
-          buildComponentVisual({
-            title: "Nótus ST",
-            subtitle: "Air cooler",
-            accent: "#22C55E",
-            kind: "cooling",
-          }),
-        gallery:
-          coolerAir?.images ??
-          [
-            buildComponentVisual({
-              title: "Nótus ST",
-              subtitle: "Air cooler",
-              accent: "#22C55E",
-              kind: "cooling",
-            }),
-          ],
-        standard: true,
-        req: ["cpu-1", "cpu-2"],
-        summary: "Air cooler simples e direto para as opções Intel de entrada.",
-        highlights: ["Air cooler", "Intel", "65W TDP"],
-      },
-      {
-        id: "cooling-2",
-        name: coolerWhite?.name ?? "Water Cooler PCYES Sangue Frio 3 White Ghost 120mm",
-        price: coolerWhite?.priceNum ?? 550,
-        image:
-          coolerWhite?.image ??
-          buildComponentVisual({
-            title: "Sangue Frio 3",
-            subtitle: "120mm",
-            accent: "#60A5FA",
-            kind: "cooling",
-          }),
-        gallery:
-          coolerWhite?.images ??
-          [
-            buildComponentVisual({
-              title: "Sangue Frio 3",
-              subtitle: "120mm",
-              accent: "#60A5FA",
-              kind: "cooling",
-            }),
-          ],
-        summary: "AIO enxuto para segurar melhor calor e ruído no setup.",
-        highlights: ["120mm", "AIO", "White Ghost"],
-      },
-      {
-        id: "cooling-3",
-        name: coolerArgb?.name ?? "Water Cooler PCYES Sangue Frio 3 ARGB White Ghost 120mm",
-        price: coolerArgb?.priceNum ?? 690,
-        image:
-          coolerArgb?.image ??
-          buildComponentVisual({
-            title: "Sangue Frio 3 ARGB",
-            subtitle: "120mm · ARGB",
-            accent: "#A855F7",
-            kind: "cooling",
-          }),
-        gallery:
-          coolerArgb?.images ??
-          [
-            buildComponentVisual({
-              title: "Sangue Frio 3 ARGB",
-              subtitle: "120mm · ARGB",
-              accent: "#A855F7",
-              kind: "cooling",
-            }),
-          ],
-        summary: "Versão mais chamativa para build com iluminação e vitrine.",
-        highlights: ["120mm", "ARGB", "AIO"],
-      },
-    ],
+    options: coolingProducts.map((product, index) =>
+      toOptionFromProduct("cooling", product, index, {
+        standard: index === 0,
+        summary: "Foto real do item para testar como coolers menores e AIOs se comportam no grid.",
+      }),
+    ),
   },
   {
     id: "storage",
     title: "HD e SSD",
     icon: <HardDrive className="h-4 w-4" />,
-    options: [
-      {
-        id: "storage-1",
-        name: nvme256?.name ?? "SSD PCYES 256GB M.2 NVMe PCIe 3.0x4",
-        price: nvme256?.priceNum ?? 300,
-        image:
-          nvme256?.image ??
-          buildComponentVisual({
-            title: "SSD NVMe 256GB",
-            subtitle: "PCIe 3.0",
-            accent: "#06B6D4",
-            kind: "storage",
-          }),
-        gallery:
-          nvme256?.images ??
-          [
-            buildComponentVisual({
-              title: "SSD NVMe 256GB",
-              subtitle: "PCIe 3.0",
-              accent: "#06B6D4",
-              kind: "storage",
-            }),
-          ],
-        standard: true,
-        summary: "Opção de entrada para sistema e jogos principais.",
-        highlights: ["256GB", "NVMe", "M.2"],
-      },
-      {
-        id: "storage-2",
-        name: nvme512?.name ?? "SSD PCYES 512GB M.2 NVMe 2200MB/s",
-        price: nvme512?.priceNum ?? 420,
-        image:
-          nvme512?.image ??
-          buildComponentVisual({
-            title: "SSD NVMe 512GB",
-            subtitle: "2200MB/s",
-            accent: "#0891B2",
-            kind: "storage",
-          }),
-        gallery:
-          nvme512?.images ??
-          [
-            buildComponentVisual({
-              title: "SSD NVMe 512GB",
-              subtitle: "2200MB/s",
-              accent: "#0891B2",
-              kind: "storage",
-            }),
-          ],
-        summary: "Equilíbrio melhor para não lotar o armazenamento tão cedo.",
-        highlights: ["512GB", "NVMe", "2200MB/s"],
-      },
-      {
-        id: "storage-3",
-        name: sata1tb?.name ?? "SSD PCYES 1TB SATA III 2.5",
-        price: sata1tb?.priceNum ?? 550,
-        image:
-          sata1tb?.image ??
-          buildComponentVisual({
-            title: "SSD 1TB",
-            subtitle: "SATA III",
-            accent: "#14B8A6",
-            kind: "storage",
-          }),
-        gallery:
-          sata1tb?.images ??
-          [
-            buildComponentVisual({
-              title: "SSD 1TB",
-              subtitle: "SATA III",
-              accent: "#14B8A6",
-              kind: "storage",
-            }),
-          ],
-        summary: "Mais espaço útil para biblioteca de jogos e arquivos.",
-        highlights: ["1TB", "SATA III", "2.5 pol"],
-      },
-    ],
+    options: storageProducts.map((product, index) =>
+      toOptionFromProduct("storage", product, index, {
+        standard: index === 0,
+        summary: "Produto real do catálogo, bom para validar cards menores com nome técnico mais comprido.",
+      }),
+    ),
   },
   {
     id: "case",
     title: "Gabinete",
     icon: <Monitor className="h-4 w-4" />,
-    options: [
-      {
-        id: "case-1",
-        name: blackCase?.name ?? "Gabinete PCYES Forcefield Black Vulcan",
-        price: blackCase?.priceNum ?? 600,
-        image:
-          blackCase?.image ??
-          buildComponentVisual({
-            title: "Forcefield Black",
-            subtitle: "Black Vulcan",
-            accent: "#D4D4D8",
-            kind: "case",
-          }),
-        gallery:
-          blackCase?.images ??
-          [
-            buildComponentVisual({
-              title: "Forcefield Black",
-              subtitle: "Black Vulcan",
-              accent: "#D4D4D8",
-              kind: "case",
-            }),
-          ],
-        summary: "Visual mais sóbrio para setup escuro e discreto.",
-        highlights: ["Black Vulcan", "Vidro temperado", "ATX"],
-        type: "black",
-      },
-      {
-        id: "case-2",
-        name: whiteCase?.name ?? "Gabinete PCYES Forcefield White Ghost",
-        price: whiteCase?.priceNum ?? 600,
-        image:
-          whiteCase?.image ??
-          buildComponentVisual({
-            title: "Forcefield White",
-            subtitle: "White Ghost",
-            accent: "#F5F5F5",
-            kind: "case",
-          }),
-        gallery:
-          whiteCase?.images ??
-          [
-            buildComponentVisual({
-              title: "Forcefield White",
-              subtitle: "White Ghost",
-              accent: "#F5F5F5",
-              kind: "case",
-            }),
-          ],
-        standard: true,
-        summary: "A leitura mais premium para o configurador, bem vitrificada.",
-        highlights: ["White Ghost", "Vidro temperado", "ATX"],
-        type: "white",
-      },
-      {
-        id: "case-3",
-        name: setCase?.name ?? "Gabinete PCYES Set Black Vulcan",
-        price: setCase?.priceNum ?? 650,
-        image:
-          setCase?.image ??
-          buildComponentVisual({
-            title: "Set Black",
-            subtitle: "Black Vulcan",
-            accent: "#A855F7",
-            kind: "case",
-          }),
-        gallery:
-          setCase?.images ??
-          [
-            buildComponentVisual({
-              title: "Set Black",
-              subtitle: "Black Vulcan",
-              accent: "#A855F7",
-              kind: "case",
-            }),
-          ],
-        summary: "Gabinete mais agressivo visualmente para build com presença.",
-        highlights: ["Black Vulcan", "Vidro lateral", "Mid tower"],
-        type: "rgb",
-      },
-    ],
+    options: caseProducts.map((product, index) =>
+      toOptionFromProduct("case", product, index, {
+        standard: product.name.toLowerCase().includes("white ghost") || index === 0,
+        summary: "Foto real de gabinete, importante para testar a percepção premium da prévia grande.",
+        type: getCaseType(product.name),
+      }),
+    ),
   },
   {
     id: "psu",
@@ -836,88 +460,40 @@ const categories: Category[] = [
     options: [
       {
         id: "psu-1",
-        name: "PCYES Spark 600W 80+ Bronze",
+        name: "PCYES Electro V2 550W 80Plus Bronze",
         price: 300,
         standard: true,
-        summary: "Entrega suficiente para builds de entrada bem equilibradas.",
-        highlights: ["600W", "80+ Bronze", "ATX"],
-        image: buildComponentVisual({
-          title: "Spark 600W",
-          subtitle: "80+ Bronze",
-          accent: "#F59E0B",
-          kind: "psu",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "Spark 600W",
-            subtitle: "80+ Bronze",
-            accent: "#F59E0B",
-            kind: "psu",
-          }),
-        ],
+        summary: "Foto real levantada no site oficial, mais fiel para a etapa de fonte.",
+        highlights: ["550W", "80+ Bronze", "ATX"],
+        image: psuImages.electro550,
+        gallery: [psuImages.electro550],
       },
       {
         id: "psu-2",
-        name: "PCYES Electro V2 750W 80+ Gold",
+        name: "PCYES Electro V2 650W 80Plus Bronze",
         price: 550,
-        summary: "Ponto mais seguro para RTX 4070 SUPER e upgrades futuros.",
-        highlights: ["750W", "80+ Gold", "PFC ativo"],
-        image: buildComponentVisual({
-          title: "Electro 750W",
-          subtitle: "80+ Gold",
-          accent: "#EAB308",
-          kind: "psu",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "Electro 750W",
-            subtitle: "80+ Gold",
-            accent: "#EAB308",
-            kind: "psu",
-          }),
-        ],
+        summary: "Mantém uma imagem real de fonte enquanto a gente avalia a hierarquia de conteúdo.",
+        highlights: ["650W", "80+ Bronze", "PFC ativo"],
+        image: psuImages.electro550,
+        gallery: [psuImages.electro550],
       },
       {
         id: "psu-3",
-        name: "PCYES Electro V2 850W 80+ Gold",
+        name: "PCYES Aether 850W Full Modular Gold",
         price: 650,
-        summary: "Margem extra para GPUs fortes e build com mais ventoinhas.",
+        summary: "Fonte real com visual mais premium para testar cards e thumb no cabeçalho.",
         highlights: ["850W", "80+ Gold", "ATX"],
-        image: buildComponentVisual({
-          title: "Electro 850W",
-          subtitle: "80+ Gold",
-          accent: "#FACC15",
-          kind: "psu",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "Electro 850W",
-            subtitle: "80+ Gold",
-            accent: "#FACC15",
-            kind: "psu",
-          }),
-        ],
+        image: psuImages.aether850,
+        gallery: [psuImages.aether850],
       },
       {
         id: "psu-4",
-        name: "PCYES Titan 1000W 80+ Platinum",
+        name: "PCYES Aether 1000W Full Modular Gold",
         price: 1200,
-        summary: "Escolha topo para 4090 e configuração sem gargalo de energia.",
-        highlights: ["1000W", "80+ Platinum", "High-end"],
-        image: buildComponentVisual({
-          title: "Titan 1000W",
-          subtitle: "80+ Platinum",
-          accent: "#E5E7EB",
-          kind: "psu",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "Titan 1000W",
-            subtitle: "80+ Platinum",
-            accent: "#E5E7EB",
-            kind: "psu",
-          }),
-        ],
+        summary: "Mais uma foto real para a grade de fontes ficar com densidade suficiente.",
+        highlights: ["1000W", "Gold", "Full Modular"],
+        image: psuImages.aether1000,
+        gallery: [psuImages.aether1000],
       },
     ],
   },
@@ -925,80 +501,12 @@ const categories: Category[] = [
     id: "peripherals",
     title: "Periféricos",
     icon: <Settings className="h-4 w-4" />,
-    options: [
-      {
-        id: "peripherals-1",
-        name: "Sem periféricos adicionais",
-        price: 0,
-        standard: true,
-        summary: "Mantém o configurador focado só na torre e componentes internos.",
-        highlights: ["Sem extra", "Mais enxuto"],
-        image: buildComponentVisual({
-          title: "Sem periféricos",
-          subtitle: "Somente a máquina",
-          accent: "#6B7280",
-          kind: "peripheral",
-        }),
-        gallery: [
-          buildComponentVisual({
-            title: "Sem periféricos",
-            subtitle: "Somente a máquina",
-            accent: "#6B7280",
-            kind: "peripheral",
-          }),
-        ],
-      },
-      {
-        id: "peripherals-2",
-        name: "Teclado PCYES Kuromori Black Vulcan",
-        price: keyboardBlack?.priceNum ?? 400,
-        image:
-          keyboardBlack?.image ??
-          buildComponentVisual({
-            title: "Kuromori",
-            subtitle: "Black Vulcan",
-            accent: "#F87171",
-            kind: "peripheral",
-          }),
-        gallery:
-          keyboardBlack?.images ??
-          [
-            buildComponentVisual({
-              title: "Kuromori",
-              subtitle: "Black Vulcan",
-              accent: "#F87171",
-              kind: "peripheral",
-            }),
-          ],
-        summary: "Teclado mecânico mais próximo da linguagem visual do site atual.",
-        highlights: ["Blue Switch", "Mecânico", "ABNT2"],
-      },
-      {
-        id: "peripherals-3",
-        name: "Combo Kuromori + Basaran",
-        price: (keyboardWhite?.priceNum ?? 400) + (mouseBlack?.priceNum ?? 250),
-        image:
-          keyboardWhite?.image ??
-          buildComponentVisual({
-            title: "Combo PCYES",
-            subtitle: "Teclado + mouse",
-            accent: "#22D3EE",
-            kind: "peripheral",
-          }),
-        gallery:
-          keyboardWhite?.images ??
-          [
-            buildComponentVisual({
-              title: "Combo PCYES",
-              subtitle: "Teclado + mouse",
-              accent: "#22D3EE",
-              kind: "peripheral",
-            }),
-          ],
-        summary: "Entrega uma escolha pronta para quem quer setup completo.",
-        highlights: ["Teclado", "Mouse RGB", "White Ghost"],
-      },
-    ],
+    options: peripheralProducts.map((product, index) =>
+      toOptionFromProduct("peripherals", product, index, {
+        standard: index === 0,
+        summary: "Foto real do catálogo para avaliar como itens menores se comportam nos cards da direita.",
+      }),
+    ),
   },
 ];
 
