@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { motion, useInView } from "motion/react";
 import { useTheme } from "./ThemeProvider";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { ArrowUpRight } from "lucide-react";
 
 type Audience = "Todos" | "Gamers" | "Escritório";
 
