@@ -32,22 +32,27 @@ export function FeaturedProduct({ label, title, description, image, imageAlt, re
   const imageY = useTransform(scrollYProgress, [0, 1], [60, -60]);
 
   return (
-    <section ref={sectionRef} className="py-20 md:py-28 px-6 md:px-12">
-      <div className={`max-w-[1760px] mx-auto flex flex-col ${reverse ? "md:flex-row-reverse" : "md:flex-row"} items-center gap-16 md:gap-28`}>
+    <section
+      ref={sectionRef}
+      className="px-5 py-[10px] md:px-[72.5px]"
+      style={{ background: "linear-gradient(97.665deg, #000000 34.936%, #0f0f0f 101.8%)" }}
+    >
+      <div className={`max-w-[1760px] mx-auto flex flex-col ${reverse ? "md:flex-row-reverse" : "md:flex-row"} items-center gap-10 px-0 py-16 lg:gap-[10px] lg:px-[172px] lg:py-[86px]`}>
         {/* Image */}
-        <motion.div className="flex-1 w-full" style={{ y: imageY }}>
+        <motion.div className="w-full md:w-[934px] md:flex-none" style={{ y: imageY }}>
           <motion.div
             initial={{ opacity: 0, scale: 0.92 }}
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-            className="relative overflow-hidden group cursor-pointer"
-            style={{ borderRadius: "var(--radius-card)" }}
+            className="relative overflow-hidden group cursor-pointer md:px-[45.36px] md:py-[34.02px]"
+            style={{ borderRadius: "8px" }}
           >
             <Link to={productId ? `/produto/${productId}` : "/produtos"}>
               <ImageWithFallback
                 src={image}
                 alt={imageAlt}
-                className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
+                className="w-full aspect-[1045/784] object-cover group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
+                style={{ borderRadius: "8px" }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="absolute bottom-6 right-6 w-12 h-12 bg-primary/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
@@ -58,18 +63,18 @@ export function FeaturedProduct({ label, title, description, image, imageAlt, re
         </motion.div>
 
         {/* Content */}
-        <div className="flex-1 max-w-lg">
+        <div className="w-full md:w-[512px] md:flex-none">
           <motion.p
             initial={{ opacity: 0, x: reverse ? 30 : -30 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-primary tracking-[0.25em] mb-6"
-            style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-label)", fontWeight: "var(--font-weight-medium)" }}
+            className="text-primary tracking-[0.25em] mb-8"
+            style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "var(--font-weight-medium)", lineHeight: "19.5px" }}
           >
             {label}
           </motion.p>
 
-          <div className="overflow-hidden mb-8">
+          <div className="sr-only">
             <motion.h2
               initial={{ y: 80 }}
               animate={isInView ? { y: 0 } : {}}
@@ -85,8 +90,8 @@ export function FeaturedProduct({ label, title, description, image, imageAlt, re
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="text-foreground/40 mb-8"
-            style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-base)", lineHeight: "1.8" }}
+            className="text-foreground/60 mb-8"
+            style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px", lineHeight: "28.8px" }}
           >
             {description}
           </motion.p>
@@ -96,13 +101,13 @@ export function FeaturedProduct({ label, title, description, image, imageAlt, re
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : {}}
               transition={{ duration: 0.8, delay: 0.6 }}
-              className="flex flex-wrap gap-3 mb-10"
+              className="flex flex-wrap gap-3 mb-8"
             >
               {specs.map((spec) => (
                 <span
                   key={spec}
-                  className="px-4 py-1.5 border border-border/15 text-foreground/40"
-                  style={{ borderRadius: "100px", fontFamily: "var(--font-family-inter)", fontSize: "var(--text-label)" }}
+                  className="px-4 py-1.5 border border-white/15 text-foreground/40"
+                  style={{ borderRadius: "100px", fontFamily: "var(--font-family-inter)", fontSize: "13px" }}
                 >
                   {spec}
                 </span>
@@ -116,11 +121,11 @@ export function FeaturedProduct({ label, title, description, image, imageAlt, re
             transition={{ duration: 0.8, delay: 0.7 }}
             className="flex items-center gap-4 flex-wrap"
           >
-            <p className="text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "var(--text-h4)", fontWeight: "var(--font-weight-light)" }}>
+            <p className="text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "32px", lineHeight: "48px", fontWeight: "var(--font-weight-light)" }}>
               {price}
             </p>
             {oldPrice && (
-              <p className="text-foreground/40 line-through" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "var(--text-h4)", fontWeight: "var(--font-weight-light)" }}>
+              <p className="text-foreground/40 line-through" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "32px", lineHeight: "48px", fontWeight: "var(--font-weight-light)" }}>
                 {oldPrice}
               </p>
             )}

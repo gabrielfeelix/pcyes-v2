@@ -139,8 +139,12 @@ export function ProductCarousel({
   };
 
   return (
-    <section ref={ref} className={compactTop ? "pt-4 pb-16 md:pt-8 md:pb-20" : "py-16 md:py-20"}>
-      <div className="max-w-[1760px] mx-auto px-5 md:px-8 mb-10">
+    <section
+      ref={ref}
+      className={compactTop ? "pt-4 pb-16 md:pt-8 md:pb-20" : "py-20"}
+      style={{ background: isDark ? "#0e0e0e" : "transparent" }}
+    >
+      <div className="max-w-[1696px] mx-auto px-5 md:px-0 mb-10">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <div>
             <motion.p
@@ -158,7 +162,7 @@ export function ProductCarousel({
                 animate={isInView ? { y: 0 } : {}}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="text-foreground"
-                style={{ fontSize: "clamp(36px, 5vw, var(--text-h2))", fontFamily: "var(--font-family-figtree)", fontWeight: "var(--font-weight-light)" }}
+                style={{ fontSize: "clamp(36px, 5vw, 48px)", lineHeight: "48px", fontFamily: "var(--font-family-figtree)", fontWeight: "var(--font-weight-light)" }}
               >
                 {title}
               </motion.h2>
@@ -203,7 +207,7 @@ export function ProductCarousel({
       >
         <div
           ref={scrollRef}
-          className="flex gap-6 overflow-x-auto px-5 md:px-8 pb-4 scrollbar-hide snap-x md:snap-none"
+          className="flex gap-6 overflow-x-auto px-5 md:px-0 pb-4 scrollbar-hide snap-x md:snap-none"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}
         >
           {repeatedProducts.map(({ product, key }, i) => (
@@ -227,7 +231,7 @@ export function ProductCarousel({
                   style={{
                     borderRadius: "var(--radius-card)",
                     background: isDark
-                      ? "linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.015) 100%)"
+                      ? "linear-gradient(180deg, rgba(33,33,36,0.1) 0%, rgba(82,82,83,0.1) 100%)"
                       : "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(242,242,242,1) 100%)",
                   }}
                   onMouseEnter={() => setHoveredProductId(product.id)}
@@ -341,7 +345,7 @@ export function ProductCarousel({
                   </p>
                 </Link>
                 <div className="flex items-baseline gap-2">
-                  <p className="text-foreground/90" style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-sm)", fontWeight: "500" }}>
+                  <p className="text-foreground/90" style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px", lineHeight: "21px", fontWeight: "500" }}>
                     {product.price}
                   </p>
                   {product.oldPrice && (

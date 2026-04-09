@@ -43,16 +43,16 @@ export function ProductsByTags() {
   };
 
   return (
-    <section ref={ref} className="py-20 md:py-24 px-5 md:px-8" style={{ background: isDark ? "#161617" : "transparent" }}>
+    <section ref={ref} className="px-5 py-20 md:px-[72.5px] md:py-24" style={{ background: isDark ? "#0e0e0e" : "transparent" }}>
       <div className="max-w-[1760px] mx-auto">
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-10 pt-[18.96px]">
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6 }}
-            className="text-primary tracking-[0.25em] mb-5"
-            style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-label)", fontWeight: "var(--font-weight-medium)" }}
+            className="text-primary tracking-[0.25em] mb-7"
+            style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", lineHeight: "19.5px", fontWeight: "var(--font-weight-medium)" }}
           >
             CATÁLOGO
           </motion.p>
@@ -62,7 +62,7 @@ export function ProductsByTags() {
               animate={isInView ? { y: 0 } : {}}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               className="text-foreground"
-              style={{ fontSize: "clamp(36px, 5vw, var(--text-h2))", fontFamily: "var(--font-family-figtree)", fontWeight: "var(--font-weight-light)" }}
+              style={{ fontSize: "clamp(44px, 6vw, 74px)", lineHeight: "clamp(48px, 6vw, 74px)", letterSpacing: "-0.03em", fontFamily: "var(--font-family-figtree)", fontWeight: "var(--font-weight-light)" }}
             >
               Produtos por tag
             </motion.h2>
@@ -72,7 +72,7 @@ export function ProductsByTags() {
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ delay: 0.3, duration: 0.6 }}
             className="text-foreground/30 max-w-md mx-auto"
-            style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-base)", lineHeight: "1.8" }}
+            style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px", lineHeight: "28.8px" }}
           >
             Filtre por interesse e encontre exatamente o que procura.
           </motion.p>
@@ -83,13 +83,13 @@ export function ProductsByTags() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="flex flex-wrap justify-center gap-2.5 mb-10"
+          className="flex flex-wrap justify-center gap-2.5 mb-10 pt-[39.96px]"
         >
           {tags.map((tag) => (
             <button
               key={tag}
               onClick={() => setActiveTag(tag)}
-              className={`relative px-6 py-2.5 transition-all duration-400 border ${activeTag === tag
+              className={`relative px-[25px] py-[11px] transition-all duration-400 border ${activeTag === tag
                   ? "bg-primary border-primary text-primary-foreground shadow-[0_0_25px_rgba(255,43,46,0.2)]"
                   : "border-border/15 text-foreground/40 hover:text-foreground hover:border-foreground/30"
                 }`}
@@ -122,11 +122,11 @@ export function ProductsByTags() {
                   return (
                     <>
                 <div
-                  className="relative overflow-hidden mb-5 aspect-square"
+                  className="relative overflow-hidden mb-5 h-[340px] sm:h-[390px] lg:h-[425px]"
                   style={{
                     borderRadius: "var(--radius-card)",
                     background: isDark
-                      ? "linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.015) 100%)"
+                      ? "#1e1e20"
                       : "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(242,242,242,1) 100%)",
                   }}
                   onMouseEnter={() => setHoveredProductId(product.id)}
@@ -226,7 +226,7 @@ export function ProductsByTags() {
                   <p className="text-foreground group-hover:text-primary transition-colors duration-300 mb-1.5 truncate" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "16px", fontWeight: "var(--font-weight-medium)" }}>
                     {product.name}
                   </p>
-                  <p className="text-foreground/90" style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-sm)", fontWeight: "500" }}>
+                  <p className="text-foreground/90" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", lineHeight: "21px", fontWeight: "500" }}>
                     {product.price}
                   </p>
                   {product.reviews > 150 && (

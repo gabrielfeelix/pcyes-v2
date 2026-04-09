@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import { motion, useInView } from "motion/react";
-import { useTheme } from "./ThemeProvider";
 import { Truck, Shield, CreditCard, Headphones } from "lucide-react";
 
 const features = [
@@ -13,28 +12,25 @@ const features = [
 export function FeaturesStrip() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.3 });
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
-  const backgroundColor = isDark ? "#cfcfd3" : "#d9d9dd";
 
   return (
-    <section ref={ref} className="py-24 border-y border-black/8" style={{ background: backgroundColor }}>
-      <div className="max-w-[1760px] mx-auto px-6 md:px-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-16">
+    <section ref={ref} className="border-y border-black/8 px-5 py-[39px] md:px-[72.5px]" style={{ background: "#0e0e0e" }}>
+      <div className="mx-auto flex min-h-[166px] max-w-[1760px] flex-wrap items-center justify-center gap-[64px] px-0 md:px-12">
         {features.map((f, i) => (
           <motion.div
             key={f.title}
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: i * 0.1 }}
-            className="group text-center"
+            className="group w-[212px] text-center"
           >
-            <div className="w-14 h-14 mx-auto mb-5 border border-black/10 rounded-full flex items-center justify-center group-hover:border-primary/50 group-hover:bg-primary/5 transition-all duration-500">
-              <f.icon size={20} strokeWidth={1} className="text-black/40 group-hover:text-primary transition-colors duration-500" />
+            <div className="w-14 h-14 mx-auto mb-5 border border-white/10 rounded-full flex items-center justify-center transition-all duration-500 group-hover:border-primary/50">
+              <f.icon size={20} strokeWidth={1} className="text-white/40 group-hover:text-primary transition-colors duration-500" />
             </div>
-            <p className="text-black mb-1" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "16px", fontWeight: "var(--font-weight-medium)" }}>
+            <p className="text-white mb-1" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "16px", lineHeight: "24px", fontWeight: "var(--font-weight-medium)" }}>
               {f.title}
             </p>
-            <p className="text-black/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-caption)" }}>
+            <p className="text-white/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: "18px" }}>
               {f.desc}
             </p>
           </motion.div>

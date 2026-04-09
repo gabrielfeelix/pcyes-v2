@@ -6,6 +6,7 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Clock, Flame, ShoppingBag, ArrowUpRight, Heart } from "lucide-react";
 import { useCart } from "./CartContext";
 import { useFavorites } from "./FavoritesContext";
+import { allProducts } from "./productsData";
 
 const releases = [
   {
@@ -54,11 +55,25 @@ export function NewReleasesSection() {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
 
-  const selected = releases[selectedIdx];
-  const others = releases.filter((_, i) => i !== selectedIdx);
+  const releaseEntries = releases.map((release) => {
+    const catalogProduct = allProducts.find((product) => product.id === release.id);
+    return catalogProduct
+      ? {
+          ...release,
+          name: catalogProduct.name,
+          category: catalogProduct.category,
+          price: catalogProduct.price,
+          oldPrice: catalogProduct.oldPrice,
+          image: catalogProduct.image,
+        }
+      : release;
+  });
+
+  const selected = releaseEntries[selectedIdx];
+  const others = releaseEntries.filter((_, i) => i !== selectedIdx);
 
   return (
-    <section ref={ref} className="py-20 md:py-24 px-5 md:px-8" style={{ background: isDark ? "#161617" : "transparent" }}>
+    <section ref={ref} className="px-5 py-20 md:px-[72.5px] md:py-24" style={{ background: isDark ? "#0e0e0e" : "transparent" }}>
       <div className="max-w-[1760px] mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-10 gap-5">
@@ -83,7 +98,7 @@ export function NewReleasesSection() {
                 animate={isInView ? { y: 0 } : {}}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="text-foreground"
-                style={{ fontSize: "clamp(36px, 5vw, var(--text-h2))", fontFamily: "var(--font-family-figtree)", fontWeight: "var(--font-weight-light)" }}
+                style={{ fontSize: "clamp(40px, 5vw, 64px)", lineHeight: "clamp(46px, 5.5vw, 74px)", letterSpacing: "-0.03em", fontFamily: "var(--font-family-figtree)", fontWeight: "var(--font-weight-light)" }}
               >
                 Em alta agora
               </motion.h2>
@@ -102,7 +117,7 @@ export function NewReleasesSection() {
         </div>
 
         {/* Layout: featured left + single column list right */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-4">
+        <div className="grid grid-cols-1 gap-[45px] lg:grid-cols-[minmax(0,997px)_minmax(0,1fr)] lg:px-8">
           {/* Featured card left */}
           <motion.div
             initial={{ opacity: 0, y: 60 }}
@@ -118,7 +133,7 @@ export function NewReleasesSection() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.4 }}
-                className="relative h-full min-h-[520px]"
+                className="relative h-full min-h-[532px]"
               >
                 <ImageWithFallback
                   src={selected.image}
@@ -192,14 +207,14 @@ export function NewReleasesSection() {
           </motion.div>
 
           {/* Right column: stacked list */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 lg:h-[552px] lg:pt-5">
             {others.slice(0, 6).map((item, i) => (
               <motion.div
                 key={item.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: 0.1 + i * 0.06 }}
-                onClick={() => setSelectedIdx(releases.findIndex((r) => r.id === item.id))}
+                onClick={() => setSelectedIdx(releaseEntries.findIndex((r) => r.id === item.id))}
                 className="group relative overflow-hidden text-left cursor-pointer transition-all duration-500 border border-border/5 hover:border-border/15 flex"
                 style={{ borderRadius: "var(--radius-card)", background: "rgba(255,255,255,0.02)" }}
               >

@@ -48,7 +48,11 @@ export function WorldSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-20 md:py-24 px-5 md:px-8">
+    <section
+      ref={sectionRef}
+      className="px-5 py-[87px] md:px-[72.5px]"
+      style={{ background: "linear-gradient(95.291deg, #000000 34.936%, #0f0f0f 101.8%)" }}
+    >
       <div className="max-w-[1760px] mx-auto">
         {/* Header */}
         <motion.div
@@ -56,25 +60,25 @@ export function WorldSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-4"
+          className="text-center mb-8"
         >
           <h2
             className="text-foreground mb-5"
             style={{
               fontFamily: "var(--font-family-figtree)",
-              fontSize: "clamp(32px, 4vw, var(--text-h3))",
+              fontSize: "clamp(32px, 4vw, 40px)",
               fontWeight: "var(--font-weight-light)",
-              lineHeight: "1.1",
+              lineHeight: "44px",
             }}
           >
             Linhas PCYES
           </h2>
           <p
-            className="text-foreground/35 max-w-lg mx-auto mb-6"
+            className="text-foreground/35 max-w-lg mx-auto mb-8"
             style={{
               fontFamily: "var(--font-family-inter)",
-              fontSize: "var(--text-base)",
-              lineHeight: "1.7",
+              fontSize: "16px",
+              lineHeight: "27.2px",
             }}
           >
             Coleções, collabs e frentes criativas que traduzem a PCYES em linguagens diferentes, da arena competitiva ao conteúdo da marca.
@@ -94,7 +98,7 @@ export function WorldSection() {
         </motion.div>
 
         {/* 3 vertical videos grid — more gap, shorter aspect */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 mt-10 md:mt-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 mt-10">
           {videos.map((video, i) => (
             <motion.div
               key={i}
@@ -107,7 +111,7 @@ export function WorldSection() {
               {/* Video container — zoomed in to fill, no black bars */}
               <Link
                 to={video.href}
-                className="block relative overflow-hidden aspect-[9/14] mb-6 cursor-pointer bg-[#111]"
+                className="block relative overflow-hidden h-[520px] mb-8 cursor-pointer bg-[#111] lg:h-[747px]"
                 style={{ borderRadius: "var(--radius-card)" }}
               >
                 {loaded && (
@@ -146,7 +150,7 @@ export function WorldSection() {
                     fontFamily: "var(--font-family-figtree)",
                     fontSize: "20px",
                     fontWeight: "var(--font-weight-medium)",
-                    lineHeight: "1.3",
+                    lineHeight: "26px",
                   }}
                 >
                   {video.title}
@@ -156,8 +160,8 @@ export function WorldSection() {
                 className="text-foreground/30"
                 style={{
                   fontFamily: "var(--font-family-inter)",
-                  fontSize: "var(--text-sm)",
-                  lineHeight: "1.7",
+                  fontSize: "14px",
+                  lineHeight: "23.8px",
                 }}
               >
                 {video.description}

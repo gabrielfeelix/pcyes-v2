@@ -21,42 +21,49 @@ const categoryGroups: Record<Audience, CategoryCard[]> = {
       name: "Hardware",
       caption: "Peças e componentes para upgrades completos",
       href: "/produtos",
-      image: "https://images.unsplash.com/photo-1518770660439-4636190af475?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      image: "/home/category-hardware.png",
       span: "col-span-1 sm:col-span-2 row-span-2",
     },
     {
       name: "Periféricos",
       caption: "Mouse, teclado, headset e acessórios do dia a dia",
       href: "/produtos?category=Perif%C3%A9ricos",
-      image: "https://images.unsplash.com/photo-1541140532154-b024d705b90a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      image: "/home/category-peripherals.png",
       span: "col-span-1",
     },
     {
       name: "Computadores",
       caption: "Soluções prontas para produtividade e operação",
       href: "/produtos",
-      image: "https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      image: "/home/category-computers.png",
       span: "col-span-1",
     },
     {
       name: "PC Gamer",
       caption: "Combinações pensadas para jogar com performance",
       href: "/produtos",
-      image: "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
-      span: "col-span-1",
-    },
-    {
-      name: "Placas de Vídeo",
-      caption: "Mais poder gráfico para criação e jogos",
-      href: "/produtos?category=Placas%20de%20V%C3%ADdeo",
-      image: "https://images.unsplash.com/photo-1591488320449-011701bb6704?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      image: "/home/category-pc-gamer.png",
       span: "col-span-1",
     },
     {
       name: "Cadeiras",
-      caption: "Conforto para longas jornadas no setup",
+      caption: "Mais conforto para uma imersão de horas",
       href: "/produtos?category=Cadeiras",
-      image: "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      image: "/home/category-chair.png",
+      span: "col-span-1",
+    },
+    {
+      name: "Placa de video",
+      caption: "Peças e componentes para upgrades completos",
+      href: "/produtos?category=Placas%20de%20V%C3%ADdeo",
+      image: "/home/category-gpu.png",
+      span: "col-span-1 sm:col-span-2",
+    },
+    {
+      name: "Refrigeradores",
+      caption: "Peças e componentes para upgrades completos",
+      href: "/produtos?category=Coolers",
+      image: "/home/category-cooling.png",
       span: "col-span-1 sm:col-span-2",
     },
   ],
@@ -65,35 +72,35 @@ const categoryGroups: Record<Audience, CategoryCard[]> = {
       name: "Gabinetes",
       caption: "Presença visual, airflow e vidro temperado",
       href: "/produtos?category=Gabinetes",
-      image: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      image: "/home/category-hardware.png",
       span: "col-span-1 sm:col-span-2 row-span-2",
     },
     {
       name: "Placas de Vídeo",
       caption: "FPS alto, ray tracing e potência bruta",
       href: "/produtos?category=Placas%20de%20V%C3%ADdeo",
-      image: "https://images.unsplash.com/photo-1591799265444-d66432b91588?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      image: "/home/category-gpu.png",
       span: "col-span-1",
     },
     {
       name: "PC Gamer",
       caption: "Builds prontas para entrar em jogo",
       href: "/produtos",
-      image: "https://images.unsplash.com/photo-1629429408209-1f912961dbd8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      image: "/home/category-pc-gamer.png",
       span: "col-span-1",
     },
     {
       name: "Streaming",
       caption: "Áudio, suporte e presença para criadores",
       href: "/produtos?category=Streaming",
-      image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      image: "/home/category-peripherals.png",
       span: "col-span-1",
     },
     {
       name: "Mouse Gamer",
       caption: "Precisão e resposta rápida na mão",
       href: "/produtos?category=Perif%C3%A9ricos",
-      image: "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      image: "/home/category-peripherals.png",
       span: "col-span-1 sm:col-span-2",
     },
   ],
@@ -102,35 +109,35 @@ const categoryGroups: Record<Audience, CategoryCard[]> = {
       name: "Computadores",
       caption: "Máquinas versáteis para rotina e operação",
       href: "/produtos",
-      image: "https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      image: "/home/category-computers.png",
       span: "col-span-1 sm:col-span-2 row-span-2",
     },
     {
       name: "Monitores",
       caption: "Mais área útil e ergonomia para produtividade",
       href: "/produtos?category=Monitores",
-      image: "https://images.unsplash.com/photo-1527443154391-507e9dc6c5cc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      image: "/home/category-computers.png",
       span: "col-span-1",
     },
     {
       name: "SSD e HD",
       caption: "Armazenamento rápido para abrir tudo sem espera",
       href: "/produtos?category=SSD%20e%20HD",
-      image: "https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      image: "/home/category-gpu.png",
       span: "col-span-1",
     },
     {
       name: "Periféricos",
       caption: "Itens essenciais para uma mesa funcional",
       href: "/produtos?category=Perif%C3%A9ricos",
-      image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      image: "/home/category-peripherals.png",
       span: "col-span-1",
     },
     {
       name: "Cadeiras",
       caption: "Postura e conforto pensados para o dia inteiro",
       href: "/produtos?category=Cadeiras",
-      image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+      image: "/home/category-chair.png",
       span: "col-span-1 sm:col-span-2",
     },
   ],
@@ -148,12 +155,10 @@ export function CategoryGrid() {
   return (
     <section
       ref={ref}
-      className="relative overflow-hidden px-5 pt-[72px] pb-[132px] md:px-8"
+      className="relative overflow-hidden px-5 pt-[72px] pb-[132px] md:px-[72.5px]"
       style={{ background: isDark ? "linear-gradient(72.85deg, #000000 44.62%, #0f0f0f 100.35%)" : "transparent" }}
       id="explore"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_65%_at_50%_-4%,rgba(255,43,46,0.1)_0%,transparent_70%)]" />
-
       <div className="relative max-w-[1760px] mx-auto">
         <div className="mb-12 flex flex-col items-center text-center gap-6">
           <div>
@@ -202,7 +207,7 @@ export function CategoryGrid() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-4 auto-rows-[154px] gap-[22px] md:auto-rows-[154px] lg:auto-rows-[154px]">
+        <div className="grid grid-cols-1 auto-rows-[180px] gap-y-[22px] gap-x-[33.6px] sm:grid-cols-4 sm:grid-rows-[154px_154px_209px] sm:auto-rows-[209px] lg:px-[178px]">
           {cards.map((card, i) => (
             <Link
               key={`${activeAudience}-${card.name}`}
@@ -227,7 +232,7 @@ export function CategoryGrid() {
                   <p className="text-white mb-1.5" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "clamp(19px, 1.8vw, 20px)", fontWeight: "600", lineHeight: 1.05 }}>
                     {card.name}
                   </p>
-                  <p className="mb-3 max-w-[19ch] text-white/55" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", lineHeight: 1.45 }}>
+                  <p className="mb-3 max-w-[19ch] text-white/55" style={{ fontFamily: "var(--font-family-inter)", fontSize: "8.4px", lineHeight: "13.02px" }}>
                     {card.caption}
                   </p>
                   <span
