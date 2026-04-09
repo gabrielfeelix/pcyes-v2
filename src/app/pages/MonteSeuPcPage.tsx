@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { Check, ChevronRight, Cpu, HardDrive, Monitor, Settings, Zap, ArrowRight, Save, Share2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
-import { ScrollArea } from "../components/ui/scroll-area";
 import { Badge } from "../components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/ui/accordion";
 
@@ -14,8 +13,8 @@ const categories = [
     icon: <Monitor className="w-5 h-5" />,
     options: [
       { id: "case-1", name: "PCYES Boreal Preto", price: 350, image: "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&q=80", type: "black" },
-      { id: "case-2", name: "PCYES Boreal Branco", price: 380, image: "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?auto=format&fit=crop&q=80", type: "white" },
-      { id: "case-3", name: "PCYES RGB Master", price: 450, image: "https://images.unsplash.com/photo-1624704791357-1fb4603378b2?auto=format&fit=crop&q=80", type: "rgb" },
+      { id: "case-2", name: "PCYES Boreal Branco", price: 380, image: "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?auto=format&fit=crop&q=80&w=1200", type: "white" },
+      { id: "case-3", name: "PCYES RGB Master", price: 450, image: "https://images.unsplash.com/photo-1624704791357-1fb4603378b2?auto=format&fit=crop&q=80&w=1200", type: "rgb" },
     ]
   },
   {
@@ -84,6 +83,20 @@ const categories = [
   }
 ];
 
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+
+const getAmbientBackground = (type?: string) => {
+  switch (type) {
+    case "white":
+      return "radial-gradient(circle at 50% 45%, rgba(255,255,255,0.14), transparent 60%)";
+    case "rgb":
+      return "radial-gradient(circle at 50% 45%, rgba(139,92,246,0.22), transparent 60%)";
+    default:
+      return "radial-gradient(circle at 50% 45%, rgba(255,255,255,0.05), transparent 60%)";
+  }
+};
+
 export function MonteSeuPcPage() {
   const [selections, setSelections] = useState<Record<string, string>>({
     case: "case-2", // Default to white case
@@ -123,12 +136,12 @@ export function MonteSeuPcPage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row pt-16 md:pt-20 lg:pt-24">
       {/* LEFT PANEL - VISUALIZATION (Sticky) */}
-      <div className="w-full md:w-1/2 lg:w-[60%] h-[40vh] md:h-[calc(100vh-6rem)] sticky top-16 md:top-20 lg:top-24 flex flex-col items-center justify-center p-4 md:p-8 bg-muted/20 relative overflow-hidden group border-r border-border">
+      <div className="w-full md:w-1/2 lg:w-[60%] h-[40vh] md:h-[calc(100vh-6rem)] md:sticky top-16 md:top-20 lg:top-24 flex flex-col items-center justify-center p-4 md:p-8 bg-muted/20 relative overflow-hidden border-r border-border">
         {/* Background ambient glow based on case */}
         <div 
-          className="absolute inset-0 opacity-20 blur-3xl transition-colors duration-1000 mix-blend-screen"
+          className="absolute inset-0 transition-[background] duration-500"
           style={{
-            backgroundColor: currentCase?.type === "white" ? "#ffffff" : currentCase?.type === "rgb" ? "#8b5cf6" : "#000000"
+            background: getAmbientBackground(currentCase?.type)
           }}
         />
         
@@ -137,7 +150,9 @@ export function MonteSeuPcPage() {
              <img 
                src={currentCase.image} 
                alt="PC Configurator Visual" 
-               className="object-contain max-h-full max-w-full drop-shadow-2xl transition-all duration-700 ease-in-out transform scale-100 group-hover:scale-105"
+               loading="eager"
+               decoding="async"
+               className="object-contain max-h-full max-w-full drop-shadow-2xl transition-transform duration-500 ease-out"
              />
           ) : (
             <div className="w-full h-full bg-muted rounded-xl animate-pulse" />
@@ -152,7 +167,7 @@ export function MonteSeuPcPage() {
              const opt = cat?.options.find(o => o.id === optId);
              if (!opt) return null;
              return (
-               <Badge key={catId} variant="secondary" className="bg-background/80 backdrop-blur-md border-primary/20 text-xs py-1">
+               <Badge key={catId} variant="secondary" className="bg-background/90 border-primary/20 text-xs py-1">
                  {cat?.title}: {opt.name}
                </Badge>
              )
@@ -171,7 +186,7 @@ export function MonteSeuPcPage() {
              <div>
                <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Preço Estimado</p>
                <p className="text-3xl font-bold text-primary">
-                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalPrice)}
+                 {formatCurrency(totalPrice)}
                </p>
              </div>
              <div className="flex gap-2">
@@ -182,12 +197,16 @@ export function MonteSeuPcPage() {
         </div>
 
         {/* Categories Accordion */}
-        <ScrollArea className="flex-1 px-6 md:px-8 py-4">
+        <div className="flex-1 overflow-y-auto px-6 md:px-8 py-4">
           <Accordion 
             type="single" 
             collapsible 
-            value={activeCategory} 
-            onValueChange={setActiveCategory}
+            value={activeCategory}
+            onValueChange={(value) => {
+              if (value) {
+                setActiveCategory(value);
+              }
+            }}
             className="w-full"
           >
             {categories.map((category) => {
@@ -221,7 +240,7 @@ export function MonteSeuPcPage() {
                       </div>
                       {selectedOption && (
                         <div className="text-sm font-medium text-foreground">
-                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOption.price)}
+                          {formatCurrency(selectedOption.price)}
                         </div>
                       )}
                     </div>
@@ -243,7 +262,7 @@ export function MonteSeuPcPage() {
                             {/* Color/Image indicator for Case */}
                             {category.id === "case" && option.image && (
                               <div className="h-24 w-full bg-muted border-b border-border/50 overflow-hidden">
-                                <img src={option.image} alt={option.name} className="w-full h-full object-cover opacity-80" />
+                                <img src={option.image} alt={option.name} loading="lazy" decoding="async" className="w-full h-full object-cover opacity-80" />
                               </div>
                             )}
                             
@@ -257,7 +276,7 @@ export function MonteSeuPcPage() {
                                 )}
                               </div>
                               <div className="text-sm font-bold text-primary mt-auto">
-                                + {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(option.price)}
+                                + {formatCurrency(option.price)}
                               </div>
                             </div>
                           </Card>
@@ -274,10 +293,10 @@ export function MonteSeuPcPage() {
             })}
           </Accordion>
           <div className="h-24" /> {/* Spacer for bottom bar */}
-        </ScrollArea>
+        </div>
 
         {/* Bottom Action Bar */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 bg-background/80 backdrop-blur-xl border-t border-border shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-20">
+        <div className="sticky bottom-0 left-0 right-0 p-4 md:p-6 bg-background border-t border-border shadow-[0_-10px_30px_rgba(0,0,0,0.08)] z-20">
           <Button className="w-full h-14 text-lg font-bold uppercase tracking-wider group">
             Concluir Configuração
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
