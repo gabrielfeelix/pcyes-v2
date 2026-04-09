@@ -43,31 +43,27 @@ const socialLinks = [
 const certifications = [
   {
     label: "RA 1000",
-    href: "https://reclameaqui.com.br/empresa/insider-store/",
+    href: "https://www.reclameaqui.com.br/empresa/pc-yes/",
     image: "https://www.insiderstore.com.br/cdn/shop/files/SELO-RA_1.png?v=1773463245&width=140",
     imageClassName: "w-[66px] h-[66px] object-contain",
   },
   {
     label: "Loja Protegida",
-    href: "https://www.lojaprotegida.com.br/",
     image: "https://www.insiderstore.com.br/cdn/shop/files/Image_52_2x_85487a22-7eb0-4ae3-a7d7-75cc3910f11f.png?v=1773456501&width=140",
     imageClassName: "w-[66px] h-[66px] object-contain",
   },
   {
     label: "GPTW",
-    href: "https://www.oderco.com.br/customer/account/",
     image: "https://www.oderco.com.br/media/wysiwyg/Selo-Ranking-Paran_-2025.png",
     imageClassName: "w-[66px] h-[66px] object-contain",
   },
   {
     label: "Google Site Seguro",
-    href: "https://transparencyreport.google.com/safe-browsing/search?url=https://www.insiderstore.com.br/",
     image: "https://www.insiderstore.com.br/cdn/shop/files/GOOGLE_BRANCO.png?v=1773463243&width=140",
     imageClassName: "w-[64px] h-[64px] object-contain",
   },
   {
     label: "ABNT",
-    href: "https://www.oderco.com.br/customer/account/",
     image: "https://www.oderco.com.br/media/wysiwyg/image_3.png",
     imageClassName: "w-[50px] h-[50px] object-contain",
   },
@@ -170,28 +166,42 @@ export function Footer() {
               style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "var(--font-weight-bold)", letterSpacing: "0.04em" }}
             >CERTIFICADOS</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {certifications.map((cert) => (
-                <a
-                  key={cert.label}
-                  href={cert.href ?? "#"}
-                  target={cert.href ? "_blank" : undefined}
-                  rel={cert.href ? "noopener noreferrer" : undefined}
-                  className={`min-h-[96px] rounded-2xl border px-3 py-3 transition-all duration-300 ${
-                    isDark
-                      ? "border-foreground/10 bg-white/[0.03] hover:border-foreground/20 hover:bg-white/[0.06]"
-                      : "border-foreground/10 bg-white hover:border-foreground/20"
-                  }`}
-                >
+              {certifications.map((cert) => {
+                const cardClassName = `min-h-[96px] rounded-2xl border px-3 py-3 transition-all duration-300 ${
+                  isDark
+                    ? "border-foreground/10 bg-white/[0.03] hover:border-foreground/20 hover:bg-white/[0.06]"
+                    : "border-foreground/10 bg-white hover:border-foreground/20"
+                }`;
+
+                const cardContent = (
                   <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-                    <>
-                      <ImageWithFallback src={cert.image} alt={cert.label} className={cert.imageClassName} />
-                      <p className="text-foreground/60" style={{ fontFamily: "var(--font-family-inter)", fontSize: "9px", fontWeight: "var(--font-weight-bold)", letterSpacing: "0.04em" }}>
-                        {cert.label}
-                      </p>
-                    </>
+                    <ImageWithFallback src={cert.image} alt={cert.label} className={cert.imageClassName} />
+                    <p className="text-foreground/60" style={{ fontFamily: "var(--font-family-inter)", fontSize: "9px", fontWeight: "var(--font-weight-bold)", letterSpacing: "0.04em" }}>
+                      {cert.label}
+                    </p>
                   </div>
-                </a>
-              ))}
+                );
+
+                if (cert.href) {
+                  return (
+                    <a
+                      key={cert.label}
+                      href={cert.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cardClassName}
+                    >
+                      {cardContent}
+                    </a>
+                  );
+                }
+
+                return (
+                  <div key={cert.label} className={cardClassName}>
+                    {cardContent}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
