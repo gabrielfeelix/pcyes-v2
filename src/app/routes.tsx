@@ -11,11 +11,13 @@ import { ContactPage } from "./components/pages/ContactPage";
 import { StoreLocatorPage } from "./components/pages/StoreLocatorPage";
 import { MaringaFCCollabPage } from "./components/pages/MaringaFCCollabPage";
 import { MonteSeuPcPage } from "./pages/MonteSeuPcPage";
+import { GlobalErrorBoundary } from "./components/GlobalErrorBoundary";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     Component: RootLayout,
+    errorElement: <GlobalErrorBoundary />,
     children: [
       { index: true, Component: HomePage },
       { path: "produtos", Component: ProductsPage },
