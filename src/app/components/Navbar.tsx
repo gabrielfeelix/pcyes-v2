@@ -537,12 +537,16 @@ export function Navbar() {
             {hint}
           </p>
         </div>
-        <div className="hidden xl:flex items-center gap-2 rounded-full border border-foreground/8 bg-foreground/[0.03] px-3 py-2 text-foreground/35">
-          <Grid2x2 size={12} />
+        <button
+          type="button"
+          onClick={() => setActiveMega(null)}
+          className="hidden xl:flex items-center gap-2 rounded-full border border-foreground/8 bg-foreground/[0.03] px-3 py-2 text-foreground/45 transition-colors hover:border-foreground/16 hover:text-foreground"
+        >
+          <X size={12} />
           <span style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "600", letterSpacing: "0.14em" }}>
-            MEGA MENU
+            FECHAR
           </span>
-        </div>
+        </button>
       </div>
     );
 

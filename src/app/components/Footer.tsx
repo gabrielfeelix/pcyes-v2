@@ -203,15 +203,7 @@ export function Footer() {
 
       {/* Bottom Section */}
       <div className="max-w-[1760px] mx-auto px-5 md:px-8 py-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-8">
-          {/* Formas de Pagamento */}
-          <div className="w-full md:w-auto">
-            <p className={`mb-3 tracking-wider ${isDark ? "text-foreground" : "text-foreground"}`} style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: "var(--font-weight-bold)" }}>FORMAS DE PAGAMENTO</p>
-            <div className={`inline-flex rounded-2xl border p-3 ${isDark ? "border-foreground/10 bg-white/[0.03]" : "border-foreground/10 bg-white"}`}>
-              <ImageWithFallback src={paymentMethodsImage} alt="Formas de pagamento PCYES" className="h-auto w-[260px] max-w-full object-contain" />
-            </div>
-          </div>
-          
+        <div className="mb-8 flex justify-end">
           {/* Voltar ao Topo */}
           <button onClick={scrollToTop}
             className={`flex items-center gap-3 transition-colors duration-300 cursor-pointer group ${isDark ? "text-foreground/50 hover:text-foreground" : "text-foreground/60 hover:text-foreground"}`}
@@ -224,20 +216,27 @@ export function Footer() {
         </div>
 
         {/* Corporate Info */}
-        <div className={`flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pt-6 border-t ${isDark ? "border-foreground/5" : "border-foreground/10"}`}>
+        <div className={`flex flex-col gap-8 pt-6 border-t md:flex-row md:items-center md:justify-between ${isDark ? "border-foreground/5" : "border-foreground/10"}`}>
           <div className="flex-1">
             <p className={isDark ? "text-foreground/50 mb-1" : "text-foreground/80 mb-1"} style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "var(--font-weight-bold)" }}>
               Oderço Distribuidora de Eletrônicos LTDA - 09.301.845/0001-91
             </p>
             <p className={isDark ? "text-foreground/40" : "text-foreground/60"} style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", lineHeight: "1.6" }}>
-              Av. Paranavaí, 1906 - Parque Industrial Bandeirantes, Maringá - PR, 87070-130 | Contato: (44) 2101-1400 | contato@pcyes.com.br
+              Av. Paranavaí, 1906 - Parque Industrial Bandeirantes, Maringá - PR, 87070-130
               <br/>
               &copy; {new Date().getFullYear()} Oderço Distribuidora | Todos os direitos reservados.
             </p>
           </div>
-          <p className={isDark ? "text-foreground/30" : "text-foreground/50"} style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "var(--font-weight-bold)" }}>
-            Desenvolvido por Oderço
-          </p>
+          <div className="flex justify-center md:flex-1">
+            <div className={`inline-flex rounded-2xl border p-3 ${isDark ? "border-foreground/10 bg-white/[0.03]" : "border-foreground/10 bg-white"}`}>
+              <ImageWithFallback src={paymentMethodsImage} alt="Formas de pagamento PCYES" className="h-auto w-[260px] max-w-full object-contain" />
+            </div>
+          </div>
+          <div className="md:flex-1 md:text-right">
+            <p className={isDark ? "text-foreground/30" : "text-foreground/50"} style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "var(--font-weight-bold)" }}>
+              Desenvolvido por Oderço
+            </p>
+          </div>
         </div>
       </div>
     </footer>
