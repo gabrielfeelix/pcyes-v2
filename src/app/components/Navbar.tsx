@@ -1013,11 +1013,11 @@ export function Navbar() {
           style={{
             backgroundColor: showExpanded
               ? (promoHovered ? (isDark ? "rgba(0,0,0,0.95)" : "rgba(255,255,255,0.95)") : "transparent")
-              : (isDark ? "rgba(18,18,18,0.95)" : "rgba(250,250,250,0.95)"),
-            backdropFilter: showExpanded ? (promoHovered ? "blur(40px)" : "none") : "blur(40px)",
+              : (isDark ? "rgba(10,12,16,0.72)" : "rgba(248,249,251,0.82)"),
+            backdropFilter: showExpanded ? (promoHovered ? "blur(40px)" : "none") : "blur(22px) saturate(160%)",
             borderBottom: showExpanded
               ? "1px solid transparent"
-              : `1px solid ${isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"}`,
+              : `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)"}`,
           }}
         >
           {/* Top row */}
@@ -1048,15 +1048,15 @@ export function Navbar() {
                 >
                   {!isPlaceholderHref(item.href) ? (
                     <Link to={resolveMenuHref(item.href)}
-                      className={`relative flex h-full items-center rounded-full px-3 py-1.5 transition-all duration-300 ${activeMega === item.mega
-                        ? "bg-primary/[0.10] text-foreground"
-                        : navTextColor}`}
+                      className={`relative flex h-full items-center px-3 py-1.5 transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:bg-primary after:transition-transform after:duration-300 ${activeMega === item.mega
+                        ? "text-foreground after:scale-x-100"
+                        : `${navTextColor} after:scale-x-0 hover:after:scale-x-100`}`}
                       style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px" }}
                     >{item.label}</Link>
                   ) : (
-                    <button className={`relative flex h-full cursor-pointer items-center rounded-full px-3 py-1.5 transition-all duration-300 ${activeMega === item.mega
-                      ? "bg-primary/[0.10] text-foreground"
-                      : navTextColor}`}
+                    <button className={`relative flex h-full cursor-pointer items-center px-3 py-1.5 transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:bg-primary after:transition-transform after:duration-300 ${activeMega === item.mega
+                      ? "text-foreground after:scale-x-100"
+                      : `${navTextColor} after:scale-x-0 hover:after:scale-x-100`}`}
                       style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px" }}
                     >{item.label}</button>
                   )}
@@ -1096,15 +1096,15 @@ export function Navbar() {
               >
                 {!isPlaceholderHref(item.href) ? (
                   <Link to={resolveMenuHref(item.href)}
-                    className={`relative rounded-full px-4 py-1.5 transition-all duration-300 ${activeMega === item.mega
-                      ? "bg-primary/[0.12] text-foreground"
-                      : (showExpanded && !promoHovered ? "text-white/45 hover:text-white" : (isDark ? "text-foreground/45 hover:text-foreground" : "text-foreground/50 hover:text-foreground"))}`}
+                    className={`relative px-4 py-1.5 transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:bg-primary after:transition-transform after:duration-300 ${activeMega === item.mega
+                      ? "text-foreground after:scale-x-100"
+                      : `${showExpanded && !promoHovered ? "text-white/45 hover:text-white" : (isDark ? "text-foreground/45 hover:text-foreground" : "text-foreground/50 hover:text-foreground")} after:scale-x-0 hover:after:scale-x-100`}`}
                     style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px" }}
                   >{item.label}</Link>
                 ) : (
-                  <button className={`relative rounded-full px-4 py-1.5 transition-all duration-300 cursor-pointer ${activeMega === item.mega
-                    ? "bg-primary/[0.12] text-foreground"
-                    : (showExpanded && !promoHovered ? "text-white/45 hover:text-white" : (isDark ? "text-foreground/45 hover:text-foreground" : "text-foreground/50 hover:text-foreground"))}`}
+                  <button className={`relative px-4 py-1.5 transition-colors duration-300 cursor-pointer after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:bg-primary after:transition-transform after:duration-300 ${activeMega === item.mega
+                    ? "text-foreground after:scale-x-100"
+                    : `${showExpanded && !promoHovered ? "text-white/45 hover:text-white" : (isDark ? "text-foreground/45 hover:text-foreground" : "text-foreground/50 hover:text-foreground")} after:scale-x-0 hover:after:scale-x-100`}`}
                     style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px" }}
                   >{item.label}</button>
                 )}
