@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { motion } from "motion/react";
 
@@ -8,173 +8,166 @@ const backgroundImage =
 const youtubeEmbed =
   "https://www.youtube.com/embed/g-QIHcPg1Ko?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&disablekb=1&modestbranding=1&playlist=g-QIHcPg1Ko";
 
-const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
-const lerp = (from: number, to: number, progress: number) => from + (to - from) * progress;
-
 export function BannerSection() {
-  const containerRef = useRef<HTMLElement>(null);
-  const progressRef = useRef(0);
-  const touchStartYRef = useRef<number | null>(null);
-  
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [fullyExpanded, setFullyExpanded] = useState(false);
+  const [showCta, setShowCta] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [progress, setProgressState] = useState(0);
-
-  const setProgress = (value: number) => {
-    const next = clamp(value);
-    progressRef.current = next;
-    setProgressState(next);
-  };
+  const touchStartY = useRef(0);
 
   useEffect(() => {
-    const checkIfMobile = () => setIsMobile(window.innerWidth < 768);
-    checkIfMobile();
-    window.addEventListener("resize", checkIfMobile);
-    return () => window.removeEventListener("resize", checkIfMobile);
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
   }, []);
 
   useEffect(() => {
-    const snapToSection = () => {
-      const section = containerRef.current;
-      if (!section) return;
-      const rect = section.getBoundingClientRect();
-      if (Math.abs(rect.top) > 1) {
-        window.scrollTo({ top: window.scrollY + rect.top, behavior: "auto" });
+    const handleWheel = (e: WheelEvent) => {
+      if (fullyExpanded && e.deltaY < 0 && window.scrollY <= 5) {
+        setFullyExpanded(false);
+        setShowCta(false);
+        e.preventDefault();
+        return;
       }
+      if (fullyExpanded) return;
+
+      e.preventDefault();
+      const delta = e.deltaY * 0.0009;
+      setScrollProgress((prev) => {
+        const next = Math.min(Math.max(prev + delta, 0), 1);
+        if (next >= 1) { setFullyExpanded(true); setShowCta(true); }
+        else if (next < 0.75) setShowCta(false);
+        return next;
+      });
     };
 
-    const shouldLock = (deltaY: number) => {
-      const section = containerRef.current;
-      if (!section) return false;
-      const rect = section.getBoundingClientRect();
-      const progressValue = progressRef.current;
-      const enteringFromAbove = deltaY > 0 && rect.top <= window.innerHeight * 0.12 && rect.top >= -4 && progressValue < 1;
-      const insidePinnedFrame = rect.top <= 1 && rect.bottom >= window.innerHeight - 1;
-      const stillExpanding = deltaY > 0 && progressValue < 1;
-      const stillCollapsingBack = deltaY < 0 && progressValue > 0;
-
-      return enteringFromAbove || (insidePinnedFrame && (stillExpanding || stillCollapsingBack));
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY.current = e.touches[0].clientY;
     };
 
-    const applyDelta = (deltaY: number) => {
-      snapToSection();
-      setProgress(progressRef.current + deltaY * 0.0016);
+    const handleTouchMove = (e: TouchEvent) => {
+      const deltaY = touchStartY.current - e.touches[0].clientY;
+      if (fullyExpanded && deltaY < -20 && window.scrollY <= 5) {
+        setFullyExpanded(false);
+        setShowCta(false);
+        e.preventDefault();
+        touchStartY.current = e.touches[0].clientY;
+        return;
+      }
+      if (fullyExpanded) return;
+
+      e.preventDefault();
+      const factor = deltaY < 0 ? 0.008 : 0.005;
+      const delta = deltaY * factor;
+      setScrollProgress((prev) => {
+        const next = Math.min(Math.max(prev + delta, 0), 1);
+        if (next >= 1) { setFullyExpanded(true); setShowCta(true); }
+        else if (next < 0.75) setShowCta(false);
+        return next;
+      });
+      touchStartY.current = e.touches[0].clientY;
     };
 
-    const handleWheel = (event: WheelEvent) => {
-      if (!shouldLock(event.deltaY)) return;
-      event.preventDefault();
-      applyDelta(event.deltaY);
-    };
-
-    const handleTouchStart = (event: TouchEvent) => {
-      touchStartYRef.current = event.touches[0]?.clientY ?? null;
-    };
-
-    const handleTouchMove = (event: TouchEvent) => {
-      if (touchStartYRef.current === null) return;
-      const currentY = event.touches[0]?.clientY ?? touchStartYRef.current;
-      const deltaY = touchStartYRef.current - currentY;
-      if (!shouldLock(deltaY)) return;
-      event.preventDefault();
-      applyDelta(deltaY * 1.8);
-      touchStartYRef.current = currentY;
+    // Lock the page scroll while animating
+    const handleScroll = () => {
+      if (!fullyExpanded) window.scrollTo(0, 0);
     };
 
     window.addEventListener("wheel", handleWheel, { passive: false });
     window.addEventListener("touchstart", handleTouchStart, { passive: true });
     window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("scroll", handleScroll);
 
     return () => {
       window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [fullyExpanded]);
 
-  const mediaWidth = `${lerp(isMobile ? 76 : 26, 100, progress)}vw`;
-  const mediaHeight = `${lerp(isMobile ? 54 : 58, 100, progress)}dvh`;
-  const mediaRadius = `${lerp(28, 0, progress)}px`;
-  const textTranslate = lerp(0, isMobile ? 20 : 14, progress);
-  const headlineOpacity = progress < 0.72 ? 1 : clamp(1 - (progress - 0.72) / 0.18);
-  const headlineScale = lerp(1, 0.96, progress);
-  const ctaOpacity = progress < 0.78 ? 0 : clamp((progress - 0.78) / 0.22);
-  const ctaY = lerp(28, 0, ctaOpacity);
-  const backgroundOpacity = lerp(1, 0.5, progress);
-  const videoOverlayOpacity = lerp(0.38, 0.08, progress);
-
-  const iframeCoverWidth = isMobile ? "178vh" : "177.78vh";
-  const iframeCoverHeight = "100vh";
+  // Derived visual values
+  const mediaWidth = 300 + scrollProgress * (isMobile ? 650 : 1250);
+  const mediaHeight = 400 + scrollProgress * (isMobile ? 200 : 400);
+  const textShift = scrollProgress * (isMobile ? 180 : 150);
+  const bgOpacity = 1 - scrollProgress * 0.55;
+  const overlayOpacity = 0.38 - scrollProgress * 0.3;
+  const headlineOpacity = scrollProgress < 0.65 ? 1 : Math.max(0, 1 - (scrollProgress - 0.65) / 0.2);
+  const borderRadius = Math.max(0, 28 - scrollProgress * 28);
 
   return (
-    <section
-      ref={containerRef}
-      className="relative min-h-[100dvh] bg-[#0f1011]"
-    >
-      <div className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden">
+    <section className="relative min-h-[100dvh] bg-[#0f1011] overflow-x-hidden">
+      <div className="relative w-full flex flex-col items-center min-h-[100dvh]">
+        {/* Background */}
         <motion.div
-          className="absolute inset-0 z-0"
-          style={{ opacity: backgroundOpacity }}
+          className="absolute inset-0 z-0 h-full"
+          animate={{ opacity: bgOpacity }}
+          transition={{ duration: 0.1 }}
         >
           <div
-            className="h-full w-full bg-cover bg-center bg-no-repeat"
+            className="w-full h-full bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url("${backgroundImage}")` }}
           />
           <div className="absolute inset-0 bg-black/28" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,48,48,0.14),transparent_42%)]" />
         </motion.div>
 
-        <div className="pointer-events-none relative z-10 flex h-screen w-full items-center justify-center">
-          <motion.div
-            className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-transparent"
+        {/* Centered content area */}
+        <div className="flex flex-col items-center justify-center w-full min-h-[100dvh] relative z-10">
+          {/* Video container — expands on scroll */}
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
             style={{
-              width: mediaWidth,
-              height: mediaHeight,
-              borderRadius: mediaRadius,
+              width: `${mediaWidth}px`,
+              height: `${mediaHeight}px`,
+              maxWidth: "100vw",
+              maxHeight: "100dvh",
+              borderRadius: `${borderRadius}px`,
+              overflow: "hidden",
               boxShadow: "0 30px 90px rgba(0,0,0,0.38)",
-              transition: "width 80ms linear, height 80ms linear, border-radius 80ms linear",
             }}
           >
-            <iframe
-              width="177.78%"
-              height="100%"
-              src={youtubeEmbed}
-              className="pointer-events-none absolute left-1/2 top-1/2 min-h-full min-w-full -translate-x-1/2 -translate-y-1/2"
-              style={{
-                width: iframeCoverWidth,
-                height: iframeCoverHeight,
-              }}
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              title="Setup gamer PCYES"
-            />
-            <motion.div
-              className="absolute inset-0 bg-black pointer-events-none"
-              style={{ opacity: videoOverlayOpacity }}
-            />
-          </motion.div>
+            <div className="relative w-full h-full pointer-events-none">
+              <iframe
+                src={youtubeEmbed}
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                style={{ width: "177.78vh", height: "100vh", minWidth: "100%", minHeight: "100%" }}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title="Setup gamer PCYES"
+              />
+              <motion.div
+                className="absolute inset-0 bg-black pointer-events-none"
+                animate={{ opacity: overlayOpacity }}
+                transition={{ duration: 0.1 }}
+              />
+            </div>
+          </div>
 
-          <motion.div
-            className="relative z-20 flex w-full flex-col items-center justify-center gap-3 text-center"
-            style={{ opacity: headlineOpacity, scale: headlineScale }}
+          {/* Headline — MONTE SEU SETUP / SETUP / GAMER */}
+          <div
+            className="flex flex-col items-center text-center gap-3 relative z-10 w-full"
+            style={{ opacity: headlineOpacity }}
           >
-            <motion.p
+            <p
               className="text-primary"
               style={{
-                x: `-${textTranslate}vw`,
+                transform: `translateX(-${textShift * 0.1}vw)`,
                 fontFamily: "var(--font-family-inter)",
                 fontSize: "12px",
-                fontWeight: "var(--font-weight-bold)",
+                fontWeight: 700,
                 letterSpacing: "0.34em",
                 textShadow: "0 8px 28px rgba(0,0,0,0.28)",
               }}
             >
               MONTE SEU SETUP
-            </motion.p>
-            <motion.h2
+            </p>
+            <h2
               className="text-white"
               style={{
-                x: `-${textTranslate}vw`,
+                transform: `translateX(-${textShift}px)`,
                 fontFamily: "var(--font-family-figtree)",
                 fontSize: "clamp(52px, 8vw, 116px)",
                 fontWeight: 700,
@@ -183,11 +176,11 @@ export function BannerSection() {
               }}
             >
               SETUP
-            </motion.h2>
-            <motion.h2
+            </h2>
+            <h2
               className="text-white"
               style={{
-                x: `${textTranslate}vw`,
+                transform: `translateX(${textShift}px)`,
                 fontFamily: "var(--font-family-figtree)",
                 fontSize: "clamp(52px, 8vw, 116px)",
                 fontWeight: 700,
@@ -196,27 +189,30 @@ export function BannerSection() {
               }}
             >
               GAMER
-            </motion.h2>
-          </motion.div>
-
-          <motion.div
-            className="pointer-events-auto absolute bottom-[72px] left-1/2 z-30 -translate-x-1/2"
-            style={{ opacity: ctaOpacity, y: ctaY }}
-          >
-            <Link
-              to="/monte-seu-pc"
-              className="group inline-flex items-center justify-center rounded-full border border-white/18 bg-white px-8 py-3.5 text-black shadow-[0_20px_70px_rgba(0,0,0,0.35)] transition-all duration-500 hover:border-primary hover:bg-primary hover:text-white"
-              style={{
-                fontFamily: "var(--font-family-inter)",
-                fontSize: "13px",
-                fontWeight: "var(--font-weight-medium)",
-                letterSpacing: "0.02em",
-              }}
-            >
-              Monte seu setup
-            </Link>
-          </motion.div>
+            </h2>
+          </div>
         </div>
+
+        {/* CTA — fades in when fully expanded */}
+        <motion.div
+          className="fixed bottom-[72px] left-1/2 -translate-x-1/2 z-30"
+          initial={{ opacity: 0, y: 28 }}
+          animate={{ opacity: showCta ? 1 : 0, y: showCta ? 0 : 28 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Link
+            to="/monte-seu-pc"
+            className="inline-flex items-center justify-center rounded-full border border-white/18 bg-white px-8 py-3.5 text-black shadow-[0_20px_70px_rgba(0,0,0,0.35)] transition-all duration-500 hover:border-primary hover:bg-primary hover:text-white"
+            style={{
+              fontFamily: "var(--font-family-inter)",
+              fontSize: "13px",
+              fontWeight: 500,
+              letterSpacing: "0.02em",
+            }}
+          >
+            Monte seu setup
+          </Link>
+        </motion.div>
       </div>
     </section>
   );

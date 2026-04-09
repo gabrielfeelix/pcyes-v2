@@ -22,6 +22,9 @@ const categoryMap: Record<string, string> = {
 };
 const categories = Object.keys(categoryMap);
 const allTags = productTags.filter((tag) => ["Gaming", "RGB", "Wireless", "Streaming", "Escritório"].includes(tag));
+// Products with real images only — filters out placeholder category images
+const validProducts = allProducts.filter((p) => !p.image.startsWith("/home/"));
+const PRODUCTS_PER_PAGE = 26;
 const sortOptions = [
   { label: "Relevância", value: "relevance" },
   { label: "Mais vendidos", value: "bestselling" },
@@ -60,7 +63,7 @@ function getProductSubcategory(product: Product) {
 
 /* ── Color extraction ── */
 const colorSwatches: Record<string, { color: string; label: string }[]> = {};
-allProducts.forEach((p) => {
+validProducts.forEach((p) => {
   const swatches: { color: string; label: string }[] = [];
   const name = p.name.toLowerCase();
   if (name.includes("black") || name.includes("preto") || name.includes("vulcan"))
@@ -218,6 +221,7 @@ export function ProductsPage() {
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [colsCount, setColsCount] = useState(3);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState<Record<number, number>>({});
   const [selectedVariants, setSelectedVariants] = useState<Record<number, Product>>({});
@@ -266,8 +270,12 @@ export function ProductsPage() {
     setter((prev) => { const n = new Set(prev); n.has(val) ? n.delete(val) : n.add(val); return n; });
   };
   const toggleCategory = (cat: string) => {
+    const isSelected = selectedCategories.has(cat);
     toggleSet(setSelectedCategories, cat);
-    if (selectedCategories.has(cat)) {
+    if (isSelected) {
+      // Clear subcategories belonging to this category when deselecting
+      const catSubcatSet = new Set(validProducts.filter((p) => p.category === cat).map(getProductSubcategory));
+      setSelectedSubcategories((prev) => { const n = new Set(prev); catSubcatSet.forEach((sc) => n.delete(sc)); return n; });
       const sp = new URLSearchParams(searchParams); sp.delete("category"); setSearchParams(sp, { replace: true });
     }
   };
@@ -287,7 +295,7 @@ export function ProductsPage() {
 
   /* ── Filtered + sorted products ── */
   const filtered = useMemo(() => {
-    let result = [...allProducts];
+    let result = [...validProducts];
     if (searchQuery) {
       const lowerQ = searchQuery.toLowerCase();
       result = result.filter(p => p.name.toLowerCase().includes(lowerQ) || p.category.toLowerCase().includes(lowerQ));
@@ -316,12 +324,17 @@ export function ProductsPage() {
   }, [selectedCategories, selectedSubcategories, selectedTags, selectedBrands, priceMin, priceMax, onlyDiscount, minDiscount, minRating, inStockOnly, sortBy, searchQuery]);
 
   const subcategories = useMemo(() => {
-    const productsForCurrentCategory = selectedCategories.size > 0
-      ? allProducts.filter((product) => selectedCategories.has(product.category))
-      : allProducts;
-
-    return Array.from(new Set(productsForCurrentCategory.map(getProductSubcategory))).sort((a, b) => a.localeCompare(b));
+    const base = selectedCategories.size > 0
+      ? validProducts.filter((p) => selectedCategories.has(p.category))
+      : validProducts;
+    return Array.from(new Set(base.map(getProductSubcategory))).sort((a, b) => a.localeCompare(b));
   }, [selectedCategories]);
+
+  /* ── Reset page when filters change ── */
+  useEffect(() => { setCurrentPage(1); }, [filtered]);
+
+  const pageCount = Math.ceil(filtered.length / PRODUCTS_PER_PAGE);
+  const paginatedProducts = filtered.slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE);
 
   /* ── Apply filters with loading ── */
   const applyFilters = () => {
@@ -349,47 +362,53 @@ export function ProductsPage() {
      ═══════════════════════════════════════════════════════ */
 
   const filterSidebar = (
-    <div className="space-y-6 pr-2">
-      {/* Subcategorias */}
-      <FilterSection title="Subcategorias" expanded={expandedSections.categories} onToggle={() => toggleSection("categories")}>
-        {subcategories.map((subcat) => {
-          const count = allProducts.filter((p) => {
-            const categoryMatches = selectedCategories.size === 0 || selectedCategories.has(p.category);
-            return categoryMatches && getProductSubcategory(p) === subcat;
-          }).length;
-          const active = selectedSubcategories.has(subcat);
+    <div className="space-y-1 pr-2">
+      {/* Categorias — hierarchical */}
+      <FilterSection title="Categorias" expanded={expandedSections.categories} onToggle={() => toggleSection("categories")}>
+        {productCategories.map((cat) => {
+          const isSelected = selectedCategories.has(cat);
+          const catCount = validProducts.filter((p) => p.category === cat).length;
+          const catSubcats = isSelected
+            ? Array.from(new Set(validProducts.filter((p) => p.category === cat).map(getProductSubcategory))).sort()
+            : [];
           return (
-            <label key={subcat} className="flex items-center gap-3 py-2 cursor-pointer group/item">
-              <input type="checkbox" className="hidden" checked={active} onChange={() => toggleSet(setSelectedSubcategories, subcat)} />
-              <span className={`w-4 h-4 border flex items-center justify-center flex-shrink-0 transition-colors ${active ? "border-foreground bg-foreground" : "border-foreground/20 group-hover/item:border-foreground/40"}`} style={{ borderRadius: "4px" }}>
-                {active && <svg width="10" height="10" viewBox="0 0 8 8"><path d="M1.5 4L3 5.5L6.5 2.5" stroke={isDark ? "#0a0a0a" : "#fff"} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-              </span>
-              <span className="text-foreground/70 group-hover/item:text-foreground transition-colors flex-1 truncate" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}>{subcat}</span>
-              <span className="text-foreground/30 flex-shrink-0" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>({count})</span>
-            </label>
-          );
-        })}
-      </FilterSection>
-
-      {/* Marca */}
-      <FilterSection title="Marca" expanded={expandedSections.brands} onToggle={() => toggleSection("brands")}>
-        {brandsList.map((brand) => {
-          const count = allProducts.filter((p) => p.brand === brand).length;
-          const active = selectedBrands.has(brand);
-          return (
-            <label key={brand} className="flex items-center gap-3 py-2 cursor-pointer group/item">
-              <span className={`w-4 h-4 border flex items-center justify-center flex-shrink-0 transition-colors ${active ? "border-foreground bg-foreground" : "border-foreground/20 group-hover/item:border-foreground/40"}`} style={{ borderRadius: "4px" }}>
-                {active && <svg width="10" height="10" viewBox="0 0 8 8"><path d="M1.5 4L3 5.5L6.5 2.5" stroke={isDark ? "#0a0a0a" : "#fff"} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-              </span>
-              <span className="text-foreground/70 group-hover/item:text-foreground transition-colors flex-1" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}>{brand}</span>
-              <span className="text-foreground/30 flex-shrink-0" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>({count})</span>
-            </label>
+            <div key={cat}>
+              <label className="flex items-center gap-3 py-2 cursor-pointer group/item">
+                <input type="checkbox" className="hidden" checked={isSelected} onChange={() => toggleCategory(cat)} />
+                <span className={`w-4 h-4 border flex items-center justify-center flex-shrink-0 transition-colors ${isSelected ? "border-foreground bg-foreground" : "border-foreground/20 group-hover/item:border-foreground/40"}`} style={{ borderRadius: "4px" }}>
+                  {isSelected && <svg width="10" height="10" viewBox="0 0 8 8"><path d="M1.5 4L3 5.5L6.5 2.5" stroke={isDark ? "#0a0a0a" : "#fff"} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+                </span>
+                <span className={`transition-colors flex-1 ${isSelected ? "text-foreground font-medium" : "text-foreground/70 group-hover/item:text-foreground"}`} style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}>{cat}</span>
+                <span className="text-foreground/30 flex-shrink-0" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>({catCount})</span>
+              </label>
+              {/* Subcategories revealed on category select */}
+              <AnimatePresence>
+                {isSelected && catSubcats.length > 0 && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.18 }} className="overflow-hidden">
+                    {catSubcats.map((subcat) => {
+                      const subcatCount = validProducts.filter((p) => p.category === cat && getProductSubcategory(p) === subcat).length;
+                      const subcatActive = selectedSubcategories.has(subcat);
+                      return (
+                        <label key={subcat} className="flex items-center gap-2.5 py-1.5 pl-7 cursor-pointer group/subitem">
+                          <input type="checkbox" className="hidden" checked={subcatActive} onChange={() => toggleSet(setSelectedSubcategories, subcat)} />
+                          <span className={`w-3.5 h-3.5 border flex items-center justify-center flex-shrink-0 transition-colors ${subcatActive ? "border-foreground bg-foreground" : "border-foreground/15 group-hover/subitem:border-foreground/35"}`} style={{ borderRadius: "3px" }}>
+                            {subcatActive && <svg width="8" height="8" viewBox="0 0 8 8"><path d="M1.5 4L3 5.5L6.5 2.5" stroke={isDark ? "#0a0a0a" : "#fff"} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+                          </span>
+                          <span className={`transition-colors flex-1 truncate ${subcatActive ? "text-foreground" : "text-foreground/50 group-hover/subitem:text-foreground/75"}`} style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>{subcat}</span>
+                          <span className="text-foreground/25 flex-shrink-0" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>({subcatCount})</span>
+                        </label>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           );
         })}
       </FilterSection>
 
       {/* Promoção */}
-      <FilterSection title="Promo" expanded={expandedSections.promo} onToggle={() => toggleSection("promo")}>
+      <FilterSection title="Promoção" expanded={expandedSections.promo} onToggle={() => toggleSection("promo")}>
         <label className="flex items-center gap-3 py-2 cursor-pointer group/item">
           <input type="checkbox" className="hidden" checked={onlyDiscount} onChange={() => setOnlyDiscount(!onlyDiscount)} />
           <span className={`w-4 h-4 border flex items-center justify-center flex-shrink-0 transition-colors ${onlyDiscount ? "border-foreground bg-foreground" : "border-foreground/20 group-hover/item:border-foreground/40"}`} style={{ borderRadius: "4px" }}>
@@ -398,7 +417,7 @@ export function ProductsPage() {
           <span className="text-foreground/70 group-hover/item:text-foreground transition-colors" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}>Em promoção</span>
         </label>
         {[10, 20, 30, 40].map((pct) => {
-          const count = allProducts.filter((pr) => getDiscount(pr) >= pct).length;
+          const count = validProducts.filter((pr) => getDiscount(pr) >= pct).length;
           const active = minDiscount === pct;
           return (
             <label key={pct} className="flex items-center gap-3 py-2 cursor-pointer group/item">
@@ -628,7 +647,7 @@ export function ProductsPage() {
               ) : gridMode === "grid" ? (
                 <div className={`grid gap-x-6 gap-y-10 grid-cols-1 sm:grid-cols-2 xl:grid-cols-${colsCount}`}>
                   <AnimatePresence mode="popLayout">
-                    {filtered.map((product, i) => {
+                    {paginatedProducts.map((product, i) => {
                       const displayProduct = selectedVariants[product.id] ?? product;
                       const discount = getDiscount(displayProduct);
                       const productImages = displayProduct.images && displayProduct.images.length > 0 ? displayProduct.images : [displayProduct.image];
@@ -774,14 +793,14 @@ export function ProductsPage() {
                                 </span>
                               </div>
                               <div className="text-right">
-                                <p className="text-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px", fontWeight: "700" }}>
-                                  {displayProduct.price}
-                                </p>
                                 {displayProduct.oldPrice && (
-                                  <p className="text-foreground/40 line-through mt-0.5" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>
+                                  <p className="text-foreground/40 line-through" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>
                                     {displayProduct.oldPrice}
                                   </p>
                                 )}
+                                <p className="text-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px", fontWeight: "700" }}>
+                                  {displayProduct.price}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -794,7 +813,7 @@ export function ProductsPage() {
                 /* ── LIST VIEW ── */
                 <div className="space-y-4">
                   <AnimatePresence mode="popLayout">
-                    {filtered.map((product, i) => {
+                    {paginatedProducts.map((product, i) => {
                       const discount = getDiscount(product);
                       return (
                         <motion.div key={product.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }}
@@ -837,6 +856,55 @@ export function ProductsPage() {
                       );
                     })}
                   </AnimatePresence>
+                </div>
+              )}
+
+              {/* ── Pagination ── */}
+              {pageCount > 1 && (
+                <div className="flex items-center justify-center gap-1.5 mt-14 mb-2">
+                  <button
+                    onClick={() => { setCurrentPage((p) => Math.max(1, p - 1)); mainRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    disabled={currentPage === 1}
+                    className="w-9 h-9 flex items-center justify-center border border-foreground/10 text-foreground/50 hover:text-foreground hover:border-foreground/30 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
+                    style={{ borderRadius: "var(--radius-button)" }}
+                    aria-label="Página anterior"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+
+                  {Array.from({ length: pageCount }, (_, i) => i + 1).map((page) => {
+                    const isCurrent = page === currentPage;
+                    const isNearCurrent = Math.abs(page - currentPage) <= 1;
+                    const isEdge = page === 1 || page === pageCount;
+                    if (!isNearCurrent && !isEdge) {
+                      if (page === 2 || page === pageCount - 1) {
+                        return <span key={page} className="text-foreground/25 px-1" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>…</span>;
+                      }
+                      return null;
+                    }
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => { setCurrentPage(page); mainRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
+                        className={`w-9 h-9 flex items-center justify-center border transition-all ${isCurrent ? "border-foreground bg-foreground text-background font-bold" : "border-foreground/10 text-foreground/60 hover:text-foreground hover:border-foreground/30"}`}
+                        style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
+                        aria-label={`Página ${page}`}
+                        aria-current={isCurrent ? "page" : undefined}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => { setCurrentPage((p) => Math.min(pageCount, p + 1)); mainRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    disabled={currentPage === pageCount}
+                    className="w-9 h-9 flex items-center justify-center border border-foreground/10 text-foreground/50 hover:text-foreground hover:border-foreground/30 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
+                    style={{ borderRadius: "var(--radius-button)" }}
+                    aria-label="Próxima página"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
                 </div>
               )}
             </div>
