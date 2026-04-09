@@ -1275,8 +1275,8 @@ export function MonteSeuPcPage() {
         </div>
       </header>
 
-      <main className="mx-auto flex max-w-[1920px] flex-col gap-0 md:items-start md:flex-row">
-        <section className="border-b border-white/[0.05] md:sticky md:top-[151px] md:h-[calc(100vh-151px)] md:w-[63%] md:self-start md:border-b-0 md:border-r md:border-white/[0.04]">
+      <main className="mx-auto flex max-w-[1920px] flex-col gap-0 md:h-[calc(100vh-151px)] md:overflow-hidden md:flex-row">
+        <section className="border-b border-white/[0.05] md:h-full md:w-[63%] md:border-b-0 md:border-r md:border-white/[0.04]">
           <div className="flex h-full flex-col px-4 pb-6 pt-4 md:px-6 md:pb-8 lg:px-8">
             <div
               ref={previewRef}
@@ -1352,7 +1352,7 @@ export function MonteSeuPcPage() {
           </div>
         </section>
 
-        <aside className="w-full md:w-[37%] md:self-start">
+        <aside className="w-full md:h-full md:w-[37%] md:overflow-y-auto">
           <div className="px-5 py-6 md:px-6 lg:px-7">
             <div className="mb-6">
               <h1 className="text-[28px] font-semibold tracking-tight text-white">Monte seu PC</h1>
@@ -1387,7 +1387,7 @@ export function MonteSeuPcPage() {
                           className={cn(
                             "flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border",
                             hasSelection
-                              ? "border-emerald-500/30 bg-emerald-500/[0.07]"
+                              ? "border-white/[0.08] bg-white/[0.05]"
                               : "border-white/[0.06] bg-white/[0.05] text-zinc-400",
                           )}
                         >
@@ -1417,9 +1417,7 @@ export function MonteSeuPcPage() {
                               hasSelection ? "text-emerald-400/95" : "text-zinc-300",
                             )}
                           >
-                            {category.selectedOption.standard
-                              ? "Equipamento de série"
-                              : `+ ${formatCurrency(category.selectedOption.price)}`}
+                            {formatCurrency(category.selectedOption.price)}
                           </span>
                         )}
                         <ChevronDown
@@ -1438,7 +1436,7 @@ export function MonteSeuPcPage() {
                       )}
                     >
                       <div className="border-t border-white/[0.05] px-4 py-4 md:px-5">
-                        <div className="grid gap-3">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                           {visibleOptions.map((option) => {
                             const selected = selections[category.id] === option.id;
 
@@ -1448,13 +1446,13 @@ export function MonteSeuPcPage() {
                                 type="button"
                                 onClick={() => handleSelect(category.id, option.id)}
                                 className={cn(
-                                  "group relative flex items-start gap-3 rounded-[22px] border p-3.5 text-left transition-all duration-200 md:p-4",
+                                  "group relative flex flex-col rounded-[22px] border p-3.5 text-left transition-all duration-200 md:p-4",
                                   selected
-                                    ? "border-white/20 bg-white/[0.05] shadow-[0_0_0_1px_rgba(255,255,255,0.04)]"
+                                    ? "border-emerald-500/22 bg-emerald-500/[0.03] shadow-[0_0_0_1px_rgba(16,185,129,0.06)]"
                                     : "border-white/[0.07] bg-transparent hover:border-white/[0.14] hover:bg-white/[0.02]",
                                 )}
                               >
-                                <div className="h-20 w-24 shrink-0 overflow-hidden rounded-[18px] bg-white/[0.04]">
+                                <div className="aspect-[4/3] w-full overflow-hidden rounded-[18px] bg-white/[0.04]">
                                   {option.image ? (
                                     <img src={option.image} alt={option.name} className="h-full w-full object-cover" />
                                   ) : (
@@ -1464,7 +1462,7 @@ export function MonteSeuPcPage() {
                                   )}
                                 </div>
 
-                                <div className="min-w-0 flex-1">
+                                <div className="min-w-0 flex-1 pt-3">
                                   <div className="flex items-start justify-between gap-3">
                                     <div>
                                       <span className="block text-sm font-semibold leading-snug text-zinc-100">
@@ -1499,10 +1497,10 @@ export function MonteSeuPcPage() {
                                     <span
                                       className={cn(
                                         "text-sm tabular-nums",
-                                        option.standard ? "text-emerald-400/85" : "text-zinc-200",
+                                        selected ? "text-emerald-400/95" : "text-zinc-200",
                                       )}
                                     >
-                                      {option.standard ? "Equipamento de série" : `+ ${formatCurrency(option.price)}`}
+                                      {formatCurrency(option.price)}
                                     </span>
                                   </div>
                                 </div>
@@ -1518,53 +1516,10 @@ export function MonteSeuPcPage() {
             </div>
 
             <div className="mt-6 rounded-[28px] border border-white/[0.06] bg-white/[0.02] p-5 md:p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Resumo</p>
-                  <h2 className="mt-2 text-2xl font-semibold text-white">Sua configuração</h2>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-zinc-500">Total</p>
-                  <p className="text-2xl font-semibold text-white">{formatCurrency(priceBreakdown.total)}</p>
-                </div>
-              </div>
-
-              <div className="mt-5 space-y-3">
-                {categoriesWithSelected.map((category) => {
-                  if (!category.selectedOption) return null;
-
-                  return (
-                    <div
-                      key={`summary-${category.id}`}
-                      className="flex items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-black/20 px-3 py-3"
-                    >
-                      <div className="flex min-w-0 items-center gap-3">
-                        <div className="h-12 w-14 shrink-0 overflow-hidden rounded-xl bg-white/[0.04]">
-                          {category.selectedOption.image && (
-                            <img
-                              src={category.selectedOption.image}
-                              alt={category.selectedOption.name}
-                              className="h-full w-full object-cover"
-                            />
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">{category.title}</p>
-                          <p className="truncate text-sm font-medium text-zinc-100">{category.selectedOption.name}</p>
-                        </div>
-                      </div>
-                      <span className="shrink-0 text-sm tabular-nums text-zinc-300">
-                        {category.selectedOption.standard ? "Série" : formatCurrency(category.selectedOption.price)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
               <Button
                 type="button"
                 onClick={handleAddToCart}
-                className="mt-6 h-14 w-full rounded-2xl bg-white text-base font-semibold text-black transition hover:bg-white/90"
+                className="h-14 w-full rounded-2xl bg-white text-base font-semibold text-black transition hover:bg-white/90"
               >
                 <ShoppingCart className="mr-2 h-4 w-4" />
                 Adicionar ao Carrinho
