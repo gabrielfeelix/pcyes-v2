@@ -1022,13 +1022,13 @@ export function Navbar() {
         >
           {/* Top row */}
           <div className="max-w-[1760px] mx-auto px-5 md:px-8 flex items-center justify-between transition-all duration-700"
-            style={{ height: showExpanded ? 50 : 56 }}
+            style={{ height: showExpanded ? 50 : 64 }}
           >
             {/* Left: logo */}
             <div className="flex items-center">
               <div className="transition-all duration-700 overflow-hidden" style={{ maxWidth: showExpanded ? 0 : 200, opacity: showExpanded ? 0 : 1 }}>
                 <Link to="/" className="block flex-shrink-0">
-                  <img src={PCYES_LOGO} alt="PCYES" className="h-[22px] w-auto object-contain" />
+                  <img src={PCYES_LOGO} alt="PCYES" className="h-[24px] w-auto object-contain" />
                 </Link>
               </div>
             </div>
