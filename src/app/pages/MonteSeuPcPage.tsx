@@ -1275,7 +1275,7 @@ export function MonteSeuPcPage() {
         </div>
       </header>
 
-      <main className="mx-auto flex max-w-[1920px] flex-col gap-0 md:flex-row">
+      <main className="mx-auto flex max-w-[1920px] flex-col gap-0 md:items-start md:flex-row">
         <section className="border-b border-white/[0.05] md:sticky md:top-[151px] md:h-[calc(100vh-151px)] md:w-[63%] md:self-start md:border-b-0 md:border-r md:border-white/[0.04]">
           <div className="flex h-full flex-col px-4 pb-6 pt-4 md:px-6 md:pb-8 lg:px-8">
             <div
@@ -1352,7 +1352,7 @@ export function MonteSeuPcPage() {
           </div>
         </section>
 
-        <aside className="w-full md:w-[37%]">
+        <aside className="w-full md:w-[37%] md:self-start">
           <div className="px-5 py-6 md:px-6 lg:px-7">
             <div className="mb-6">
               <h1 className="text-[28px] font-semibold tracking-tight text-white">Monte seu PC</h1>
@@ -1361,38 +1361,46 @@ export function MonteSeuPcPage() {
               </p>
             </div>
 
-            <div className="rounded-[24px] border border-white/[0.06] bg-white/[0.02] p-5">
-              <div className="space-y-1.5 text-sm text-zinc-500">
-                <div className="flex items-center justify-between">
-                  <span>Preço Base</span>
-                  <span className="tabular-nums text-zinc-300">{formatCurrency(priceBreakdown.base)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Equipamentos</span>
-                  <span className="tabular-nums text-zinc-300">{formatCurrency(priceBreakdown.equipment)}</span>
-                </div>
-                <div className="my-2 h-px bg-white/[0.06]" />
-                <div className="flex items-center justify-between text-base font-semibold text-white">
-                  <span>Preço Total</span>
-                  <span className="text-[20px] tabular-nums">{formatCurrency(priceBreakdown.total)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 space-y-3">
+            <div className="space-y-3">
               {categoriesWithSelected.map((category) => {
                 const isOpen = expandedCategory === category.id;
                 const visibleOptions = getVisibleOptions(category);
+                const hasSelection = Boolean(category.selectedOption);
 
                 return (
-                  <div key={category.id} className="overflow-hidden rounded-[24px] border border-white/[0.06] bg-white/[0.02]">
+                  <div
+                    key={category.id}
+                    className={cn(
+                      "overflow-hidden rounded-[24px] border bg-white/[0.02] transition-colors",
+                      hasSelection
+                        ? "border-emerald-500/18 bg-emerald-500/[0.03]"
+                        : "border-white/[0.06]",
+                    )}
+                  >
                     <button
                       type="button"
                       onClick={() => toggleSection(category.id)}
                       className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left md:px-5"
                     >
                       <div className="flex min-w-0 items-center gap-3">
-                        <div className="rounded-xl bg-white/[0.05] p-2 text-zinc-400">{category.icon}</div>
+                        <div
+                          className={cn(
+                            "flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border",
+                            hasSelection
+                              ? "border-emerald-500/30 bg-emerald-500/[0.07]"
+                              : "border-white/[0.06] bg-white/[0.05] text-zinc-400",
+                          )}
+                        >
+                          {category.selectedOption?.image ? (
+                            <img
+                              src={category.selectedOption.image}
+                              alt={category.selectedOption.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            category.icon
+                          )}
+                        </div>
                         <div className="min-w-0">
                           <p className="text-base font-semibold text-white">{category.title}</p>
                           {category.selectedOption && (
@@ -1406,7 +1414,7 @@ export function MonteSeuPcPage() {
                           <span
                             className={cn(
                               "text-sm tabular-nums",
-                              category.selectedOption.standard ? "text-emerald-400/85" : "text-zinc-300",
+                              hasSelection ? "text-emerald-400/95" : "text-zinc-300",
                             )}
                           >
                             {category.selectedOption.standard
