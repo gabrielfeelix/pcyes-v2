@@ -155,7 +155,7 @@ export function CategoryGrid() {
   return (
     <section
       ref={ref}
-      className="relative overflow-hidden px-5 pt-[72px] pb-[132px] md:px-[72.5px]"
+      className="relative overflow-hidden px-5 pb-[168px] pt-[72px] md:px-[72.5px] md:pb-[220px]"
       style={{ background: isDark ? "linear-gradient(72.85deg, #000000 44.62%, #0f0f0f 100.35%)" : "transparent" }}
       id="explore"
     >

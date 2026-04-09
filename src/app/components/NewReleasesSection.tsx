@@ -6,42 +6,41 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Clock, Flame, ShoppingBag, ArrowUpRight, Heart } from "lucide-react";
 import { useCart } from "./CartContext";
 import { useFavorites } from "./FavoritesContext";
-import { allProducts } from "./productsData";
 
 const releases = [
   {
     id: 9, name: "Cadeira Titan Elite", category: "Cadeiras Gaming", price: "R$ 1.899,90", oldPrice: "R$ 2.199,90",
-    image: "https://images.unsplash.com/photo-1757194455393-8e3134d4ce19?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBjaGFpciUyMGVyZ29ub21pYyUyMGRhcmt8ZW58MXx8fHwxNzczODQwNDA4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+    image: "/home/release-chair-context.png",
     tag: "Pré-venda", daysAgo: 2,
   },
   {
     id: 7, name: "Deskpad RGB Pro", category: "Acessórios", price: "R$ 149,90",
-    image: "https://images.unsplash.com/photo-1713012003065-7ca32db003ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxSR0IlMjBtb3VzZXBhZCUyMGRlc2slMjBtYXQlMjBkYXJrfGVufDF8fHx8MTc3Mzg0MDQwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+    image: "/home/release-deskpad-context.png",
     tag: "Novo", daysAgo: 5,
   },
   {
     id: 5, name: "Controle Vortex Wireless", category: "Controles", price: "R$ 329,90",
-    image: "https://images.unsplash.com/photo-1622349851524-890cc3641b87?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBjb250cm9sbGVyJTIwd2lyZWxlc3MlMjBkYXJrfGVufDF8fHx8MTc3Mzg0MDQwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+    image: "/home/release-controller-context.png",
     tag: "Novo", daysAgo: 7,
   },
   {
     id: 6, name: "Mic Studio X", category: "Streaming", price: "R$ 489,90",
-    image: "https://images.unsplash.com/photo-1579870946215-8284f1a47c9a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtaWNyb3Bob25lJTIwY29uZGVuc2VyJTIwc3R1ZGlvJTIwZGFya3xlbnwxfHx8fDE3NzM4NDA0MTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    image: "/home/release-mic-context.png",
     tag: "Hot", daysAgo: 3,
   },
   {
     id: 1, name: "Cobra V2 Mouse", category: "Periféricos", price: "R$ 189,90",
-    image: "https://images.unsplash.com/photo-1768561327952-119a4c9c76f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBtb3VzZSUyMGRhcmslMjBtaW5pbWFsfGVufDF8fHx8MTc3MzgzOTc5NHww&ixlib=rb-4.1.0&q=80&w=1080",
+    image: "/home/release-mouse-context.png",
     tag: "Best Seller", daysAgo: 1,
   },
   {
     id: 8, name: "Electra 750W Fonte", category: "Fontes", price: "R$ 449,90",
-    image: "https://images.unsplash.com/photo-1630831506636-5209d7349db9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21wdXRlciUyMHBvd2VyJTIwc3VwcGx5JTIwdW5pdCUyMGRhcmt8ZW58MXx8fHwxNzczODM5Nzk2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+    image: "/home/release-psu-context.png",
     tag: "Novo", daysAgo: 4,
   },
   {
     id: 2, name: "Mancer Pro Teclado", category: "Periféricos", price: "R$ 349,90",
-    image: "https://images.unsplash.com/photo-1718803448073-90ebd0d982e0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWNoYW5pY2FsJTIwa2V5Ym9hcmQlMjBjbG9zZXVwJTIwZGFya3xlbnwxfHx8fDE3NzM4Mzk3OTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    image: "/home/release-keyboard-context.png",
     tag: "Novo", daysAgo: 6,
   },
 ];
@@ -55,22 +54,8 @@ export function NewReleasesSection() {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
 
-  const releaseEntries = releases.map((release) => {
-    const catalogProduct = allProducts.find((product) => product.id === release.id);
-    return catalogProduct
-      ? {
-          ...release,
-          name: catalogProduct.name,
-          category: catalogProduct.category,
-          price: catalogProduct.price,
-          oldPrice: catalogProduct.oldPrice,
-          image: catalogProduct.image,
-        }
-      : release;
-  });
-
-  const selected = releaseEntries[selectedIdx];
-  const others = releaseEntries.filter((_, i) => i !== selectedIdx);
+  const selected = releases[selectedIdx];
+  const others = releases.filter((_, i) => i !== selectedIdx);
 
   return (
     <section ref={ref} className="px-5 py-20 md:px-[72.5px] md:py-24" style={{ background: isDark ? "#0e0e0e" : "transparent" }}>
@@ -214,7 +199,7 @@ export function NewReleasesSection() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: 0.1 + i * 0.06 }}
-                onClick={() => setSelectedIdx(releaseEntries.findIndex((r) => r.id === item.id))}
+                onClick={() => setSelectedIdx(releases.findIndex((r) => r.id === item.id))}
                 className="group relative overflow-hidden text-left cursor-pointer transition-all duration-500 border border-border/5 hover:border-border/15 flex"
                 style={{ borderRadius: "var(--radius-card)", background: "rgba(255,255,255,0.02)" }}
               >
