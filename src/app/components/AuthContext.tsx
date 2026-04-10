@@ -22,6 +22,12 @@ export interface UserCard {
   isDefault: boolean;
 }
 
+export interface OrderHistory {
+  status: "processing" | "shipped" | "delivered" | "cancelled";
+  date: string;
+  description: string;
+}
+
 export interface Order {
   id: string;
   date: string;
@@ -29,6 +35,8 @@ export interface Order {
   items: { name: string; qty: number; price: string; image: string }[];
   total: string;
   tracking?: string;
+  paymentMethod?: string;
+  history?: OrderHistory[];
 }
 
 export interface UserData {
@@ -82,31 +90,50 @@ const MOCK_USER: UserData = {
       id: "PCY-2026-001",
       date: "2026-03-28",
       status: "delivered",
+      paymentMethod: "Cartão de Crédito (Visa •••• 4242)",
       items: [
         { name: "Cobra V2 Mouse", qty: 1, price: "R$ 189,90", image: "https://images.unsplash.com/photo-1768561327952-119a4c9c76f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=200" },
       ],
       total: "R$ 189,90",
       tracking: "BR123456789",
+      history: [
+        { status: "delivered", date: "2026-04-03 14:20", description: "O pedido foi entregue com sucesso." },
+        { status: "shipped", date: "2026-04-01 10:30", description: "O pedido saiu para entrega." },
+        { status: "processing", date: "2026-03-29 09:15", description: "O pagamento foi confirmado e estamos separando seu pedido." },
+        { status: "processing", date: "2026-03-28 15:40", description: "Pedido recebido." },
+      ]
     },
     {
       id: "PCY-2026-002",
       date: "2026-04-02",
       status: "shipped",
+      paymentMethod: "Pix",
       items: [
         { name: "Mancer Pro Teclado", qty: 1, price: "R$ 349,90", image: "https://images.unsplash.com/photo-1718803448073-90ebd0d982e0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=200" },
         { name: "Deskpad RGB Pro", qty: 1, price: "R$ 149,90", image: "https://images.unsplash.com/photo-1713012003065-7ca32db003ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=200" },
       ],
       total: "R$ 499,80",
       tracking: "BR987654321",
+      history: [
+        { status: "shipped", date: "2026-04-04 11:00", description: "O pedido está em trânsito para sua cidade." },
+        { status: "shipped", date: "2026-04-03 08:30", description: "O pedido foi coletado pela transportadora." },
+        { status: "processing", date: "2026-04-02 12:10", description: "Pagamento confirmado via Pix." },
+        { status: "processing", date: "2026-04-02 12:00", description: "Pedido recebido." },
+      ]
     },
     {
       id: "PCY-2026-003",
       date: "2026-04-05",
       status: "processing",
+      paymentMethod: "Cartão de Crédito (Visa •••• 4242)",
       items: [
         { name: "Spectrum Pro Gabinete", qty: 1, price: "R$ 599,90", image: "https://images.unsplash.com/photo-1695120485648-0b6eed4707aa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=200" },
       ],
       total: "R$ 599,90",
+      history: [
+        { status: "processing", date: "2026-04-06 10:00", description: "Pagamento confirmado." },
+        { status: "processing", date: "2026-04-05 22:30", description: "Pedido recebido, aguardando confirmação de pagamento." },
+      ]
     },
   ],
 };
