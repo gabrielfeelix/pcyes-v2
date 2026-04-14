@@ -14,10 +14,7 @@ export function BannerSection() {
   // All mutable values via refs — zero stale-closure risk, no re-registration on state change
   const progressRef = useRef(0);
   const expandedRef = useRef(false);
-  // Once the user scrolls DOWN past the fully-expanded section, we mark it "released"
-  // so inertia/deceleration events don't snap it back. Only cleared when user
-  // intentionally scrolls the section back into view (rect.top ≥ -5).
-  const releasedRef = useRef(false);
+  const lockedRef = useRef(false); // true = body overflow hidden, user cannot scroll past section
   const touchStartY = useRef(0);
 
   // React state only for triggering re-renders
@@ -42,21 +39,26 @@ export function BannerSection() {
     const section = sectionRef.current;
     if (!section) return;
 
-    // Capture zone: section top is flush with (or just past) viewport top.
-    // When "released" (user scrolled past expanded section), only re-enter the
-    // zone when the section top is within 5 px of the viewport top — prevents
-    // inertia / deceleration events from snapping the page back.
-    const inCaptureZone = () => {
-      const r = section.getBoundingClientRect();
-      if (r.top > 1 || r.bottom < window.innerHeight * 0.4) return false;
-      if (releasedRef.current && r.top < -5) return false;
-      return true;
+    // Lock body scroll so the user CANNOT scroll past this section
+    const lockScroll = () => {
+      if (lockedRef.current) return;
+      lockedRef.current = true;
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
     };
 
-    // Pin the section by correcting any scroll overshoot
-    const pin = () => {
-      const rect = section.getBoundingClientRect();
-      window.scrollTo({ top: window.scrollY + rect.top, behavior: "auto" });
+    // Unlock body scroll so the user CAN continue past this section
+    const unlockScroll = () => {
+      if (!lockedRef.current) return;
+      lockedRef.current = false;
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+
+    // Capture zone: section is visible and its top is near the viewport top
+    const inCaptureZone = () => {
+      const r = section.getBoundingClientRect();
+      return r.top <= 2 && r.bottom > window.innerHeight * 0.4;
     };
 
     // Normalize deltaY across pixel / line / page scroll modes
@@ -66,18 +68,26 @@ export function BannerSection() {
       return e.deltaY;
     };
 
-    // Apply a pixel-space delta, update refs and state. Returns true if captured.
+    // Apply a pixel-space delta, update refs and state.
+    // Returns true if the event was captured (should preventDefault).
     const advance = (pixelDelta: number): boolean => {
       const prog = progressRef.current;
       const expanded = expandedRef.current;
 
-      // At start scrolling up → release upward (let page scroll normally)
-      if (prog <= 0 && pixelDelta < 0) return false;
-      // At end scrolling down → release downward; mark so inertia can't snap back
-      if (expanded && pixelDelta > 0) {
-        releasedRef.current = true;
+      // Scrolling UP from the very start → let page scroll normally
+      if (prog <= 0 && pixelDelta < 0) {
+        unlockScroll();
         return false;
       }
+
+      // Scrolling DOWN when already fully expanded → release user to continue
+      if (expanded && pixelDelta > 0) {
+        unlockScroll();
+        return false;
+      }
+
+      // While animating (0 < progress < 1), lock scroll
+      lockScroll();
 
       const next = Math.min(Math.max(prog + pixelDelta * 0.0009, 0), 1);
       progressRef.current = next;
@@ -91,10 +101,11 @@ export function BannerSection() {
     };
 
     const handleWheel = (e: WheelEvent) => {
-      if (!inCaptureZone()) return;
-      if (advance(normWheel(e))) {
+      // Once unlocked (user scrolled past section), don't capture anymore
+      if (!lockedRef.current && !inCaptureZone()) return;
+      const normalized = normWheel(e);
+      if (advance(normalized)) {
         e.preventDefault();
-        pin();
       }
     };
 
@@ -103,13 +114,12 @@ export function BannerSection() {
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!inCaptureZone()) return;
+      if (!lockedRef.current && !inCaptureZone()) return;
       const touchPx = touchStartY.current - e.touches[0].clientY;
       touchStartY.current = e.touches[0].clientY;
       // Scale touch pixels to equivalent wheel-pixel units (~5.5× feels natural)
       if (advance(touchPx * 5.5)) {
         e.preventDefault();
-        pin();
       }
     };
 
@@ -121,6 +131,8 @@ export function BannerSection() {
       window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
+      // Always unlock on unmount
+      unlockScroll();
     };
   }, []); // ← intentionally empty: all mutable values live in refs
 
