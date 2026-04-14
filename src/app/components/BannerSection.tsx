@@ -14,6 +14,10 @@ export function BannerSection() {
   // All mutable values via refs — zero stale-closure risk, no re-registration on state change
   const progressRef = useRef(0);
   const expandedRef = useRef(false);
+  // Once the user scrolls DOWN past the fully-expanded section, we mark it "released"
+  // so inertia/deceleration events don't snap it back. Only cleared when user
+  // intentionally scrolls the section back into view (rect.top ≥ -5).
+  const releasedRef = useRef(false);
   const touchStartY = useRef(0);
 
   // React state only for triggering re-renders
@@ -38,10 +42,15 @@ export function BannerSection() {
     const section = sectionRef.current;
     if (!section) return;
 
-    // Capture zone: section top is flush with (or just past) viewport top
+    // Capture zone: section top is flush with (or just past) viewport top.
+    // When "released" (user scrolled past expanded section), only re-enter the
+    // zone when the section top is within 5 px of the viewport top — prevents
+    // inertia / deceleration events from snapping the page back.
     const inCaptureZone = () => {
       const r = section.getBoundingClientRect();
-      return r.top <= 1 && r.bottom > window.innerHeight * 0.4;
+      if (r.top > 1 || r.bottom < window.innerHeight * 0.4) return false;
+      if (releasedRef.current && r.top < -5) return false;
+      return true;
     };
 
     // Pin the section by correcting any scroll overshoot
@@ -62,10 +71,13 @@ export function BannerSection() {
       const prog = progressRef.current;
       const expanded = expandedRef.current;
 
-      // At start scrolling up → release (let page scroll normally)
+      // At start scrolling up → release upward (let page scroll normally)
       if (prog <= 0 && pixelDelta < 0) return false;
-      // At end scrolling down → release (let page continue past section)
-      if (expanded && pixelDelta > 0) return false;
+      // At end scrolling down → release downward; mark so inertia can't snap back
+      if (expanded && pixelDelta > 0) {
+        releasedRef.current = true;
+        return false;
+      }
 
       const next = Math.min(Math.max(prog + pixelDelta * 0.0009, 0), 1);
       progressRef.current = next;
