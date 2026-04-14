@@ -7,7 +7,7 @@ import { useCart } from "./CartContext";
 import { useFavorites } from "./FavoritesContext";
 import { Link } from "react-router";
 import { allProducts, type Product } from "./productsData";
-import { findProductBySwatch, getProductHoverMedia, getProductSwatches } from "./productPresentation";
+import { findProductBySwatch, getPrimaryProductImage, getProductHoverMedia, getProductSwatches, getVisibleCatalogProducts } from "./productPresentation";
 
 interface ProductCarouselProps {
   label?: string;
@@ -38,11 +38,13 @@ export function ProductCarousel({
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
 
   const products = useMemo(() => {
+    const visibleProducts = getVisibleCatalogProducts(allProducts);
     const resolved = productIds
-      .map((id) => allProducts.find((product) => product.id === id))
+      .map((id) => visibleProducts.find((product) => product.id === id))
       .filter(Boolean) as Product[];
 
-    return resolved.length > 0 ? resolved : latestIds.map((id) => allProducts.find((product) => product.id === id)).filter(Boolean) as Product[];
+    const latest = latestIds.map((id) => visibleProducts.find((product) => product.id === id)).filter(Boolean) as Product[];
+    return resolved.length > 0 ? resolved : latest.length > 0 ? latest : visibleProducts.slice(0, 6);
   }, [productIds]);
 
   const repeatedProducts = useMemo(
@@ -239,7 +241,7 @@ export function ProductCarousel({
                   onMouseLeave={() => setHoveredProductId((current) => (current === displayProduct.id ? null : current))}
                 >
                   <ImageWithFallback
-                    src={displayProduct.image}
+                    src={getPrimaryProductImage(displayProduct)}
                     alt={displayProduct.name}
                     className={`absolute inset-0 w-full h-full object-contain p-7 transition-all duration-[900ms] ease-out ${
                       hoverMedia ? "group-hover:scale-[1.02] group-hover:opacity-0" : "group-hover:scale-105"
@@ -248,7 +250,7 @@ export function ProductCarousel({
 
                   {hoverMedia?.type === "image" && (
                     <ImageWithFallback
-                      src={hoverMedia.src}
+                        src={hoverMedia.src}
                       alt={`${displayProduct.name} em destaque`}
                       className="absolute inset-0 h-full w-full object-contain p-7 opacity-0 scale-[1.04] transition-all duration-[900ms] ease-out group-hover:scale-100 group-hover:opacity-100"
                     />
@@ -301,7 +303,7 @@ export function ProductCarousel({
                   <div className="absolute top-4 right-4 opacity-100 transition-all duration-300">
                     <button
                       className="w-9 h-9 bg-black/35 backdrop-blur-sm border border-white/10 rounded-full flex items-center justify-center text-white/85 hover:text-white hover:bg-black/50 transition-all duration-300"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); addFavorite({ id: displayProduct.id, name: displayProduct.name, price: displayProduct.price, image: displayProduct.image }); }}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); addFavorite({ id: displayProduct.id, name: displayProduct.name, price: displayProduct.price, image: getPrimaryProductImage(displayProduct) }); }}
                     >
                       <Heart
                         size={14}

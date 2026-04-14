@@ -10,11 +10,9 @@ import { WelcomePopup } from "./WelcomePopup";
 import { Navbar } from "./Navbar";
 import { ScrollProgressBar } from "./ScrollProgressBar";
 import { ThemeProvider } from "./ThemeProvider";
-import { useThemeBridge } from "./pages/ThemeToggleBridge";
 
 export function RootLayout() {
   const { pathname } = useLocation();
-  useThemeBridge();
 
   useEffect(() => {
     window.scrollTo(0, 0);

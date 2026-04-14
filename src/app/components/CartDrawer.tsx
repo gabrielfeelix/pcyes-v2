@@ -6,6 +6,7 @@ import { X, Minus, Plus, ShoppingBag, Trash2, Truck, Tag, Loader2, Check, MapPin
 import { useCart } from "./CartContext";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { allProducts } from "./productsData";
+import { getPrimaryProductImage, getVisibleCatalogProducts } from "./productPresentation";
 
 const MOCK_SHIPPING: Record<string, { name: string; price: number; days: string }[]> = {
   default: [
@@ -34,6 +35,7 @@ export function CartDrawer() {
   const [couponOpen, setCouponOpen] = useState(false);
   const [giftModalOpen, setGiftModalOpen] = useState(false);
   const [giftDismissed, setGiftDismissed] = useState(false);
+  const [selectedGiftId, setSelectedGiftId] = useState<number | null>(null);
 
   const [cep, setCep] = useState("");
   const [shippingOptions, setShippingOptions] = useState<typeof MOCK_SHIPPING.default | null>(null);
@@ -61,7 +63,7 @@ export function CartDrawer() {
   const giftOptions = useMemo(
     () => {
       const uniqueCategories = new Set<string>();
-      return [...allProducts]
+      return getVisibleCatalogProducts(allProducts)
         .sort((a, b) => a.priceNum - b.priceNum)
         .filter((product) => {
           if (uniqueCategories.has(product.category)) return false;
@@ -113,19 +115,20 @@ export function CartDrawer() {
     return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
   };
 
-  const selectGift = (productId: number) => {
-    const product = giftOptions.find((item) => item.id === productId);
+  const confirmGift = () => {
+    const product = giftOptions.find((item) => item.id === selectedGiftId);
     if (!product) return;
 
     setGiftItem({
       id: product.id,
       name: product.name,
       price: "R$ 0,00",
-      image: product.image,
+      image: getPrimaryProductImage(product),
       isGift: true,
       originalPrice: product.price,
     });
     setGiftModalOpen(false);
+    setSelectedGiftId(null);
   };
 
   return (
@@ -435,7 +438,7 @@ export function CartDrawer() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 z-[62] flex items-center justify-center bg-black/60 backdrop-blur-md p-6"
+                className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-md p-6"
               >
                 <motion.div
                   initial={{ opacity: 0, y: 18, scale: 0.97 }}
@@ -471,14 +474,22 @@ export function CartDrawer() {
                     {giftOptions.map((product) => (
                       <button
                         key={`gift-option-${product.id}`}
-                        onClick={() => selectGift(product.id)}
-                        className="group overflow-hidden rounded-[26px] border border-foreground/8 bg-linear-to-b from-foreground/[0.03] to-transparent text-left transition-all duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-[0_24px_80px_rgba(0,0,0,0.18)] cursor-pointer"
+                        onClick={() => setSelectedGiftId(product.id)}
+                        aria-pressed={selectedGiftId === product.id}
+                        className={`group overflow-hidden rounded-[26px] border bg-linear-to-b from-foreground/[0.03] to-transparent text-left transition-all duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-[0_24px_80px_rgba(0,0,0,0.18)] cursor-pointer ${
+                          selectedGiftId === product.id ? "border-primary/55 shadow-[0_24px_90px_rgba(255,43,46,0.18)] ring-2 ring-primary/25" : "border-foreground/8"
+                        }`}
                       >
                         <div className="relative h-[210px] overflow-hidden border-b border-foreground/6 bg-radial-[circle_at_top] from-primary/10 via-transparent to-transparent">
-                          <ImageWithFallback src={product.image} alt={product.name} className="h-full w-full object-contain p-6 transition-transform duration-500 group-hover:scale-[1.04]" />
+                          <ImageWithFallback src={getPrimaryProductImage(product)} alt={product.name} className="h-full w-full object-contain p-6 transition-transform duration-500 group-hover:scale-[1.04]" />
                           <div className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">
                             <Gift size={14} />
                           </div>
+                          {selectedGiftId === product.id && (
+                            <div className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">
+                              <Check size={15} />
+                            </div>
+                          )}
                         </div>
                         <div className="px-5 py-5">
                           <p className="line-clamp-2 text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "21px", fontWeight: "600", lineHeight: 1.05 }}>
@@ -496,8 +507,8 @@ export function CartDrawer() {
                             <span className="text-foreground/35" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "700", letterSpacing: "0.14em" }}>
                               PRESENTE PCYES
                             </span>
-                            <span className="text-primary" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "700", letterSpacing: "0.08em" }}>
-                              SELECIONAR
+                            <span className={selectedGiftId === product.id ? "text-primary" : "text-foreground/35"} style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "700", letterSpacing: "0.08em" }}>
+                              {selectedGiftId === product.id ? "SELECIONADO" : "SELECIONAR"}
                             </span>
                           </div>
                         </div>
@@ -507,15 +518,20 @@ export function CartDrawer() {
 
                   <div className="flex items-center justify-between border-t border-foreground/5 px-8 py-5">
                     <button
-                      onClick={() => { setGiftModalOpen(false); setGiftDismissed(true); }}
+                      onClick={() => { setGiftModalOpen(false); setGiftDismissed(true); setSelectedGiftId(null); }}
                       className="text-foreground/35 transition-colors hover:text-foreground/60 cursor-pointer"
                       style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: "600", letterSpacing: "0.08em" }}
                     >
                       AGORA NÃO
                     </button>
-                    <p className="text-foreground/25" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>
-                      Você pode abrir essa seleção novamente pelo carrinho enquanto mantiver o subtotal elegível.
-                    </p>
+                    <button
+                      onClick={confirmGift}
+                      disabled={!selectedGiftId}
+                      className="rounded-[8px] bg-primary px-6 py-3 text-primary-foreground transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-35"
+                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: "700", letterSpacing: "0.08em" }}
+                    >
+                      SELECIONAR
+                    </button>
                   </div>
                 </motion.div>
               </motion.div>

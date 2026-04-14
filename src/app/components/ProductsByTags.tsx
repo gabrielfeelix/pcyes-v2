@@ -6,31 +6,9 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { ShoppingBag, Heart, Star } from "lucide-react";
 import { useCart } from "./CartContext";
 import { allProducts as catalogProducts, type Product } from "./productsData";
-import { findProductBySwatch, getProductHoverMedia, getProductSwatches } from "./productPresentation";
+import { findProductBySwatch, getPrimaryProductImage, getProductHoverMedia, getProductSwatches, getVisibleCatalogProducts } from "./productPresentation";
 
 const tags = ["Todos", "Gaming", "Streaming", "Escritório", "RGB", "Wireless"];
-
-const tagProducts = [
-  { id: 1, name: "Cobra V2 Mouse", price: "R$ 189,90", rating: 4.8, reviews: 234, tags: ["Gaming", "RGB"], image: "https://images.unsplash.com/photo-1768561327952-119a4c9c76f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBtb3VzZSUyMGRhcmslMjBtaW5pbWFsfGVufDF8fHx8MTc3MzgzOTc5NHww&ixlib=rb-4.1.0&q=80&w=1080" },
-  { id: 2, name: "Mancer Pro Teclado", price: "R$ 349,90", rating: 4.9, reviews: 512, tags: ["Gaming", "RGB", "Wireless"], image: "https://images.unsplash.com/photo-1718803448073-90ebd0d982e0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWNoYW5pY2FsJTIwa2V5Ym9hcmQlMjBjbG9zZXVwJTIwZGFya3xlbnwxfHx8fDE3NzM4Mzk3OTZ8MA&ixlib=rb-4.1.0&q=80&w=1080" },
-  { id: 3, name: "Fallen 7.1 Headset", price: "R$ 279,90", rating: 4.7, reviews: 189, tags: ["Gaming", "Streaming"], image: "https://images.unsplash.com/photo-1673669231301-09baa4d7761b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBoZWFkc2V0JTIwZGFyayUyMGJhY2tncm91bmR8ZW58MXx8fHwxNzczODM5Nzk1fDA&ixlib=rb-4.1.0&q=80&w=1080" },
-  { id: 4, name: "Spectrum Pro Gabinete", price: "R$ 599,90", rating: 4.9, reviews: 347, tags: ["Gaming", "RGB"], image: "https://images.unsplash.com/photo-1695120485648-0b6eed4707aa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21wdXRlciUyMGNhc2UlMjB0b3dlciUyMGRhcmt8ZW58MXx8fHwxNzczODM5Nzk1fDA&ixlib=rb-4.1.0&q=80&w=1080" },
-  { id: 5, name: "Controle Vortex", price: "R$ 329,90", rating: 4.6, reviews: 98, tags: ["Gaming", "Wireless"], image: "https://images.unsplash.com/photo-1622349851524-890cc3641b87?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBjb250cm9sbGVyJTIwd2lyZWxlc3MlMjBkYXJrfGVufDF8fHx8MTc3Mzg0MDQwOXww&ixlib=rb-4.1.0&q=80&w=1080" },
-  { id: 6, name: "Studio X Microfone", price: "R$ 489,90", rating: 4.8, reviews: 156, tags: ["Streaming", "Escritório"], image: "https://images.unsplash.com/photo-1579870946215-8284f1a47c9a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtaWNyb3Bob25lJTIwY29uZGVuc2VyJTIwc3R1ZGlvJTIwZGFya3xlbnwxfHx8fDE3NzM4NDA0MTB8MA&ixlib=rb-4.1.0&q=80&w=1080" },
-  { id: 7, name: "Deskpad RGB Pro", price: "R$ 149,90", rating: 4.5, reviews: 203, tags: ["RGB", "Escritório"], image: "https://images.unsplash.com/photo-1713012003065-7ca32db003ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxSR0IlMjBtb3VzZXBhZCUyMGRlc2slMjBtYXQlMjBkYXJrfGVufDF8fHx8MTc3Mzg0MDQwOXww&ixlib=rb-4.1.0&q=80&w=1080" },
-  { id: 8, name: "Electra 750W Fonte", price: "R$ 449,90", rating: 4.9, reviews: 421, tags: ["Gaming"], image: "https://images.unsplash.com/photo-1630831506636-5209d7349db9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21wdXRlciUyMHBvd2VyJTIwc3VwcGx5JTIwdW5pdCUyMGRhcmt8ZW58MXx8fHwxNzczODM5Nzk2fDA&ixlib=rb-4.1.0&q=80&w=1080" },
-];
-
-const catalogTagProducts = [
-  { id: 72, name: "Arkeum Black Vulcan", price: "R$ 399,90", rating: 4.9, reviews: 306, tags: ["Gaming", "RGB"], image: "/home/release-keyboard-context.png" },
-  { id: 128, name: "Mouse Rest Silent", price: "R$ 249,90", rating: 4.6, reviews: 459, tags: ["Escritório"], image: "/home/release-mouse-context.png" },
-  { id: 329, name: "Headset Kamar", price: "R$ 279,90", rating: 4.9, reviews: 373, tags: ["Gaming", "Streaming"], image: "/home/featured-headset.png" },
-  { id: 436, name: "Forcefield Dome", price: "R$ 599,90", rating: 4.8, reviews: 212, tags: ["Gaming", "RGB"], image: "/home/category-hardware.png" },
-  { id: 446, name: "Cadeira Maringá FC", price: "R$ 1299,90", rating: 4.8, reviews: 232, tags: ["Gaming", "Escritório"], image: "/home/release-chair-context.png" },
-  { id: 199, name: "Fonte Aether 1000W", price: "R$ 449,90", rating: 4.5, reviews: 343, tags: ["Gaming"], image: "/home/release-psu-context.png" },
-  { id: 375, name: "Water Cooler Vision", price: "R$ 349,90", rating: 4.7, reviews: 365, tags: ["RGB"], image: "/home/category-cooling.png" },
-  { id: 295, name: "Mouse Pad Obsidian", price: "R$ 149,90", rating: 4.5, reviews: 205, tags: ["Gaming", "RGB"], image: "/home/release-deskpad-context.png" },
-];
 
 export function ProductsByTags() {
   const ref = useRef<HTMLDivElement>(null);
@@ -43,7 +21,8 @@ export function ProductsByTags() {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
 
-  const filtered = activeTag === "Todos" ? catalogTagProducts : catalogTagProducts.filter((p) => p.tags.includes(activeTag));
+  const catalogTagProducts = getVisibleCatalogProducts(catalogProducts).slice(0, 16);
+  const filtered = (activeTag === "Todos" ? catalogTagProducts : catalogTagProducts.filter((p) => p.tags.includes(activeTag))).slice(0, 8);
 
   const toggleLike = (id: number, e: React.MouseEvent) => {
     e.preventDefault();
@@ -130,7 +109,7 @@ export function ProductsByTags() {
                   const displayProduct = selectedVariants[product.id] ?? catalogProduct ?? product;
                   const hoverMedia = getProductHoverMedia(displayProduct);
                   const swatches = catalogProduct ? getProductSwatches(displayProduct) : [];
-                  const primaryImage = displayProduct.image;
+                  const primaryImage = getPrimaryProductImage(displayProduct);
 
                   return (
                     <>

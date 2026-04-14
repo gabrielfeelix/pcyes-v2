@@ -9,6 +9,7 @@ const youtubeEmbed =
   "https://www.youtube.com/embed/g-QIHcPg1Ko?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&disablekb=1&modestbranding=1&playlist=g-QIHcPg1Ko";
 
 export function BannerSection() {
+  const sectionRef = useRef<HTMLElement | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [fullyExpanded, setFullyExpanded] = useState(false);
   const [showCta, setShowCta] = useState(false);
@@ -23,16 +24,39 @@ export function BannerSection() {
   }, []);
 
   useEffect(() => {
+    const getSectionState = () => {
+      const section = sectionRef.current;
+      if (!section) return null;
+
+      const rect = section.getBoundingClientRect();
+      return {
+        section,
+        rect,
+        shouldCapture: rect.top <= 0 && rect.bottom > window.innerHeight * 0.45,
+        isPinnedTop: Math.abs(rect.top) <= 6,
+      };
+    };
+
+    const pinSection = (section: HTMLElement) => {
+      window.scrollTo({ top: section.offsetTop, behavior: "auto" });
+    };
+
     const handleWheel = (e: WheelEvent) => {
-      if (fullyExpanded && e.deltaY < 0 && window.scrollY <= 5) {
+      const sectionState = getSectionState();
+      if (!sectionState?.shouldCapture) return;
+
+      if (fullyExpanded && e.deltaY < 0 && sectionState.isPinnedTop) {
         setFullyExpanded(false);
         setShowCta(false);
+        pinSection(sectionState.section);
         e.preventDefault();
         return;
       }
       if (fullyExpanded) return;
+      if (scrollProgress <= 0 && e.deltaY < 0) return;
 
       e.preventDefault();
+      pinSection(sectionState.section);
       const delta = e.deltaY * 0.0009;
       setScrollProgress((prev) => {
         const next = Math.min(Math.max(prev + delta, 0), 1);
@@ -47,17 +71,23 @@ export function BannerSection() {
     };
 
     const handleTouchMove = (e: TouchEvent) => {
+      const sectionState = getSectionState();
+      if (!sectionState?.shouldCapture) return;
+
       const deltaY = touchStartY.current - e.touches[0].clientY;
-      if (fullyExpanded && deltaY < -20 && window.scrollY <= 5) {
+      if (fullyExpanded && deltaY < -20 && sectionState.isPinnedTop) {
         setFullyExpanded(false);
         setShowCta(false);
+        pinSection(sectionState.section);
         e.preventDefault();
         touchStartY.current = e.touches[0].clientY;
         return;
       }
       if (fullyExpanded) return;
+      if (scrollProgress <= 0 && deltaY < 0) return;
 
       e.preventDefault();
+      pinSection(sectionState.section);
       const factor = deltaY < 0 ? 0.008 : 0.005;
       const delta = deltaY * factor;
       setScrollProgress((prev) => {
@@ -69,23 +99,16 @@ export function BannerSection() {
       touchStartY.current = e.touches[0].clientY;
     };
 
-    // Lock the page scroll while animating
-    const handleScroll = () => {
-      if (!fullyExpanded) window.scrollTo(0, 0);
-    };
-
     window.addEventListener("wheel", handleWheel, { passive: false });
     window.addEventListener("touchstart", handleTouchStart, { passive: true });
     window.addEventListener("touchmove", handleTouchMove, { passive: false });
-    window.addEventListener("scroll", handleScroll);
 
     return () => {
       window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("scroll", handleScroll);
     };
-  }, [fullyExpanded]);
+  }, [fullyExpanded, scrollProgress]);
 
   // Derived visual values
   const mediaWidth = 300 + scrollProgress * (isMobile ? 650 : 1250);
@@ -97,7 +120,7 @@ export function BannerSection() {
   const borderRadius = Math.max(0, 28 - scrollProgress * 28);
 
   return (
-    <section className="relative min-h-[100dvh] bg-[#0f1011] overflow-x-hidden">
+    <section ref={sectionRef} className="relative min-h-[100dvh] bg-[#0f1011] overflow-x-hidden">
       <div className="relative w-full flex flex-col items-center min-h-[100dvh]">
         {/* Background */}
         <motion.div
@@ -195,7 +218,7 @@ export function BannerSection() {
 
         {/* CTA — fades in when fully expanded */}
         <motion.div
-          className="fixed bottom-[72px] left-1/2 -translate-x-1/2 z-30"
+          className="absolute bottom-[72px] left-1/2 z-30 -translate-x-1/2"
           initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: showCta ? 1 : 0, y: showCta ? 0 : 28 }}
           transition={{ duration: 0.5 }}

@@ -3,8 +3,8 @@ import { Link, useSearchParams } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import {
   SlidersHorizontal, ArrowUpDown, ChevronDown, Grid3X3, LayoutList,
-  Heart, ShoppingBag, Star, X, Percent, ArrowUpRight, ChevronLeft,
-  ChevronRight, Check, Eye, Filter, Minus, Plus,
+  Heart, ShoppingBag, Star, X, ArrowUpRight, ChevronLeft,
+  ChevronRight, Check, Eye, Minus, Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "./CartContext";
@@ -13,7 +13,15 @@ import { useTheme } from "./ThemeProvider";
 import { Footer } from "./Footer";
 import { allProducts, allTags as productTags, brands as productBrands, categories as productCategories, type Product } from "./productsData";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import { findProductBySwatch, getProductSwatches } from "./productPresentation";
+import {
+  findProductBySwatch,
+  getCatalogHref,
+  getProductImages,
+  getPrimaryProductImage,
+  getProductSubcategory,
+  getProductSwatches,
+  getVisibleCatalogProducts,
+} from "./productPresentation";
 
 const categoryMap: Record<string, string> = {
   ...Object.fromEntries(productCategories.map((category) => [category, category])),
@@ -23,7 +31,7 @@ const categoryMap: Record<string, string> = {
 const categories = Object.keys(categoryMap);
 const allTags = productTags.filter((tag) => ["Gaming", "RGB", "Wireless", "Streaming", "Escritório"].includes(tag));
 // Products with real images only — filters out placeholder category images
-const validProducts = allProducts.filter((p) => !p.image.startsWith("/home/"));
+const validProducts = getVisibleCatalogProducts(allProducts);
 const PRODUCTS_PER_PAGE = 26;
 const sortOptions = [
   { label: "Relevância", value: "relevance" },
@@ -42,23 +50,6 @@ const GLOBAL_MAX = 15000;
 function getDiscount(p: Product) {
   if (!p.oldPriceNum || p.oldPriceNum <= p.priceNum) return 0;
   return Math.round(((p.oldPriceNum - p.priceNum) / p.oldPriceNum) * 100);
-}
-
-function getProductSubcategory(product: Product) {
-  const name = product.name.toLowerCase();
-  const compactName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  if (compactName.includes("teclado")) {
-    const size = compactName.match(/\b(100|80|75|65|60)%/);
-    return size ? `Teclados ${size[1]}%` : "Teclados";
-  }
-  if (name.includes("teclado")) return "Teclados";
-  if (name.includes("mousepad") || name.includes("mouse pad")) return "Mousepads";
-  if (name.includes("mouse")) return "Mouses";
-  if (name.includes("headset") || name.includes("fone")) return "Headsets";
-  if (name.includes("water cooler")) return "Water Coolers";
-  if (name.includes("cooler")) return "Coolers";
-  if (product.subcategory) return product.subcategory;
-  return product.category;
 }
 
 /* ── Color extraction ── */
@@ -133,21 +124,22 @@ function PriceRangeSlider({
   }, [dragging, min, max, onMinChange, onMaxChange, onApply]);
 
   const formatBRL = (v: number) =>
-    v >= 1000 ? `R$ ${(v / 1000).toFixed(0)}k` : `R$ ${v}`;
+    `R$ ${Math.round(v).toLocaleString("pt-BR")}`;
 
   return (
     <div className="space-y-4 mt-2">
       {/* Slider track */}
+      <div className="px-3 py-3">
       <div ref={trackRef} className="relative h-2 bg-foreground/[0.08] rounded-full cursor-pointer select-none">
         {/* Active range */}
         <div
-          className="absolute top-0 h-full rounded-full bg-foreground"
+          className="absolute top-0 h-full rounded-full bg-primary"
           style={{ left: `${minPct}%`, width: `${maxPct - minPct}%` }}
         />
         {/* Min thumb */}
         <div
           onMouseDown={handlePointerDown("min")}
-          className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-foreground border-2 border-background shadow-md cursor-grab active:cursor-grabbing z-10"
+          className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-primary border-2 border-background shadow-md cursor-grab active:cursor-grabbing z-10"
           style={{ left: `calc(${minPct}% - 10px)` }}
           aria-label="Preço mínimo"
           role="slider"
@@ -155,19 +147,20 @@ function PriceRangeSlider({
         {/* Max thumb */}
         <div
           onMouseDown={handlePointerDown("max")}
-          className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-foreground border-2 border-background shadow-md cursor-grab active:cursor-grabbing z-10"
+          className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-primary border-2 border-background shadow-md cursor-grab active:cursor-grabbing z-10"
           style={{ left: `calc(${maxPct}% - 10px)` }}
           aria-label="Preço máximo"
           role="slider"
         />
+      </div>
       </div>
       {/* Min / Max inputs */}
       <div className="flex gap-3">
         <div className="flex-1">
           <label className="text-foreground/40 mb-1.5 block" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", letterSpacing: "0.06em" }}>MÍN</label>
           <input
-            type="number" value={min} min={GLOBAL_MIN} max={max - 100}
-            onChange={(e) => onMinChange(Math.max(GLOBAL_MIN, Math.min(parseInt(e.target.value) || 0, max - 100)))}
+            type="text" value={formatBRL(min)}
+            onChange={(e) => onMinChange(Math.max(GLOBAL_MIN, Math.min(parseInt(e.target.value.replace(/\D/g, "")) || 0, max - 100)))}
             onBlur={onApply}
             className="w-full border border-foreground/15 px-3 py-2 bg-transparent text-foreground focus:border-foreground/30 focus:outline-none transition-colors text-center"
             style={{ borderRadius: "6px", fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
@@ -176,18 +169,13 @@ function PriceRangeSlider({
         <div className="flex-1">
           <label className="text-foreground/40 mb-1.5 block" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", letterSpacing: "0.06em" }}>MÁX</label>
           <input
-            type="number" value={max} min={min + 100} max={GLOBAL_MAX}
-            onChange={(e) => onMaxChange(Math.min(GLOBAL_MAX, Math.max(parseInt(e.target.value) || GLOBAL_MAX, min + 100)))}
+            type="text" value={formatBRL(max)}
+            onChange={(e) => onMaxChange(Math.min(GLOBAL_MAX, Math.max(parseInt(e.target.value.replace(/\D/g, "")) || GLOBAL_MAX, min + 100)))}
             onBlur={onApply}
             className="w-full border border-foreground/15 px-3 py-2 bg-transparent text-foreground focus:border-foreground/30 focus:outline-none transition-colors text-center"
             style={{ borderRadius: "6px", fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
           />
         </div>
-      </div>
-      {/* Visual labels */}
-      <div className="flex justify-between" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", color: "var(--text-muted)" }}>
-        <span>{formatBRL(min)}</span>
-        <span>{formatBRL(max)}</span>
       </div>
     </div>
   );
@@ -200,13 +188,16 @@ function PriceRangeSlider({
 export function ProductsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialCategory = searchParams.get("category") || "";
+  const initialSubcategory = searchParams.get("subcategory") || "";
   const initialSearch = searchParams.get("search") || "";
 
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
     initialCategory ? new Set([categoryMap[initialCategory] ?? initialCategory]) : new Set()
   );
-  const [selectedSubcategories, setSelectedSubcategories] = useState<Set<string>>(new Set());
+  const [selectedSubcategories, setSelectedSubcategories] = useState<Set<string>>(
+    initialSubcategory ? new Set([initialSubcategory]) : new Set()
+  );
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [selectedBrands, setSelectedBrands] = useState<Set<string>>(new Set());
   const [priceMin, setPriceMin] = useState(GLOBAL_MIN);
@@ -219,7 +210,6 @@ export function ProductsPage() {
   const [gridMode, setGridMode] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
-  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [colsCount, setColsCount] = useState(3);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -234,15 +224,17 @@ export function ProductsPage() {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
+  const activeCategoryLabel = initialCategory ? categoryMap[initialCategory] ?? initialCategory : "";
+  const isSubcategoryRoute = Boolean(activeCategoryLabel && initialSubcategory);
 
   useEffect(() => {
     const cat = searchParams.get("category");
-    if (cat && categoryMap[cat]) {
-      setSelectedCategories(new Set([categoryMap[cat]]));
-      setSelectedSubcategories(new Set());
-    }
+    const subcat = searchParams.get("subcategory");
+    setSelectedCategories(cat ? new Set([categoryMap[cat] ?? cat]) : new Set());
+    setSelectedSubcategories(subcat ? new Set([subcat]) : new Set());
+
     const sq = searchParams.get("search");
-    if (sq) setSearchQuery(sq);
+    setSearchQuery(sq ?? "");
   }, [searchParams]);
 
   /* ── Responsive columns ── */
@@ -263,7 +255,7 @@ export function ProductsPage() {
   const mainRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-  }, [initialCategory]);
+  }, [initialCategory, initialSubcategory]);
 
   /* ── Helpers ── */
   const toggleSet = <T,>(setter: React.Dispatch<React.SetStateAction<Set<T>>>, val: T) => {
@@ -276,7 +268,7 @@ export function ProductsPage() {
       // Clear subcategories belonging to this category when deselecting
       const catSubcatSet = new Set(validProducts.filter((p) => p.category === cat).map(getProductSubcategory));
       setSelectedSubcategories((prev) => { const n = new Set(prev); catSubcatSet.forEach((sc) => n.delete(sc)); return n; });
-      const sp = new URLSearchParams(searchParams); sp.delete("category"); setSearchParams(sp, { replace: true });
+      const sp = new URLSearchParams(searchParams); sp.delete("category"); sp.delete("subcategory"); setSearchParams(sp, { replace: true });
     }
   };
   const toggleSection = (key: string) => setExpandedSections((p) => ({ ...p, [key]: !p[key] }));
@@ -285,7 +277,7 @@ export function ProductsPage() {
     setSelectedCategories(new Set()); setSelectedSubcategories(new Set()); setSelectedTags(new Set()); setSelectedBrands(new Set());
     setPriceMin(GLOBAL_MIN); setPriceMax(GLOBAL_MAX); setOnlyDiscount(false); setMinDiscount(null); setMinRating(null);
     setInStockOnly(false); setSearchQuery("");
-    const sp = new URLSearchParams(searchParams); sp.delete("category"); sp.delete("search"); setSearchParams(sp, { replace: true });
+    const sp = new URLSearchParams(searchParams); sp.delete("category"); sp.delete("subcategory"); sp.delete("search"); setSearchParams(sp, { replace: true });
   };
 
   const activeFilterCount = selectedCategories.size + selectedSubcategories.size + selectedTags.size + selectedBrands.size
@@ -364,48 +356,72 @@ export function ProductsPage() {
   const filterSidebar = (
     <div className="space-y-1 pr-2">
       {/* Categorias — hierarchical */}
-      <FilterSection title="Categorias" expanded={expandedSections.categories} onToggle={() => toggleSection("categories")}>
-        {productCategories.map((cat) => {
-          const isSelected = selectedCategories.has(cat);
-          const catCount = validProducts.filter((p) => p.category === cat).length;
-          const catSubcats = isSelected
-            ? Array.from(new Set(validProducts.filter((p) => p.category === cat).map(getProductSubcategory))).sort()
-            : [];
-          return (
-            <div key={cat}>
-              <label className="flex items-center gap-3 py-2 cursor-pointer group/item">
-                <input type="checkbox" className="hidden" checked={isSelected} onChange={() => toggleCategory(cat)} />
-                <span className={`w-4 h-4 border flex items-center justify-center flex-shrink-0 transition-colors ${isSelected ? "border-foreground bg-foreground" : "border-foreground/20 group-hover/item:border-foreground/40"}`} style={{ borderRadius: "4px" }}>
-                  {isSelected && <svg width="10" height="10" viewBox="0 0 8 8"><path d="M1.5 4L3 5.5L6.5 2.5" stroke={isDark ? "#0a0a0a" : "#fff"} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                </span>
-                <span className={`transition-colors flex-1 ${isSelected ? "text-foreground font-medium" : "text-foreground/70 group-hover/item:text-foreground"}`} style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}>{cat}</span>
-                <span className="text-foreground/30 flex-shrink-0" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>({catCount})</span>
-              </label>
-              {/* Subcategories revealed on category select */}
-              <AnimatePresence>
-                {isSelected && catSubcats.length > 0 && (
-                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.18 }} className="overflow-hidden">
-                    {catSubcats.map((subcat) => {
-                      const subcatCount = validProducts.filter((p) => p.category === cat && getProductSubcategory(p) === subcat).length;
-                      const subcatActive = selectedSubcategories.has(subcat);
-                      return (
-                        <label key={subcat} className="flex items-center gap-2.5 py-1.5 pl-7 cursor-pointer group/subitem">
-                          <input type="checkbox" className="hidden" checked={subcatActive} onChange={() => toggleSet(setSelectedSubcategories, subcat)} />
-                          <span className={`w-3.5 h-3.5 border flex items-center justify-center flex-shrink-0 transition-colors ${subcatActive ? "border-foreground bg-foreground" : "border-foreground/15 group-hover/subitem:border-foreground/35"}`} style={{ borderRadius: "3px" }}>
-                            {subcatActive && <svg width="8" height="8" viewBox="0 0 8 8"><path d="M1.5 4L3 5.5L6.5 2.5" stroke={isDark ? "#0a0a0a" : "#fff"} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                          </span>
-                          <span className={`transition-colors flex-1 truncate ${subcatActive ? "text-foreground" : "text-foreground/50 group-hover/subitem:text-foreground/75"}`} style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>{subcat}</span>
-                          <span className="text-foreground/25 flex-shrink-0" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>({subcatCount})</span>
-                        </label>
-                      );
-                    })}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          );
-        })}
-      </FilterSection>
+      {isSubcategoryRoute ? (
+        <div className="border-b border-foreground/5 pb-5">
+          <p className="text-foreground/30" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.14em" }}>
+            FAMÍLIA ATUAL
+          </p>
+          <p className="mt-2 text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "20px", fontWeight: 600 }}>
+            {initialSubcategory}
+          </p>
+          <p className="mt-1 text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.5 }}>
+            Filtros limitados a {activeCategoryLabel} / {initialSubcategory}.
+          </p>
+          <Link
+            to={getCatalogHref({ category: activeCategoryLabel })}
+            className="mt-3 inline-flex text-primary transition-opacity hover:opacity-75"
+            style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: 600 }}
+          >
+            Ver {activeCategoryLabel}
+          </Link>
+        </div>
+      ) : (
+        <FilterSection title="Categorias" expanded={expandedSections.categories} onToggle={() => toggleSection("categories")}>
+          {productCategories.map((cat) => {
+            const isSelected = selectedCategories.has(cat);
+            const catCount = validProducts.filter((p) => p.category === cat).length;
+            const catSubcats = isSelected
+              ? Array.from(new Set(validProducts.filter((p) => p.category === cat).map(getProductSubcategory))).sort()
+              : [];
+            return (
+              <div key={cat}>
+                <label className="flex items-center gap-3 py-2 cursor-pointer group/item">
+                  <input type="checkbox" className="hidden" checked={isSelected} onChange={() => toggleCategory(cat)} />
+                  <span className={`w-4 h-4 border flex items-center justify-center flex-shrink-0 transition-colors ${isSelected ? "border-foreground bg-foreground" : "border-foreground/20 group-hover/item:border-foreground/40"}`} style={{ borderRadius: "4px" }}>
+                    {isSelected && <svg width="10" height="10" viewBox="0 0 8 8"><path d="M1.5 4L3 5.5L6.5 2.5" stroke={isDark ? "#0a0a0a" : "#fff"} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+                  </span>
+                  <span className={`transition-colors flex-1 ${isSelected ? "text-foreground font-medium" : "text-foreground/70 group-hover/item:text-foreground"}`} style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}>{cat}</span>
+                  <span className="text-foreground/30 flex-shrink-0" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>({catCount})</span>
+                </label>
+                {/* Subcategories revealed on category select */}
+                <AnimatePresence>
+                  {isSelected && catSubcats.length > 0 && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.18 }} className="overflow-hidden">
+                      {catSubcats.map((subcat) => {
+                        const subcatCount = validProducts.filter((p) => p.category === cat && getProductSubcategory(p) === subcat).length;
+                        const subcatActive = selectedSubcategories.has(subcat);
+                        return (
+                          <Link
+                            key={subcat}
+                            to={getCatalogHref({ category: cat, subcategory: subcat })}
+                            className="flex items-center gap-2.5 py-1.5 pl-7 cursor-pointer group/subitem"
+                          >
+                            <span className={`w-3.5 h-3.5 border flex items-center justify-center flex-shrink-0 transition-colors ${subcatActive ? "border-foreground bg-foreground" : "border-foreground/15 group-hover/subitem:border-foreground/35"}`} style={{ borderRadius: "3px" }}>
+                              {subcatActive && <svg width="8" height="8" viewBox="0 0 8 8"><path d="M1.5 4L3 5.5L6.5 2.5" stroke={isDark ? "#0a0a0a" : "#fff"} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+                            </span>
+                            <span className={`transition-colors flex-1 truncate ${subcatActive ? "text-foreground" : "text-foreground/50 group-hover/subitem:text-foreground/75"}`} style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>{subcat}</span>
+                            <span className="text-foreground/25 flex-shrink-0" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>({subcatCount})</span>
+                          </Link>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </FilterSection>
+      )}
 
       {/* Promoção */}
       <FilterSection title="Promoção" expanded={expandedSections.promo} onToggle={() => toggleSection("promo")}>
@@ -501,16 +517,30 @@ export function ProductsPage() {
           <div className="flex items-center gap-2 mb-5">
             <Link to="/" className="text-foreground/40 hover:text-foreground/80 transition-colors" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>Home</Link>
             <span className="text-foreground/20" style={{ fontSize: "12px" }}>›</span>
-            <span className="text-foreground/70" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>
-              {initialCategory ? categoryMap[initialCategory] || "Produtos" : "Produtos"}
-            </span>
+            {activeCategoryLabel ? (
+              <Link to={getCatalogHref({ category: activeCategoryLabel })} className="text-foreground/40 hover:text-foreground/80 transition-colors" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>
+                {activeCategoryLabel}
+              </Link>
+            ) : (
+              <span className="text-foreground/70" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>
+                Produtos
+              </span>
+            )}
+            {initialSubcategory && (
+              <>
+                <span className="text-foreground/20" style={{ fontSize: "12px" }}>›</span>
+                <span className="text-foreground/70" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>
+                  {initialSubcategory}
+                </span>
+              </>
+            )}
           </div>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
               className={isDark ? "text-white" : "text-foreground"}
               style={{ fontFamily: "var(--font-family-figtree)", fontSize: "clamp(32px, 4vw, 44px)", fontWeight: "var(--font-weight-medium)" }}
             >
-              {initialCategory ? categoryMap[initialCategory] || "Todos os Produtos" : "Todos os Produtos"}
+              {initialSubcategory || activeCategoryLabel || "Todos os Produtos"}
             </motion.h1>
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
               className={isDark ? "text-white/50" : "text-foreground/50"} style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", whiteSpace: "nowrap" }}
@@ -544,15 +574,6 @@ export function ProductsPage() {
                     <SlidersHorizontal size={14} /> Filtros
                     {activeFilterCount > 0 && (
                       <span className="ml-1 w-5 h-5 rounded-full bg-foreground text-background flex items-center justify-center font-bold" style={{ fontSize: "11px" }}>{activeFilterCount}</span>
-                    )}
-                  </button>
-                  <button onClick={() => setFilterDrawerOpen(true)}
-                    className="hidden lg:flex items-center gap-2 text-foreground/50 hover:text-foreground/80 transition-colors"
-                    style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}
-                  >
-                    <Filter size={14} /> Filtros
-                    {activeFilterCount > 0 && (
-                      <span className="ml-1 text-foreground/70 font-semibold">({activeFilterCount})</span>
                     )}
                   </button>
                 </div>
@@ -650,7 +671,7 @@ export function ProductsPage() {
                     {paginatedProducts.map((product, i) => {
                       const displayProduct = selectedVariants[product.id] ?? product;
                       const discount = getDiscount(displayProduct);
-                      const productImages = displayProduct.images && displayProduct.images.length > 0 ? displayProduct.images : [displayProduct.image];
+                      const productImages = getProductImages(displayProduct);
                       const imgIdx = getImageIndex(displayProduct.id, productImages.length);
                       const swatches = getProductSwatches(displayProduct);
 
@@ -822,7 +843,7 @@ export function ProductsPage() {
                           style={{ borderRadius: "var(--radius-card)" }}
                         >
                           <Link to={`/produto/${product.id}`} className="w-full sm:w-[140px] aspect-square sm:h-[140px] flex-shrink-0 overflow-hidden relative block" style={{ borderRadius: "var(--radius-button)", background: isDark ? "#1a1a1c" : "#f0f0f0" }}>
-                            <ImageWithFallback src={product.image} alt={product.name} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                            <ImageWithFallback src={getPrimaryProductImage(product)} alt={product.name} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                             {discount > 0 && (
                               <span className="absolute top-2 left-2 px-2 py-1 bg-red-600 text-white" style={{ borderRadius: "4px", fontSize: "11px", fontWeight: "700" }}>{discount}% OFF</span>
                             )}
@@ -942,42 +963,6 @@ export function ProductsPage() {
         )}
       </AnimatePresence>
 
-      {/* ── Filter Drawer (desktop optional - used if they click Filter button instead of sidebar) ── */}
-      <AnimatePresence>
-        {filterDrawerOpen && (
-          <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-              onClick={() => setFilterDrawerOpen(false)}
-            />
-            <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed left-0 top-0 bottom-0 w-[360px] z-50 overflow-y-auto p-8 shadow-2xl"
-              style={{ background: isDark ? "#161617" : "#fff", borderRight: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}` }}
-            >
-              <div className="flex items-center justify-between mb-8">
-                <span className="text-foreground/70 tracking-[0.15em]" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: "var(--font-weight-bold)" }}>FILTROS</span>
-                <button onClick={() => setFilterDrawerOpen(false)} className="text-foreground/40 hover:text-foreground transition-colors p-2" aria-label="Fechar"><X size={20} /></button>
-              </div>
-              {filterSidebar}
-              <div className="sticky bottom-0 pt-6 mt-8 space-y-3 bg-inherit pb-2">
-                <button onClick={() => { applyFilters(); setFilterDrawerOpen(false); }}
-                  className="w-full py-3.5 bg-foreground text-background font-bold flex items-center justify-center gap-2 transition-opacity hover:opacity-90 shadow-lg"
-                  style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "13px", letterSpacing: "0.04em", textTransform: "uppercase" }}
-                >
-                  <Check size={16} /> Mostrar {filtered.length} resultado{filtered.length !== 1 ? "s" : ""}
-                </button>
-                {activeFilterCount > 0 && (
-                  <button onClick={clearAll}
-                    className="w-full py-3 border border-foreground/15 text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors font-medium"
-                    style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "13px" }}
-                  >Limpar tudo</button>
-                )}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
       {/* ── Quick View Modal ── */}
       <AnimatePresence>
         {quickViewProduct && (
@@ -997,7 +982,7 @@ export function ProductsPage() {
               ><X size={20} /></button>
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div className="aspect-square overflow-hidden" style={{ borderRadius: "var(--radius-card)", background: isDark ? "#1a1a1c" : "#f0f0f0" }}>
-                  <ImageWithFallback src={quickViewProduct.image} alt={quickViewProduct.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                  <ImageWithFallback src={getPrimaryProductImage(quickViewProduct)} alt={quickViewProduct.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   {getDiscount(quickViewProduct) > 0 && (
                     <span className="absolute top-4 left-4 px-3 py-1.5 bg-red-600 text-white shadow-sm" style={{ borderRadius: "4px", fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "700", letterSpacing: "0.03em" }}>
                       {getDiscount(quickViewProduct)}% OFF

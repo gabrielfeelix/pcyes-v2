@@ -11,6 +11,7 @@ import { useFavorites } from "./FavoritesContext";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { allProducts } from "./productsData";
 import { ThemeToggle } from "./ThemeToggle";
+import { getCatalogHref, getPrimaryProductImage, getVisibleCatalogProducts } from "./productPresentation";
 
 const PCYES_LOGO = "https://pcyes-cdn.oderco.com.br/Logotipos/PCYES/Simbolo-Logo-Horiz-Vermelho.png";
 
@@ -112,20 +113,20 @@ const megaMenus: Record<string, MegaMenu> = {
     title: "Periféricos",
     subItems: [
       {
-        label: "Teclados", href: "/produtos?category=Periféricos",
+        label: "Teclados", href: getCatalogHref({ category: "Periféricos", subcategory: "Teclados" }),
         right: {
           type: "layouts", title: "Teclados por Layout",
           layouts: [
-            { label: "100% Full Size", desc: "Com teclado numérico completo", href: "/produtos?category=Periféricos", image: "https://cdn.oderco.com.br/produtos/246231/3FA2133D8BCE330EE0630300A8C0F6B9" },
-            { label: "80% TKL", desc: "Sem teclado numérico", href: "/produtos?category=Periféricos", image: "https://cdn.oderco.com.br/produtos/199408/3FA0B95161429B0EE0630300A8C04A18" },
-            { label: "75% Compact", desc: "Formato popular e otimizado", href: "/produtos?category=Periféricos", image: "https://cdn.oderco.com.br/produtos/199409/3FA2133D8BC8330EE0630300A8C0F6B9" },
-            { label: "65% Compact", desc: "Focado nas setas direcionais", href: "/produtos?category=Periféricos", image: "https://cdn.oderco.com.br/produtos/246230/3FA0FF24E03F4B06E0630300A8C0A92F" },
-            { label: "60% Mini", desc: "Ultra compacto para viagem", href: "/produtos?category=Periféricos", image: "https://cdn.oderco.com.br/produtos/286135/25C7064E389DE6C2E0630300A8C0EDA5" },
+            { label: "100% Full Size", desc: "Com teclado numérico completo", href: getCatalogHref({ category: "Periféricos", subcategory: "Teclados" }), image: "https://cdn.oderco.com.br/produtos/246231/3FA2133D8BCE330EE0630300A8C0F6B9" },
+            { label: "80% TKL", desc: "Sem teclado numérico", href: getCatalogHref({ category: "Periféricos", subcategory: "Teclados" }), image: "https://cdn.oderco.com.br/produtos/199408/3FA0B95161429B0EE0630300A8C04A18" },
+            { label: "75% Compact", desc: "Formato popular e otimizado", href: getCatalogHref({ category: "Periféricos", subcategory: "Teclados" }), image: "https://cdn.oderco.com.br/produtos/199409/3FA2133D8BC8330EE0630300A8C0F6B9" },
+            { label: "65% Compact", desc: "Focado nas setas direcionais", href: getCatalogHref({ category: "Periféricos", subcategory: "Teclados" }), image: "https://cdn.oderco.com.br/produtos/246230/3FA0FF24E03F4B06E0630300A8C0A92F" },
+            { label: "60% Mini", desc: "Ultra compacto para viagem", href: getCatalogHref({ category: "Periféricos", subcategory: "Teclados" }), image: "https://cdn.oderco.com.br/produtos/286135/25C7064E389DE6C2E0630300A8C0EDA5" },
           ]
         }
       },
       {
-        label: "Mouse", href: "/produtos?category=Periféricos",
+        label: "Mouse", href: getCatalogHref({ category: "Periféricos", subcategory: "Mouses" }),
         right: {
           type: "products", title: "Mouse Gamer",
           products: [
@@ -136,7 +137,7 @@ const megaMenus: Record<string, MegaMenu> = {
         }
       },
       {
-        label: "Mousepads", href: "/produtos?category=Periféricos",
+        label: "Mousepads", href: getCatalogHref({ category: "Periféricos", subcategory: "Mousepads" }),
         right: {
           type: "products", title: "Mousepads",
           products: [
@@ -148,7 +149,7 @@ const megaMenus: Record<string, MegaMenu> = {
         }
       },
       {
-        label: "Cadeiras", href: "/produtos?category=Cadeiras",
+        label: "Cadeiras", href: getCatalogHref({ category: "Cadeiras", subcategory: "Cadeiras Gamer" }),
         right: {
           type: "products", title: "Cadeiras Gamer",
           products: [
@@ -160,14 +161,14 @@ const megaMenus: Record<string, MegaMenu> = {
         }
       },
       {
-        label: "Headsets", href: "/produtos?category=Periféricos",
+        label: "Headsets", href: getCatalogHref({ category: "Periféricos", subcategory: "Headsets" }),
         right: {
           type: "layouts", title: "Headsets por Conexão",
           layouts: [
-            { label: "USB 7.1 Surround", desc: "Som envolvente para gaming", href: "/produtos?category=Periféricos" },
-            { label: "P2 Analógico", desc: "Compatibilidade universal", href: "/produtos?category=Periféricos" },
-            { label: "2.4 GHz Sem Fio", desc: "Liberdade e baixa latência", href: "/produtos?category=Periféricos" },
-            { label: "Bluetooth 5.0", desc: "Multi-dispositivo e portátil", href: "/produtos?category=Periféricos" },
+            { label: "USB 7.1 Surround", desc: "Som envolvente para gaming", href: getCatalogHref({ category: "Periféricos", subcategory: "Headsets" }) },
+            { label: "P2 Analógico", desc: "Compatibilidade universal", href: getCatalogHref({ category: "Periféricos", subcategory: "Headsets" }) },
+            { label: "2.4 GHz Sem Fio", desc: "Liberdade e baixa latência", href: getCatalogHref({ category: "Periféricos", subcategory: "Headsets" }) },
+            { label: "Bluetooth 5.0", desc: "Multi-dispositivo e portátil", href: getCatalogHref({ category: "Periféricos", subcategory: "Headsets" }) },
           ]
         }
       },
@@ -190,23 +191,23 @@ const megaMenus: Record<string, MegaMenu> = {
     title: "Computadores",
     subItems: [
       {
-        label: "Mini PC", href: "/produtos",
+        label: "Mini PC", href: getCatalogHref({ category: "Computadores", subcategory: "Mini Computadores" }),
         right: {
           type: "featured", title: "Mini PC",
           image: "https://images.unsplash.com/photo-1587831990711-23ca6441447b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800",
           name: "PCYES Mini PC",
           desc: "Potência em formato compacto. Ideal para escritório, escola e entretenimento.",
-          href: "/produtos"
+          href: getCatalogHref({ category: "Computadores", subcategory: "Mini Computadores" })
         }
       },
       {
-        label: "PCYES One", href: "/produtos",
+        label: "PCYES One", href: getCatalogHref({ category: "Computadores", subcategory: "All in One" }),
         right: {
           type: "featured", title: "PCYES One",
           image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800",
           name: "PCYES One — All in One",
           desc: "Monitor e computador integrados. Design limpo, zero cabos, máxima praticidade.",
-          href: "/produtos"
+          href: getCatalogHref({ category: "Computadores", subcategory: "All in One" })
         }
       },
       {
@@ -280,7 +281,7 @@ const megaMenus: Record<string, MegaMenu> = {
         label: "Maringá FC × PCYES", href: "/maringa-fc",
         right: {
           type: "featured", title: "Collab Oficial",
-          image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Maring%C3%A1_FC_logo.svg/512px-Maring%C3%A1_FC_logo.svg.png",
+          image: "https://pcyes-cdn.oderco.com.br/Produtos/Cadeira-Gamer/Maringafc/3.png",
           name: "Maringá FC × PCYES",
           desc: "Produtos exclusivos da parceria oficial entre PCYES e o Maringá Futebol Clube. Represente seu time.",
           href: "/maringa-fc"
@@ -369,7 +370,7 @@ interface NavItem { label: string; href?: string; mega?: string }
 const navItems: NavItem[] = [
   { label: "Novidades", href: "/produtos" },
   { label: "Hardware", mega: "hardware", href: "/produtos" },
-  { label: "Periféricos", mega: "perifericos", href: "/produtos?category=Periféricos" },
+  { label: "Periféricos", mega: "perifericos", href: getCatalogHref({ category: "Periféricos" }) },
   { label: "Computadores", mega: "computadores", href: "/produtos" },
   { label: "PC Gamer", mega: "pcgamer", href: "/produtos" },
   { label: "Collab", mega: "collab", href: "/maringa-fc" },
@@ -385,7 +386,8 @@ const recent = ["Fontes modulares", "Cadeiras gaming"];
 
 const isPlaceholderHref = (href?: string) => !href || href === "#";
 const resolveMenuHref = (href?: string) => (isPlaceholderHref(href) ? "/produtos" : href);
-const getCatalogProduct = (id: number) => allProducts.find((product) => product.id === id);
+const visibleCatalogProducts = getVisibleCatalogProducts(allProducts);
+const getCatalogProduct = (id: number) => visibleCatalogProducts.find((product) => product.id === id);
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -460,7 +462,9 @@ export function Navbar() {
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
 
   const searchResults = searchQuery.trim().length > 0
-    ? allProducts.filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? visibleCatalogProducts
+      .filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase()))
+      .slice(0, 8)
     : [];
 
   const handleMegaEnter = (mega: string) => {
@@ -486,7 +490,7 @@ export function Navbar() {
       <button onClick={() => setSearchOpen(!searchOpen)} className={`relative w-10 h-10 flex items-center justify-center transition-colors cursor-pointer ${iconColor}`}>
         <Search size={20} strokeWidth={1.5} />
       </button>
-      <button onClick={() => navigate("/perfil")} className={`relative w-10 h-10 flex items-center justify-center transition-colors cursor-pointer ${iconColor}`}>
+      <button onClick={() => navigate("/perfil?tab=favorites")} className={`relative w-10 h-10 flex items-center justify-center transition-colors cursor-pointer ${iconColor}`}>
         <Heart size={20} strokeWidth={1.5} />
         <AnimatePresence>
           {favCount > 0 && (
@@ -561,10 +565,10 @@ export function Navbar() {
       meta?: string,
       badge?: string,
     ) => {
-      const catalogImage = href.startsWith("/produto/")
-        ? getCatalogProduct(Number(href.split("/").pop()))?.image
+      const catalogProduct = href.startsWith("/produto/")
+        ? getCatalogProduct(Number(href.split("/").pop()))
         : undefined;
-      const visualSrc = catalogImage ?? image;
+      const visualSrc = catalogProduct ? getPrimaryProductImage(catalogProduct) : image;
 
       return (
       <Link to={resolveMenuHref(href)} onClick={() => setActiveMega(null)} className={elevatedCardClass}>
@@ -1013,8 +1017,8 @@ export function Navbar() {
           style={{
             backgroundColor: showExpanded
               ? (promoHovered ? (isDark ? "rgba(0,0,0,0.95)" : "rgba(255,255,255,0.95)") : "transparent")
-              : (isDark ? "rgba(4,4,4,0.92)" : "rgba(248,249,251,0.88)"),
-            backdropFilter: showExpanded ? (promoHovered ? "blur(40px)" : "none") : "blur(11px)",
+              : (isDark ? "rgba(4,4,4,0.72)" : "rgba(248,249,251,0.62)"),
+            backdropFilter: showExpanded ? (promoHovered ? "blur(40px)" : "none") : "blur(22px)",
             borderBottom: showExpanded
               ? "1px solid transparent"
               : `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)"}`,
@@ -1209,12 +1213,12 @@ export function Navbar() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
               className="fixed inset-0 z-[49] bg-black/50 backdrop-blur-sm" onClick={() => setSearchOpen(false)} />
             <motion.div ref={searchDropdownRef}
-              initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+              initial={{ opacity: 0, y: -8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.98 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed left-0 right-0 z-[51] border-t border-foreground/5 shadow-2xl"
-              style={{ top: promoTop + (showExpanded ? 170 : 56), backgroundColor: isDark ? "rgba(22,22,23,0.98)" : "rgba(250,250,250,0.98)", backdropFilter: "blur(40px)" }}
+              className="fixed left-1/2 z-[51] w-[min(960px,calc(100vw-40px))] -translate-x-1/2 overflow-hidden border border-foreground/10 shadow-2xl"
+              style={{ top: promoTop + (showExpanded ? 158 : 68), borderRadius: "var(--radius-card)", backgroundColor: isDark ? "rgba(22,22,23,0.98)" : "rgba(250,250,250,0.98)", backdropFilter: "blur(40px)" }}
             >
-              <div className="max-w-[640px] mx-auto px-5 md:px-8">
+              <div className="px-5 md:px-8">
                 <div className="flex items-center gap-4 py-4 border-b border-foreground/5">
                   <Search size={20} className="text-foreground/30 flex-shrink-0" />
                   <input ref={searchInputRef} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
@@ -1273,7 +1277,7 @@ export function Navbar() {
                           style={{ borderRadius: "var(--radius-card)" }} onClick={() => setSearchOpen(false)}
                         >
                           <div className="w-[48px] h-[48px] flex-shrink-0 overflow-hidden" style={{ borderRadius: "var(--radius)", background: isDark ? "#1a1a1c" : "#f5f5f5" }}>
-                            <ImageWithFallback src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                            <ImageWithFallback src={getPrimaryProductImage(product)} alt={product.name} className="w-full h-full object-cover" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-foreground group-hover:text-primary transition-colors truncate" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "16px", fontWeight: "var(--font-weight-medium)" }}>{product.name}</p>

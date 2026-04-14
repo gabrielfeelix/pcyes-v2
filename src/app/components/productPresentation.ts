@@ -1,5 +1,11 @@
 import { allProducts, type Product } from "./productsData";
 
+export interface CatalogHrefParams {
+  category?: string;
+  subcategory?: string;
+  search?: string;
+}
+
 export interface ProductSwatch {
   color: string;
   label: string;
@@ -56,6 +62,83 @@ function normalizeText(value: string) {
     .toLowerCase();
 }
 
+function includesAny(value: string, keywords: string[]) {
+  return keywords.some((keyword) => value.includes(keyword));
+}
+
+export function getProductSubcategory(product: Pick<Product, "name" | "category" | "subcategory">) {
+  const name = normalizeText(product.name);
+  const category = normalizeText(product.category);
+  const rawSubcategory = product.subcategory ? normalizeText(product.subcategory) : "";
+  const searchable = `${name} ${rawSubcategory}`;
+
+  if (includesAny(searchable, ["teclado", "keyboard"])) return "Teclados";
+  if (includesAny(searchable, ["mousepad", "mouse pad", "desk mat"])) return "Mousepads";
+  if (includesAny(searchable, ["mouse"])) return "Mouses";
+  if (includesAny(searchable, ["headset", "fone"])) return "Headsets";
+  if (includesAny(searchable, ["microfone", "placa de captura", "captura", "webcam"])) return product.subcategory ?? "Streaming";
+  if (includesAny(searchable, ["mini computador", "mini pc"])) return "Mini Computadores";
+  if (includesAny(searchable, ["pcyes one", "all in one"])) return "All in One";
+  if (includesAny(searchable, ["cadeira gamer"])) return "Cadeiras Gamer";
+  if (includesAny(searchable, ["cadeira ergonomica", "cadeira ergonomica", "ergonomica"])) return "Cadeiras Ergonômicas";
+  if (includesAny(searchable, ["cadeira office"])) return "Cadeiras Office";
+  if (includesAny(searchable, ["water cooler"])) return "Water Coolers";
+  if (includesAny(searchable, ["cooler fan"])) return "Cooler Fans";
+  if (includesAny(searchable, ["cooler"])) return "Coolers";
+  if (includesAny(searchable, ["gabinete"])) return "Gabinetes";
+  if (includesAny(searchable, ["placa de video", "geforce", "radeon"])) return "Placas de Vídeo";
+  if (includesAny(searchable, ["ssd", "hd ", "memoria", "memória"])) return product.subcategory ?? "Armazenamento";
+  if (includesAny(searchable, ["fonte"])) return "Fontes";
+  if (includesAny(searchable, ["monitor"])) return "Monitores";
+
+  if (product.subcategory) return product.subcategory;
+  if (category) return product.category;
+  return "Produtos";
+}
+
+export function isPlaceholderProductImage(image?: string) {
+  if (!image) return true;
+
+  const normalized = image.toLowerCase();
+  return (
+    normalized.startsWith("/home/") ||
+    normalized.includes("category-") ||
+    normalized.includes("release-keyboard-context")
+  );
+}
+
+export function hasUsableProductImage(product: Pick<Product, "image" | "images">) {
+  if (!isPlaceholderProductImage(product.image)) return true;
+  return Boolean(product.images?.some((image) => !isPlaceholderProductImage(image)));
+}
+
+export function getPrimaryProductImage(product: Pick<Product, "image" | "images">) {
+  return product.images?.find((image) => !isPlaceholderProductImage(image)) ?? product.image;
+}
+
+export function getProductImages(product: Pick<Product, "image" | "images">) {
+  const images = product.images?.filter((image) => !isPlaceholderProductImage(image)) ?? [];
+  if (!isPlaceholderProductImage(product.image) && !images.includes(product.image)) {
+    images.unshift(product.image);
+  }
+  return images.length > 0 ? images : [product.image];
+}
+
+export function getVisibleCatalogProducts(catalog: Product[] = allProducts) {
+  return catalog.filter(hasUsableProductImage);
+}
+
+export function getCatalogHref({ category, subcategory, search }: CatalogHrefParams) {
+  const params = new URLSearchParams();
+
+  if (category) params.set("category", category);
+  if (subcategory) params.set("subcategory", subcategory);
+  if (search) params.set("search", search);
+
+  const query = params.toString();
+  return query ? `/produtos?${query}` : "/produtos";
+}
+
 function getColorRule(name: string) {
   const normalized = normalizeText(name);
   return COLOR_RULES.find((rule) => rule.keywords.some((keyword) => normalized.includes(keyword)));
@@ -84,7 +167,7 @@ export function getProductSwatches(
 ): ProductSwatch[] {
   const signature = getFamilySignature(product);
   if (!signature.endsWith("::")) {
-    const variants = catalog.filter((candidate) => getFamilySignature(candidate) === signature);
+    const variants = catalog.filter((candidate) => getFamilySignature(candidate) === signature && hasUsableProductImage(candidate));
     const deduped = new Map<string, ProductSwatch>();
 
     variants.forEach((variant) => {
@@ -94,7 +177,7 @@ export function getProductSwatches(
           color: rule.color,
           label: rule.label,
           productId: variant.id,
-          image: variant.image,
+          image: getPrimaryProductImage(variant),
           name: variant.name,
         });
       }

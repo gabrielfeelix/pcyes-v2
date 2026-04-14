@@ -10,6 +10,7 @@ import { useCart } from "./CartContext";
 import { useTheme } from "./ThemeProvider";
 import { allProducts } from "./productsData";
 import { Footer } from "./Footer";
+import { getCatalogHref, getProductImages, getPrimaryProductImage, getProductSubcategory, getVisibleCatalogProducts } from "./productPresentation";
 
 function sanitizeProductHtml(value: string) {
   return value
@@ -59,11 +60,16 @@ export function ProductPage() {
     );
   }
 
-  // Use same image repeated as gallery mockup
-  const galleryImages = product.images && product.images.length > 0 ? product.images : [product.image];
-  const related = allProducts.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
+  const productSubcategory = getProductSubcategory(product);
+  const galleryImages = getProductImages(product);
+  const visibleProducts = getVisibleCatalogProducts(allProducts);
+  const related = visibleProducts
+    .filter((p) => p.category === product.category && getProductSubcategory(p) === productSubcategory && p.id !== product.id)
+    .slice(0, 4);
   if (related.length < 4) {
-    const extras = allProducts.filter((p) => p.id !== product.id && !related.find((r) => r.id === p.id)).slice(0, 4 - related.length);
+    const extras = visibleProducts
+      .filter((p) => p.category === product.category && p.id !== product.id && !related.find((r) => r.id === p.id))
+      .slice(0, 4 - related.length);
     related.push(...extras);
   }
 
@@ -85,16 +91,20 @@ export function ProductPage() {
             Home
           </Link>
           <span className="text-foreground/15" style={{ fontSize: "10px" }}>›</span>
-          <Link to="/produtos" className="text-foreground/25 hover:text-foreground/50 transition-colors" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>
-            Produtos
-          </Link>
-          <span className="text-foreground/15" style={{ fontSize: "10px" }}>›</span>
           <Link
-            to={`/produtos?category=${encodeURIComponent(product.category)}`}
+            to={getCatalogHref({ category: product.category })}
             className="text-foreground/25 hover:text-foreground/50 transition-colors"
             style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}
           >
             {product.category}
+          </Link>
+          <span className="text-foreground/15" style={{ fontSize: "10px" }}>›</span>
+          <Link
+            to={getCatalogHref({ category: product.category, subcategory: productSubcategory })}
+            className="text-foreground/25 hover:text-foreground/50 transition-colors"
+            style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}
+          >
+            {productSubcategory}
           </Link>
           <span className="text-foreground/15" style={{ fontSize: "10px" }}>›</span>
           <span className="text-foreground/50" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>
@@ -447,7 +457,7 @@ export function ProductPage() {
               </h2>
             </div>
             <Link
-              to={`/produtos?category=${encodeURIComponent(product.category)}`}
+              to={getCatalogHref({ category: product.category, subcategory: productSubcategory })}
               className="hidden md:flex items-center gap-2 text-foreground/25 hover:text-foreground/50 transition-colors duration-300"
               style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}
             >
@@ -471,7 +481,7 @@ export function ProductPage() {
                   style={{ borderRadius: "var(--radius-card)", background: isDark ? "rgba(22,22,23,0.5)" : "#f5f5f5" }}
                 >
                   <ImageWithFallback
-                    src={rProduct.image}
+                    src={getPrimaryProductImage(rProduct)}
                     alt={rProduct.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
                   />
