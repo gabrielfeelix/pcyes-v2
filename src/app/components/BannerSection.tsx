@@ -10,60 +10,80 @@ const youtubeEmbed =
 
 export function BannerSection() {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [fullyExpanded, setFullyExpanded] = useState(false);
-  const [showCta, setShowCta] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+
+  // All mutable values via refs — zero stale-closure risk, no re-registration on state change
+  const progressRef = useRef(0);
+  const expandedRef = useRef(false);
   const touchStartY = useRef(0);
 
+  // React state only for triggering re-renders
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [showCta, setShowCta] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [viewport, setViewport] = useState({ w: 1920, h: 900 });
+
+  // Viewport size tracking
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
+    const update = () => {
+      setIsMobile(window.innerWidth < 768);
+      setViewport({ w: window.innerWidth, h: window.innerHeight });
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
   }, []);
 
+  // Scroll-bound animation engine — registered once, reads refs directly
   useEffect(() => {
-    const getSectionState = () => {
-      const section = sectionRef.current;
-      if (!section) return null;
+    const section = sectionRef.current;
+    if (!section) return;
 
-      const rect = section.getBoundingClientRect();
-      return {
-        section,
-        rect,
-        shouldCapture: rect.top <= 0 && rect.bottom > window.innerHeight * 0.45,
-        isPinnedTop: Math.abs(rect.top) <= 6,
-      };
+    // Capture zone: section top is flush with (or just past) viewport top
+    const inCaptureZone = () => {
+      const r = section.getBoundingClientRect();
+      return r.top <= 1 && r.bottom > window.innerHeight * 0.4;
     };
 
-    const pinSection = (section: HTMLElement) => {
-      window.scrollTo({ top: section.offsetTop, behavior: "auto" });
+    // Pin the section by correcting any scroll overshoot
+    const pin = () => {
+      const rect = section.getBoundingClientRect();
+      window.scrollTo({ top: window.scrollY + rect.top, behavior: "auto" });
+    };
+
+    // Normalize deltaY across pixel / line / page scroll modes
+    const normWheel = (e: WheelEvent) => {
+      if (e.deltaMode === 1) return e.deltaY * 20;
+      if (e.deltaMode === 2) return e.deltaY * window.innerHeight;
+      return e.deltaY;
+    };
+
+    // Apply a pixel-space delta, update refs and state. Returns true if captured.
+    const advance = (pixelDelta: number): boolean => {
+      const prog = progressRef.current;
+      const expanded = expandedRef.current;
+
+      // At start scrolling up → release (let page scroll normally)
+      if (prog <= 0 && pixelDelta < 0) return false;
+      // At end scrolling down → release (let page continue past section)
+      if (expanded && pixelDelta > 0) return false;
+
+      const next = Math.min(Math.max(prog + pixelDelta * 0.0009, 0), 1);
+      progressRef.current = next;
+      expandedRef.current = next >= 1;
+
+      setScrollProgress(next);
+      if (next >= 0.85) setShowCta(true);
+      else if (next < 0.75) setShowCta(false);
+
+      return true;
     };
 
     const handleWheel = (e: WheelEvent) => {
-      const sectionState = getSectionState();
-      if (!sectionState?.shouldCapture) return;
-
-      if (fullyExpanded && e.deltaY < 0 && sectionState.isPinnedTop) {
-        setFullyExpanded(false);
-        setShowCta(false);
-        pinSection(sectionState.section);
+      if (!inCaptureZone()) return;
+      if (advance(normWheel(e))) {
         e.preventDefault();
-        return;
+        pin();
       }
-      if (fullyExpanded) return;
-      if (scrollProgress <= 0 && e.deltaY < 0) return;
-
-      e.preventDefault();
-      pinSection(sectionState.section);
-      const delta = e.deltaY * 0.0009;
-      setScrollProgress((prev) => {
-        const next = Math.min(Math.max(prev + delta, 0), 1);
-        if (next >= 1) { setFullyExpanded(true); setShowCta(true); }
-        else if (next < 0.75) setShowCta(false);
-        return next;
-      });
     };
 
     const handleTouchStart = (e: TouchEvent) => {
@@ -71,32 +91,14 @@ export function BannerSection() {
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      const sectionState = getSectionState();
-      if (!sectionState?.shouldCapture) return;
-
-      const deltaY = touchStartY.current - e.touches[0].clientY;
-      if (fullyExpanded && deltaY < -20 && sectionState.isPinnedTop) {
-        setFullyExpanded(false);
-        setShowCta(false);
-        pinSection(sectionState.section);
-        e.preventDefault();
-        touchStartY.current = e.touches[0].clientY;
-        return;
-      }
-      if (fullyExpanded) return;
-      if (scrollProgress <= 0 && deltaY < 0) return;
-
-      e.preventDefault();
-      pinSection(sectionState.section);
-      const factor = deltaY < 0 ? 0.008 : 0.005;
-      const delta = deltaY * factor;
-      setScrollProgress((prev) => {
-        const next = Math.min(Math.max(prev + delta, 0), 1);
-        if (next >= 1) { setFullyExpanded(true); setShowCta(true); }
-        else if (next < 0.75) setShowCta(false);
-        return next;
-      });
+      if (!inCaptureZone()) return;
+      const touchPx = touchStartY.current - e.touches[0].clientY;
       touchStartY.current = e.touches[0].clientY;
+      // Scale touch pixels to equivalent wheel-pixel units (~5.5× feels natural)
+      if (advance(touchPx * 5.5)) {
+        e.preventDefault();
+        pin();
+      }
     };
 
     window.addEventListener("wheel", handleWheel, { passive: false });
@@ -108,21 +110,28 @@ export function BannerSection() {
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
     };
-  }, [fullyExpanded, scrollProgress]);
+  }, []); // ← intentionally empty: all mutable values live in refs
 
-  // Derived visual values
-  const mediaWidth = 300 + scrollProgress * (isMobile ? 650 : 1250);
-  const mediaHeight = 400 + scrollProgress * (isMobile ? 200 : 400);
+  // Visual values derived from progress
+  const startW = 300;
+  const startH = isMobile ? 360 : 420;
+  // Interpolate to exact viewport dimensions so expansion is total at progress=1
+  const mediaWidth = startW + scrollProgress * (viewport.w - startW);
+  const mediaHeight = startH + scrollProgress * (viewport.h - startH);
   const textShift = scrollProgress * (isMobile ? 180 : 150);
   const bgOpacity = 1 - scrollProgress * 0.55;
   const overlayOpacity = 0.38 - scrollProgress * 0.3;
-  const headlineOpacity = scrollProgress < 0.65 ? 1 : Math.max(0, 1 - (scrollProgress - 0.65) / 0.2);
+  const headlineOpacity =
+    scrollProgress < 0.65 ? 1 : Math.max(0, 1 - (scrollProgress - 0.65) / 0.2);
   const borderRadius = Math.max(0, 28 - scrollProgress * 28);
 
   return (
-    <section ref={sectionRef} className="relative min-h-[100dvh] bg-[#0f1011] overflow-x-hidden">
+    <section
+      ref={sectionRef}
+      className="relative min-h-[100dvh] bg-[#0f1011] overflow-x-hidden"
+    >
       <div className="relative w-full flex flex-col items-center min-h-[100dvh]">
-        {/* Background */}
+        {/* Background image — fades out as video expands */}
         <motion.div
           className="absolute inset-0 z-0 h-full"
           animate={{ opacity: bgOpacity }}
@@ -136,16 +145,14 @@ export function BannerSection() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,48,48,0.14),transparent_42%)]" />
         </motion.div>
 
-        {/* Centered content area */}
+        {/* Centered layout */}
         <div className="flex flex-col items-center justify-center w-full min-h-[100dvh] relative z-10">
-          {/* Video container — expands on scroll */}
+          {/* Video container — grows from small card to full viewport */}
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
             style={{
               width: `${mediaWidth}px`,
               height: `${mediaHeight}px`,
-              maxWidth: "100vw",
-              maxHeight: "100dvh",
               borderRadius: `${borderRadius}px`,
               overflow: "hidden",
               boxShadow: "0 30px 90px rgba(0,0,0,0.38)",
@@ -155,7 +162,12 @@ export function BannerSection() {
               <iframe
                 src={youtubeEmbed}
                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                style={{ width: "177.78vh", height: "100vh", minWidth: "100%", minHeight: "100%" }}
+                style={{
+                  width: "177.78vh",
+                  height: "100vh",
+                  minWidth: "100%",
+                  minHeight: "100%",
+                }}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
@@ -169,7 +181,7 @@ export function BannerSection() {
             </div>
           </div>
 
-          {/* Headline — MONTE SEU SETUP / SETUP / GAMER */}
+          {/* Headline — slides apart and fades as video takes over */}
           <div
             className="flex flex-col items-center text-center gap-3 relative z-10 w-full"
             style={{ opacity: headlineOpacity }}
@@ -216,7 +228,7 @@ export function BannerSection() {
           </div>
         </div>
 
-        {/* CTA — fades in when fully expanded */}
+        {/* CTA — appears when fully expanded */}
         <motion.div
           className="absolute bottom-[72px] left-1/2 z-30 -translate-x-1/2"
           initial={{ opacity: 0, y: 28 }}
