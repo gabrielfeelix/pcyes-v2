@@ -1036,11 +1036,103 @@ export function Navbar() {
               ? "1px solid transparent"
               : `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)"}`,
           }}
-        >
-          {/* Top row */}
-          <div className="max-w-[1760px] mx-auto px-5 md:px-8 flex items-center justify-between transition-all duration-700"
-            style={{ height: showExpanded ? 50 : 72 }}
-          >
+	        >
+	          {/* Mobile header */}
+	          <div
+	            className="flex lg:hidden items-center justify-between px-4 transition-all duration-500"
+	            style={{ height: scrolled ? 60 : 64 }}
+	          >
+	            <button
+	              className={`relative z-10 flex h-10 w-10 items-center justify-center transition-colors cursor-pointer ${iconColor}`}
+	              onClick={() => setMobileOpen(!mobileOpen)}
+	              aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
+	            >
+	              {mobileOpen ? <X size={23} strokeWidth={1.7} /> : <Menu size={23} strokeWidth={1.7} />}
+	            </button>
+
+	            <AnimatePresence mode="wait" initial={false}>
+	              {scrolled ? (
+	                <motion.form
+	                  key="mobile-search"
+	                  onSubmit={handleSearchSubmit}
+	                  initial={{ opacity: 0, y: -6, scale: 0.98 }}
+	                  animate={{ opacity: 1, y: 0, scale: 1 }}
+	                  exit={{ opacity: 0, y: 6, scale: 0.98 }}
+	                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+	                  className="mx-2 flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-[8px] border border-white/10 bg-[#323232] shadow-sm backdrop-blur-xl"
+	                >
+	                  <Search size={16} className="ml-3 flex-shrink-0 text-white/55" strokeWidth={1.8} />
+	                  <input
+	                    value={searchQuery}
+	                    onChange={(e) => setSearchQuery(e.target.value)}
+	                    placeholder="Buscar"
+	                    className="h-full min-w-0 flex-1 bg-transparent px-2 text-white outline-none placeholder:text-white/48"
+	                    style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}
+	                  />
+	                  {searchQuery && (
+	                    <button
+	                      type="button"
+	                      onClick={() => setSearchQuery("")}
+	                      className="flex h-full w-8 items-center justify-center text-white/55"
+	                      aria-label="Limpar busca"
+	                    >
+	                      <X size={13} />
+	                    </button>
+	                  )}
+	                </motion.form>
+	              ) : (
+	                <motion.div
+	                  key="mobile-logo"
+	                  initial={{ opacity: 0, y: 6, scale: 0.98 }}
+	                  animate={{ opacity: 1, y: 0, scale: 1 }}
+	                  exit={{ opacity: 0, y: -6, scale: 0.98 }}
+	                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+	                  className="pointer-events-none absolute left-1/2 top-1/2 w-[150px] -translate-x-1/2 -translate-y-1/2"
+	                >
+	                  <Link to="/" className="pointer-events-auto block">
+	                    <img src={PCYES_LOGO} alt="PCYES" className="mx-auto h-[30px] w-auto object-contain" />
+	                  </Link>
+	                </motion.div>
+	              )}
+	            </AnimatePresence>
+
+	            <div className="relative z-10 flex items-center justify-end gap-1">
+	              {!scrolled && (
+	                <button
+	                  onClick={() => setSearchOpen(!searchOpen)}
+	                  className={`flex h-10 w-10 items-center justify-center transition-colors cursor-pointer ${iconColor}`}
+	                  aria-label="Buscar"
+	                >
+	                  <Search size={20} strokeWidth={1.6} />
+	                </button>
+	              )}
+	              <button
+	                onClick={() => setCartOpen(true)}
+	                className={`relative flex h-10 w-10 items-center justify-center transition-colors cursor-pointer ${iconColor}`}
+	                aria-label="Abrir carrinho"
+	              >
+	                <ShoppingBag size={20} strokeWidth={1.6} />
+	                <AnimatePresence>
+	                  {totalItems > 0 && (
+	                    <motion.span
+	                      initial={{ scale: 0 }}
+	                      animate={{ scale: 1 }}
+	                      exit={{ scale: 0 }}
+	                      className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1"
+	                      style={{ fontSize: "9px", fontFamily: "var(--font-family-inter)", fontWeight: "var(--font-weight-medium)" }}
+	                    >
+	                      <span className="text-primary-foreground">{totalItems}</span>
+	                    </motion.span>
+	                  )}
+	                </AnimatePresence>
+	              </button>
+	            </div>
+	          </div>
+
+	          {/* Top row */}
+	          <div className="max-w-[1760px] mx-auto px-5 md:px-8 hidden lg:flex items-center justify-between transition-all duration-700"
+	            style={{ height: showExpanded ? 50 : 72 }}
+	          >
             {/* Left: logo */}
             <div className="flex min-w-0 items-center lg:w-[150px] xl:w-[170px]">
               <div className="transition-all duration-700 overflow-hidden" style={{ maxWidth: showExpanded ? 0 : 200, opacity: showExpanded ? 0 : 1 }}>
@@ -1144,7 +1236,7 @@ export function Navbar() {
           </div>
 
           {/* Big logo (expanded) */}
-          <div className="text-center overflow-hidden transition-all duration-700"
+	          <div className="hidden lg:block text-center overflow-hidden transition-all duration-700"
             style={{ maxHeight: showExpanded ? 80 : 0, opacity: showExpanded ? 1 : 0, paddingBottom: showExpanded ? 12 : 0 }}
           >
             <Link to="/" className="inline-block">

@@ -123,18 +123,18 @@ function ProductGallery({ images, name, isDark }: { images: string[]; name: stri
 
         {images.length > 1 && (
           <>
-            <button
-              onClick={(e) => { e.stopPropagation(); prev(); }}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/25 backdrop-blur-sm flex items-center justify-center text-white/85 hover:bg-black/45 hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-300"
-              aria-label="Imagem anterior"
-            >
+	            <button
+	              onClick={(e) => { e.stopPropagation(); prev(); }}
+	              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/25 backdrop-blur-sm flex items-center justify-center text-white/85 hover:bg-black/45 hover:text-white md:opacity-0 md:group-hover:opacity-100 transition-all duration-300"
+	              aria-label="Imagem anterior"
+	            >
               <ChevronLeft size={17} />
             </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); next(); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/25 backdrop-blur-sm flex items-center justify-center text-white/85 hover:bg-black/45 hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-300"
-              aria-label="Próxima imagem"
-            >
+	            <button
+	              onClick={(e) => { e.stopPropagation(); next(); }}
+	              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/25 backdrop-blur-sm flex items-center justify-center text-white/85 hover:bg-black/45 hover:text-white md:opacity-0 md:group-hover:opacity-100 transition-all duration-300"
+	              aria-label="Próxima imagem"
+	            >
               <ChevronRight size={17} />
             </button>
           </>
@@ -150,9 +150,9 @@ function ProductGallery({ images, name, isDark }: { images: string[]; name: stri
         )}
       </div>
 
-      {images.length > 1 && (
-        <div className="relative z-10 flex w-full max-w-[560px] justify-center gap-3 overflow-x-auto pb-1 scrollbar-none xl:max-w-[620px]">
-          {images.map((img, i) => (
+	      {images.length > 1 && (
+	        <div className="relative z-10 hidden w-full max-w-[560px] justify-center gap-3 overflow-x-auto pb-1 scrollbar-none md:flex xl:max-w-[620px]">
+	          {images.map((img, i) => (
             <button
               key={i}
               onClick={() => setActive(i)}
@@ -163,8 +163,26 @@ function ProductGallery({ images, name, isDark }: { images: string[]; name: stri
               <ImageWithFallback src={img} alt={`${name} ${i + 1}`} className="w-full h-full object-contain p-1.5" />
             </button>
           ))}
-        </div>
-      )}
+	        </div>
+	      )}
+
+	      {images.length > 1 && (
+	        <div className="relative z-10 flex items-center justify-center gap-2 md:hidden" aria-label="Indicadores da galeria">
+	          {images.map((_, i) => (
+	            <button
+	              key={i}
+	              onClick={() => setActive(i)}
+	              className={`h-2.5 w-2.5 rounded-full border transition-all ${
+	                i === active
+	                  ? "border-foreground bg-foreground"
+	                  : "border-foreground/70 bg-transparent"
+	              }`}
+	              aria-label={`Ver imagem ${i + 1}`}
+	              aria-current={i === active ? "true" : undefined}
+	            />
+	          ))}
+	        </div>
+	      )}
 
       {/* Lightbox */}
       <AnimatePresence>
@@ -731,7 +749,7 @@ function StickyPriceCard({
             <span className={`relative inline-flex rounded-full h-2 w-2 ${inStock ? "bg-green-500" : "bg-foreground/30"}`} />
           </span>
           <span
-            className={inStock ? "text-green-500" : "text-foreground/45"}
+            className={inStock ? "text-[#4CAF50]" : "text-foreground/45"}
             style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: 600 }}
           >
             {inStock ? "Em estoque · envio em 24h" : "Sem estoque"}
@@ -827,6 +845,159 @@ function StickyPriceCard({
         priceNum={product.priceNum}
       />
     </>
+  );
+}
+
+function MobilePurchaseFlow({
+  product, qty, setQty, onBuyNow, onAddToCart, addedToCart, pixPrice, installment, discount, onSeeDescription, shippingRef,
+}: StickyCardProps & { onSeeDescription: () => void; shippingRef?: React.RefObject<HTMLDivElement> }) {
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const inStock = product.inStock !== false;
+
+  return (
+    <section className="order-4 lg:hidden w-full mt-2 mb-10" data-purchase-card="mobile-product-flow">
+      <div className="py-5 border-y border-foreground/8">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          {product.oldPrice ? (
+            <div className="flex items-center gap-2">
+              <span
+                className="text-foreground/35 line-through"
+                style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}
+              >
+                {product.oldPrice}
+              </span>
+              {discount > 0 && (
+                <span
+                  className="px-1.5 py-0.5 bg-red-500/10 text-red-500 font-bold"
+                  style={{ borderRadius: "4px", fontFamily: "var(--font-family-inter)", fontSize: "10px" }}
+                >
+                  -{discount}%
+                </span>
+              )}
+            </div>
+          ) : <span />}
+
+          <span
+            className={inStock ? "text-green-500" : "text-foreground/45"}
+            style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: 700 }}
+          >
+            {inStock ? "Em estoque" : "Sem estoque"}
+          </span>
+        </div>
+
+        <div className="mb-3">
+          <p
+            className="text-foreground leading-none mb-2"
+            style={{
+              fontFamily: "var(--font-family-figtree)",
+              fontSize: "clamp(34px, 10vw, 44px)",
+              fontWeight: 650,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            {formatBRL(pixPrice)}
+          </p>
+          <p
+            className="text-foreground/60"
+            style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", lineHeight: "1.55" }}
+          >
+            à vista no <span className="text-[#4CAF50] font-bold">PIX</span> com{" "}
+            <span className="text-[#4CAF50] font-bold">10% de desconto</span>
+          </p>
+        </div>
+
+        <p
+          className="text-foreground/68 mb-3"
+          style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", lineHeight: "1.6" }}
+        >
+          ou <span className="text-foreground font-bold">{product.price}</span> em até{" "}
+          <span className="text-foreground font-bold">12x de {formatBRL(installment)}</span> sem juros no cartão
+        </p>
+
+        <button
+          onClick={() => setPaymentOpen(true)}
+          className="mb-5 inline-flex items-center gap-1 text-foreground underline underline-offset-4 decoration-foreground/30 cursor-pointer"
+          style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: 700 }}
+        >
+          Ver opções de pagamento
+          <ArrowUpRight size={12} />
+        </button>
+
+        <div className="flex items-center justify-between mb-3">
+          <span
+            className="text-foreground/50 font-semibold tracking-wide"
+            style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", letterSpacing: "0.08em" }}
+          >
+            QUANTIDADE
+          </span>
+          <div className="flex items-center rounded-full border border-foreground/12 overflow-hidden">
+            <button
+              onClick={() => setQty(Math.max(1, qty - 1))}
+              className="w-9 h-9 flex items-center justify-center text-foreground/45 disabled:opacity-30"
+              disabled={qty <= 1}
+              aria-label="Diminuir quantidade"
+            >
+              <Minus size={13} />
+            </button>
+            <span
+              className="w-10 h-9 flex items-center justify-center text-foreground border-x border-foreground/8 tabular-nums"
+              style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: 700 }}
+            >
+              {qty}
+            </span>
+            <button
+              onClick={() => setQty(qty + 1)}
+              className="w-9 h-9 flex items-center justify-center text-foreground/45 disabled:opacity-30"
+              disabled={!inStock}
+              aria-label="Aumentar quantidade"
+            >
+              <Plus size={13} />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2.5">
+          <button
+            onClick={onBuyNow}
+            disabled={!inStock}
+            className="h-12 flex items-center justify-center gap-2 bg-[#4CAF50] text-white font-bold active:scale-[0.99] transition-all cursor-pointer disabled:opacity-40"
+            style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
+          >
+            Comprar agora
+          </button>
+          <button
+            onClick={onAddToCart}
+            disabled={!inStock}
+            className={`h-12 flex items-center justify-center gap-2 font-bold transition-all cursor-pointer disabled:opacity-40 ${
+              addedToCart
+                ? "bg-[#4CAF50]/10 text-[#4CAF50]"
+                : "bg-white text-black border border-foreground/10"
+            }`}
+            style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
+          >
+            {addedToCart ? (
+              <><Check size={15} strokeWidth={2.2} /> Adicionado ao carrinho</>
+            ) : (
+              <><ShoppingBag size={15} strokeWidth={1.9} /> Adicionar ao carrinho</>
+            )}
+          </button>
+        </div>
+      </div>
+
+      <div ref={shippingRef} className="py-5 border-b border-foreground/8" data-mobile-shipping-checkpoint>
+        <AutoShippingCalculator productPrice={product.priceNum} />
+      </div>
+
+      <div className="py-5 border-b border-foreground/8">
+        <AboutProduct product={product} onSeeDescription={onSeeDescription} />
+      </div>
+
+      <PaymentModal
+        open={paymentOpen}
+        onClose={() => setPaymentOpen(false)}
+        priceNum={product.priceNum}
+      />
+    </section>
   );
 }
 
@@ -1567,10 +1738,12 @@ export function ProductPage() {
 
   const [qty, setQty] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [showMobileStickyCta, setShowMobileStickyCta] = useState(false);
 
   const relatedRef = useRef<HTMLDivElement>(null);
   const reviewsRef = useRef<HTMLDivElement>(null);
   const descriptionRef = useRef<HTMLDivElement>(null);
+  const mobileShippingRef = useRef<HTMLDivElement>(null);
   const relatedInView = useInView(relatedRef, { once: true, amount: 0.1 });
 
   const scrollToReviews = () => {
@@ -1580,6 +1753,26 @@ export function ProductPage() {
   const scrollToDescription = () => {
     descriptionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+
+  useEffect(() => {
+    const updateStickyCta = () => {
+      const shippingEl = mobileShippingRef.current;
+      if (!shippingEl || window.innerWidth >= 1024) {
+        setShowMobileStickyCta(false);
+        return;
+      }
+
+      setShowMobileStickyCta(shippingEl.getBoundingClientRect().top < window.innerHeight - 180);
+    };
+
+    updateStickyCta();
+    window.addEventListener("scroll", updateStickyCta, { passive: true });
+    window.addEventListener("resize", updateStickyCta);
+    return () => {
+      window.removeEventListener("scroll", updateStickyCta);
+      window.removeEventListener("resize", updateStickyCta);
+    };
+  }, [product?.id]);
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [id]);
 
@@ -1670,10 +1863,10 @@ export function ProductPage() {
   const liked = isFavorite(product.id);
 
   return (
-    <div className="pt-[140px] md:pt-[180px]">
+    <div className="pt-[70px] lg:pt-[180px]">
       {/* Breadcrumb */}
-      <div className="px-5 md:px-8 pt-6 pb-2">
-        <div className="max-w-[1760px] mx-auto flex items-center gap-1.5 flex-wrap">
+      <div className="px-5 md:px-8 pt-1 pb-0 lg:pt-6 lg:pb-2">
+        <div className="max-w-[1760px] mx-auto hidden lg:flex items-center gap-1.5 flex-wrap">
           {[
             { label: "Home", to: "/" },
             { label: product.category, to: getCatalogHref({ category: product.category }) },
@@ -1701,7 +1894,7 @@ export function ProductPage() {
       </div>
 
       {/* Main PDP */}
-      <div className="px-5 md:px-8 pt-6 pb-24">
+      <div className="px-5 md:px-8 pt-2 pb-24 lg:pt-6">
         <div className="max-w-[1760px] mx-auto grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] items-start gap-8 xl:gap-10">
           <div className="min-w-0 lg:col-start-1 lg:row-start-1">
             <div className="flex flex-col lg:flex-row items-start gap-8 xl:gap-10">
@@ -1711,17 +1904,60 @@ export function ProductPage() {
             initial={{ opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full lg:w-[50%] xl:w-[52%] flex-shrink-0"
+            className="order-2 w-full lg:order-none lg:w-[50%] xl:w-[52%] flex-shrink-0"
           >
             <ProductGallery images={galleryImages} name={product.name} isDark={isDark} />
           </motion.div>
+
+          {swatches.length > 1 && (
+            <div className="order-3 lg:hidden w-full">
+              <p
+                className="text-foreground/55 mb-2.5 font-semibold tracking-wide"
+                style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", letterSpacing: "0.1em" }}
+              >
+                COR · <span className="text-foreground/40 font-medium tracking-normal normal-case">
+                  {swatches.find((s) => s.productId === product.id)?.label}
+                </span>
+              </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                {swatches.map((sw) => (
+                  <button
+                    key={sw.productId}
+                    title={sw.label}
+                    onClick={() => navigate(`/produto/${sw.productId}`)}
+                    className={`w-8 h-8 rounded-full border-2 transition-all ${
+                      sw.productId === product.id
+                        ? "border-primary ring-2 ring-primary/25 ring-offset-2 ring-offset-background scale-105"
+                        : "border-foreground/15"
+                    }`}
+                    style={{ backgroundColor: sw.color }}
+                    aria-label={sw.label}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          <MobilePurchaseFlow
+            product={product}
+            qty={qty}
+            setQty={setQty}
+            onBuyNow={handleBuyNow}
+            onAddToCart={handleAdd}
+            addedToCart={addedToCart}
+            pixPrice={pixPrice}
+            installment={installment}
+            discount={discount}
+            onSeeDescription={scrollToDescription}
+            shippingRef={mobileShippingRef}
+          />
 
           {/* Middle column: title, rating, share/like, description */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.05 }}
-            className="w-full lg:flex-1 min-w-0"
+            className="order-1 w-full lg:order-none lg:flex-1 min-w-0"
           >
             {/* Brand + badges row */}
             <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
@@ -1826,7 +2062,7 @@ export function ProductPage() {
 
             {/* Color swatches */}
             {swatches.length > 1 && (
-              <div className="mb-6">
+              <div className="hidden lg:block mb-6">
                 <p
                   className="text-foreground/55 mb-2.5 font-semibold tracking-wide"
                   style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", letterSpacing: "0.1em" }}
@@ -1857,7 +2093,9 @@ export function ProductPage() {
             <div className="h-px bg-foreground/6 mb-6" />
 
             {/* About / bullets */}
-            <AboutProduct product={product} onSeeDescription={scrollToDescription} />
+            <div className="hidden lg:block">
+              <AboutProduct product={product} onSeeDescription={scrollToDescription} />
+            </div>
           </motion.div>
             </div>
           </div>
@@ -1867,7 +2105,7 @@ export function ProductPage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-8 mb-10 w-full lg:col-start-2 lg:row-start-1 lg:mt-0 lg:mb-0 lg:sticky lg:top-[88px] lg:self-start"
+              className="hidden w-full lg:col-start-2 lg:row-start-1 lg:block lg:sticky lg:top-[88px] lg:self-start"
             >
               <StickyPriceCard
                 product={product}
@@ -1979,7 +2217,9 @@ export function ProductPage() {
       </div>
 
       {/* Mobile sticky CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden">
+      <div className={`fixed bottom-0 left-0 right-0 z-40 lg:hidden transition-all duration-300 ${
+        showMobileStickyCta ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
+      }`}>
         <div
           className="px-4 py-3 flex items-center gap-3 border-t border-foreground/10"
           style={{ background: isDark ? "rgba(16,16,17,0.95)" : "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)" }}
@@ -1989,13 +2229,13 @@ export function ProductPage() {
               {product.name.split(" ").slice(0, 5).join(" ")}…
             </p>
             <p className="text-foreground font-bold" style={{ fontFamily: "var(--font-family-inter)", fontSize: "15px" }}>
-              {formatBRL(pixPrice)} <span className="text-green-500 text-xs font-normal">no PIX</span>
+              {formatBRL(pixPrice)} <span className="text-[#4CAF50] text-xs font-normal">no PIX</span>
             </p>
           </div>
           <button
             onClick={handleBuyNow}
             disabled={product.inStock === false}
-            className="px-5 py-3 flex items-center gap-2 font-semibold transition-all cursor-pointer disabled:opacity-40 bg-[#059669] text-white hover:bg-[#047857]"
+            className="px-5 py-3 flex items-center gap-2 font-semibold transition-all cursor-pointer disabled:opacity-40 bg-[#4CAF50] text-white"
             style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "13px", whiteSpace: "nowrap" }}
           >
             <Zap size={14} fill="currentColor" />
