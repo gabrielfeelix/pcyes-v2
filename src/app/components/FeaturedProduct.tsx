@@ -62,7 +62,28 @@ export function FeaturedProduct({ label, title, description, image, imageAlt, re
       className="px-5 py-[10px] md:px-[72.5px]"
       style={{ background: "linear-gradient(97.665deg, #000000 34.936%, #0f0f0f 101.8%)" }}
     >
-      <div className={`max-w-[1760px] mx-auto flex flex-col ${reverse ? "md:flex-row-reverse" : "md:flex-row"} items-center gap-10 px-0 py-16 lg:gap-[10px] lg:px-[172px] lg:py-[86px]`}>
+      <div className={`relative max-w-[1760px] mx-auto flex flex-col ${reverse ? "md:flex-row-reverse" : "md:flex-row"} items-center gap-10 px-0 py-16 lg:gap-[10px] lg:px-[172px] lg:py-[86px]`}>
+        {activeIndex > 0 && (
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setActiveIndex((index) => Math.max(0, index - 1)); }}
+            className="absolute left-0 top-1/2 z-30 hidden h-[52px] w-[52px] -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-[#1d1d1d]/85 text-white/80 shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm transition-all duration-300 hover:border-white/30 hover:text-white md:flex"
+            aria-label="Lançamento anterior"
+          >
+            <ArrowRight size={20} strokeWidth={1.6} className="rotate-180" />
+          </button>
+        )}
+        {activeIndex < carouselItems.length - 1 && (
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setActiveIndex((index) => Math.min(carouselItems.length - 1, index + 1)); }}
+            className="absolute right-0 top-1/2 z-30 hidden h-[52px] w-[52px] -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-[#1d1d1d]/85 text-white/80 shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm transition-all duration-300 hover:border-white/30 hover:text-white md:flex"
+            aria-label="Próximo lançamento"
+          >
+            <ArrowRight size={20} strokeWidth={1.6} />
+          </button>
+        )}
+
         {/* Image */}
         <motion.div className="w-full md:w-[934px] md:flex-none" style={{ y: imageY }}>
           <motion.div
@@ -84,26 +105,6 @@ export function FeaturedProduct({ label, title, description, image, imageAlt, re
                 <ArrowUpRight size={18} className="text-primary-foreground" />
               </div>
             </Link>
-            {activeIndex > 0 && (
-              <button
-                type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setActiveIndex((index) => Math.max(0, index - 1)); }}
-                className="absolute left-4 top-1/2 z-20 hidden h-[52px] w-[52px] -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-[#1d1d1d]/85 text-white/80 shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm transition-all duration-300 hover:border-white/30 hover:text-white md:flex"
-                aria-label="Lançamento anterior"
-              >
-                <ArrowRight size={20} strokeWidth={1.6} className="rotate-180" />
-              </button>
-            )}
-            {activeIndex < carouselItems.length - 1 && (
-              <button
-                type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setActiveIndex((index) => Math.min(carouselItems.length - 1, index + 1)); }}
-                className="absolute right-4 top-1/2 z-20 hidden h-[52px] w-[52px] -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-[#1d1d1d]/85 text-white/80 shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm transition-all duration-300 hover:border-white/30 hover:text-white md:flex"
-                aria-label="Próximo lançamento"
-              >
-                <ArrowRight size={20} strokeWidth={1.6} />
-              </button>
-            )}
           </motion.div>
         </motion.div>
 

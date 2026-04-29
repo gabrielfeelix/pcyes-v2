@@ -272,7 +272,7 @@ export function ProductCarousel({
                     <div className="absolute top-4 left-4 flex flex-wrap gap-2">
                       {discountBadge && (
                         <span
-                          className="bg-primary text-primary-foreground px-3 py-1"
+                          className="bg-emerald-500 text-white px-3 py-1"
                           style={{ borderRadius: "100px", fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "var(--font-weight-medium)", letterSpacing: "0.1em" }}
                         >
                           {discountBadge}

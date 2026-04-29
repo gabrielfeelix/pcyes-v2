@@ -13,6 +13,7 @@ import { useTheme } from "./ThemeProvider";
 import { Footer } from "./Footer";
 import { allProducts, allTags as productTags, brands as productBrands, categories as productCategories, type Product } from "./productsData";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { ProductCarousel } from "./ProductCarousel";
 import {
   findProductBySwatch,
   getCatalogHref,
@@ -50,6 +51,24 @@ const GLOBAL_MAX = 15000;
 function getDiscount(p: Product) {
   if (!p.oldPriceNum || p.oldPriceNum <= p.priceNum) return 0;
   return Math.round(((p.oldPriceNum - p.priceNum) / p.oldPriceNum) * 100);
+}
+
+function getSwitchBadgeInfo(product: Product) {
+  const normalized = `${product.badge ?? ""} ${product.name}`.toLowerCase();
+  if (!normalized.includes("switch")) return null;
+  if (normalized.includes("blue")) return { src: "/switches/blue-switch.png", label: product.badge ?? "Blue Switch" };
+  if (normalized.includes("red")) return { src: "/switches/red-dragon.png", label: product.badge ?? "Red Switch" };
+  if (normalized.includes("brown")) return { src: "/switches/brown-switch1.png", label: product.badge ?? "Brown Switch" };
+  return null;
+}
+
+function getProductAboutBullets(product: Product) {
+  return product.features?.length
+    ? product.features
+    : (product.description ?? "")
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean);
 }
 
 /* ── Color extraction ── */
@@ -100,7 +119,7 @@ function PriceRangeSlider({
     return Math.max(0, Math.min(1, (x - rect.left) / rect.width));
   };
 
-  const handlePointerDown = (thumb: "min" | "max") => (e: React.MouseEvent) => {
+  const handlePointerDown = (thumb: "min" | "max") => (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     setDragging(thumb);
     const pct = getPctFromEvent(e);
@@ -139,19 +158,25 @@ function PriceRangeSlider({
         {/* Min thumb */}
         <div
           onMouseDown={handlePointerDown("min")}
-          className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-primary border-2 border-background shadow-md cursor-grab active:cursor-grabbing z-10"
+          onTouchStart={handlePointerDown("min") as any}
+          className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-primary border-2 border-background shadow-md cursor-grab active:cursor-grabbing z-10 flex items-center justify-center"
           style={{ left: `calc(${minPct}% - 10px)` }}
           aria-label="Preço mínimo"
           role="slider"
-        />
+        >
+          <div className="absolute w-11 h-11 bg-transparent" />
+        </div>
         {/* Max thumb */}
         <div
           onMouseDown={handlePointerDown("max")}
-          className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-primary border-2 border-background shadow-md cursor-grab active:cursor-grabbing z-10"
+          onTouchStart={handlePointerDown("max") as any}
+          className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-primary border-2 border-background shadow-md cursor-grab active:cursor-grabbing z-10 flex items-center justify-center"
           style={{ left: `calc(${maxPct}% - 10px)` }}
           aria-label="Preço máximo"
           role="slider"
-        />
+        >
+          <div className="absolute w-11 h-11 bg-transparent" />
+        </div>
       </div>
       </div>
       {/* Min / Max inputs */}
@@ -243,8 +268,7 @@ export function ProductsPage() {
       const w = window.innerWidth;
       if (w >= 1800) setColsCount(4);
       else if (w >= 1280) setColsCount(3);
-      else if (w >= 768) setColsCount(2);
-      else setColsCount(1);
+      else setColsCount(2);
     };
     update();
     window.addEventListener("resize", update);
@@ -641,46 +665,52 @@ export function ProductsPage() {
                 )}
               </AnimatePresence>
 
-              {/* ── Loading skeleton ── */}
-              {isLoading ? (
-                <div className={`grid gap-x-6 gap-y-10 ${gridMode === "grid" ? `grid-cols-1 sm:grid-cols-2 xl:grid-cols-${colsCount}` : "space-y-4"}`}>
-                  {Array.from({ length: colsCount * 2 }).map((_, i) => (
-                    <div key={i} className="animate-pulse" style={{ borderRadius: "var(--radius-card)" }}>
-                      <div className="aspect-square bg-foreground/[0.05]" style={{ borderRadius: "var(--radius-card)" }} />
-                      <div className="mt-4 h-4 bg-foreground/[0.05] w-20 rounded" />
-                      <div className="mt-3 h-5 bg-foreground/[0.05] w-full rounded" />
-                      <div className="mt-2 h-5 bg-foreground/[0.05] w-24 rounded" />
-                    </div>
-                  ))}
-                </div>
-              ) : filtered.length === 0 ? (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-32">
+              {/* ── Products Area ── */}
+              {filtered.length === 0 ? (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
                   <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-foreground/[0.05] flex items-center justify-center">
                     <ShoppingBag size={24} className="text-foreground/30" />
                   </div>
                   <p className="text-foreground mb-3" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "24px", fontWeight: "var(--font-weight-medium)" }}>Nenhum produto encontrado</p>
                   <p className="text-foreground/50 mb-8" style={{ fontFamily: "var(--font-family-inter)", fontSize: "15px" }}>Tente ajustar os filtros ou mudar os termos de busca.</p>
                   <button onClick={clearAll}
-                    className="px-6 py-3 border border-foreground/15 text-foreground/70 hover:text-foreground hover:border-foreground/30 transition-all font-medium"
+                    className="px-6 py-3 border border-foreground/15 text-foreground/70 hover:text-foreground hover:border-foreground/30 transition-all font-medium mb-16"
                     style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
                   >Limpar filtros</button>
+                  
+                  {/* Produtos Sugeridos (Empty State) */}
+                  <div className="text-left mt-8 border-t border-foreground/10 pt-16">
+                    <ProductCarousel 
+                      title="Você pode se interessar"
+                      label="SUGESTÕES"
+                      productIds={validProducts.slice(0, 8).map(p => p.id)}
+                    />
+                  </div>
                 </motion.div>
-              ) : gridMode === "grid" ? (
-                <div className={`grid gap-x-6 gap-y-10 grid-cols-1 sm:grid-cols-2 xl:grid-cols-${colsCount}`}>
-                  <AnimatePresence mode="popLayout">
+              ) : (
+                <div className={`relative transition-opacity duration-300 ${isLoading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
+                  {isLoading && (
+                    <div className="absolute inset-0 z-20 flex items-start justify-center pt-32">
+                      <div className="w-10 h-10 border-4 border-foreground/10 border-t-foreground rounded-full animate-spin shadow-lg" />
+                    </div>
+                  )}
+                  {gridMode === "grid" ? (
+                    <div className={`grid gap-x-4 sm:gap-x-6 gap-y-14 grid-cols-2 xl:grid-cols-${colsCount}`}>
+                      <AnimatePresence mode="popLayout">
                     {paginatedProducts.map((product, i) => {
                       const displayProduct = selectedVariants[product.id] ?? product;
                       const discount = getDiscount(displayProduct);
                       const productImages = getProductImages(displayProduct);
                       const imgIdx = getImageIndex(displayProduct.id, productImages.length);
                       const swatches = getProductSwatches(displayProduct);
+                      const switchBadgeInfo = getSwitchBadgeInfo(displayProduct);
 
                       return (
                         <motion.div key={product.id} layout initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96 }}
                           transition={{ duration: 0.3, delay: Math.min(i * 0.025, 0.35) }}
                           className="group relative"
                         >
-                          <div className="relative overflow-hidden mb-4 aspect-square" style={{ borderRadius: "var(--radius-card)", background: isDark ? "#1a1a1c" : "#f0f0f0" }}>
+                          <div className={`relative overflow-hidden mb-4 aspect-square transition-all ${displayProduct.inStock === false ? 'opacity-60 grayscale-[0.5]' : ''}`} style={{ borderRadius: "var(--radius-card)", background: isDark ? "#1a1a1c" : "#f0f0f0" }}>
                             <Link to={`/produto/${displayProduct.id}`} className="block h-full">
                               <ImageWithFallback
                                 src={productImages[imgIdx]}
@@ -693,16 +723,20 @@ export function ProductsPage() {
                             </Link>
 
                             {/* Badges — top-left corner */}
-                            <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
-                              {discount > 0 && (
-                                <span className="px-2.5 py-1 bg-red-600 text-white shadow-sm" style={{ borderRadius: "4px", fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: "700", letterSpacing: "0.03em" }}>
-                                  {discount}% OFF
+                            <div className="absolute top-3 left-3 flex items-start gap-2 z-10">
+                              {switchBadgeInfo ? (
+                                <span className="flex h-12 w-12 items-center justify-center overflow-hidden border border-white/10 bg-black/35 shadow-sm backdrop-blur-sm" style={{ borderRadius: "7px" }} title={switchBadgeInfo.label}>
+                                  <img src={switchBadgeInfo.src} alt={switchBadgeInfo.label} className="h-full w-full object-contain p-0.5" />
                                 </span>
-                              )}
-                              {displayProduct.badge && (
+                              ) : displayProduct.badge && (
                                 <span className={`px-2.5 py-1 shadow-sm ${displayProduct.badge.toUpperCase().includes('BLUE') ? 'bg-blue-600 text-white' : displayProduct.badge.toUpperCase().includes('RED') ? 'bg-red-600 text-white' : displayProduct.badge.toUpperCase().includes('BROWN') ? 'bg-amber-700 text-white' : 'bg-primary text-primary-foreground'}`}
                                   style={{ borderRadius: "4px", fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "600", letterSpacing: "0.03em" }}>
                                   {displayProduct.badge}
+                                </span>
+                              )}
+                              {discount > 0 && (
+                                <span className="px-2.5 py-1 bg-emerald-500 text-white shadow-sm" style={{ borderRadius: "4px", fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: "700", letterSpacing: "0.03em" }}>
+                                  {discount}% OFF
                                 </span>
                               )}
                               {displayProduct.inStock === false && (
@@ -731,20 +765,24 @@ export function ProductsPage() {
                             {/* Carousel arrows (multi-image) */}
                             {productImages.length > 1 && (
                               <>
-                                <button
-                                  onClick={(e) => { e.preventDefault(); setImageIdx(displayProduct.id, imgIdx - 1, productImages.length); }}
-                                  className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 text-white hover:bg-black/50 z-10"
-                                  aria-label="Imagem anterior"
-                                >
-                                  <ChevronLeft size={18} />
-                                </button>
-                                <button
-                                  onClick={(e) => { e.preventDefault(); setImageIdx(displayProduct.id, imgIdx + 1, productImages.length); }}
-                                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 delay-75 text-white hover:bg-black/50 z-10"
-                                  aria-label="Próxima imagem"
-                                >
-                                  <ChevronRight size={18} />
-                                </button>
+                                {imgIdx > 0 && (
+                                  <button
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setImageIdx(displayProduct.id, imgIdx - 1, productImages.length); }}
+                                    className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 text-white hover:bg-black/50 z-10"
+                                    aria-label="Imagem anterior"
+                                  >
+                                    <ChevronLeft size={18} />
+                                  </button>
+                                )}
+                                {imgIdx < productImages.length - 1 && (
+                                  <button
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setImageIdx(displayProduct.id, imgIdx + 1, productImages.length); }}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 delay-75 text-white hover:bg-black/50 z-10"
+                                    aria-label="Próxima imagem"
+                                  >
+                                    <ChevronRight size={18} />
+                                  </button>
+                                )}
                                 {/* Dots */}
                                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10">
                                   {productImages.map((_, idx) => (
@@ -842,10 +880,10 @@ export function ProductsPage() {
                           className="group flex flex-col sm:flex-row sm:items-center gap-5 border border-foreground/10 hover:border-foreground/20 p-4 transition-all duration-300"
                           style={{ borderRadius: "var(--radius-card)" }}
                         >
-                          <Link to={`/produto/${product.id}`} className="w-full sm:w-[140px] aspect-square sm:h-[140px] flex-shrink-0 overflow-hidden relative block" style={{ borderRadius: "var(--radius-button)", background: isDark ? "#1a1a1c" : "#f0f0f0" }}>
+                          <Link to={`/produto/${product.id}`} className={`w-full sm:w-[140px] aspect-square sm:h-[140px] flex-shrink-0 overflow-hidden relative block transition-all ${product.inStock === false ? 'opacity-60 grayscale-[0.5]' : ''}`} style={{ borderRadius: "var(--radius-button)", background: isDark ? "#1a1a1c" : "#f0f0f0" }}>
                             <ImageWithFallback src={getPrimaryProductImage(product)} alt={product.name} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                             {discount > 0 && (
-                              <span className="absolute top-2 left-2 px-2 py-1 bg-red-600 text-white" style={{ borderRadius: "4px", fontSize: "11px", fontWeight: "700" }}>{discount}% OFF</span>
+                              <span className="absolute top-2 left-2 px-2 py-1 bg-emerald-500 text-white" style={{ borderRadius: "4px", fontSize: "11px", fontWeight: "700" }}>{discount}% OFF</span>
                             )}
                           </Link>
                           <div className="flex-1 min-w-0">
@@ -879,54 +917,78 @@ export function ProductsPage() {
                   </AnimatePresence>
                 </div>
               )}
+                </div>
+              )}
 
               {/* ── Pagination ── */}
               {pageCount > 1 && (
-                <div className="flex items-center justify-center gap-1.5 mt-14 mb-2">
-                  <button
-                    onClick={() => { setCurrentPage((p) => Math.max(1, p - 1)); mainRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
-                    disabled={currentPage === 1}
-                    className="w-9 h-9 flex items-center justify-center border border-foreground/10 text-foreground/50 hover:text-foreground hover:border-foreground/30 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
-                    style={{ borderRadius: "var(--radius-button)" }}
-                    aria-label="Página anterior"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
+                <>
+                  {/* Desktop Pagination */}
+                  <div className="hidden md:flex items-center justify-center gap-1.5 mt-14 mb-2">
+                    <button
+                      onClick={() => { setCurrentPage((p) => Math.max(1, p - 1)); mainRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
+                      disabled={currentPage === 1}
+                      className="w-9 h-9 flex items-center justify-center border border-foreground/10 text-foreground/50 hover:text-foreground hover:border-foreground/30 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
+                      style={{ borderRadius: "var(--radius-button)" }}
+                      aria-label="Página anterior"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
 
-                  {Array.from({ length: pageCount }, (_, i) => i + 1).map((page) => {
-                    const isCurrent = page === currentPage;
-                    const isNearCurrent = Math.abs(page - currentPage) <= 1;
-                    const isEdge = page === 1 || page === pageCount;
-                    if (!isNearCurrent && !isEdge) {
-                      if (page === 2 || page === pageCount - 1) {
-                        return <span key={page} className="text-foreground/25 px-1" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>…</span>;
+                    {Array.from({ length: pageCount }, (_, i) => i + 1).map((page) => {
+                      const isCurrent = page === currentPage;
+                      const isNearCurrent = Math.abs(page - currentPage) <= 1;
+                      const isEdge = page === 1 || page === pageCount;
+                      if (!isNearCurrent && !isEdge) {
+                        if (page === 2 || page === pageCount - 1) {
+                          return <span key={page} className="text-foreground/25 px-1" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>…</span>;
+                        }
+                        return null;
                       }
-                      return null;
-                    }
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => { setCurrentPage(page); mainRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
-                        className={`w-9 h-9 flex items-center justify-center border transition-all ${isCurrent ? "border-foreground bg-foreground text-background font-bold" : "border-foreground/10 text-foreground/60 hover:text-foreground hover:border-foreground/30"}`}
-                        style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
-                        aria-label={`Página ${page}`}
-                        aria-current={isCurrent ? "page" : undefined}
-                      >
-                        {page}
-                      </button>
-                    );
-                  })}
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => { setCurrentPage(page); mainRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
+                          className={`w-9 h-9 flex items-center justify-center border transition-all ${isCurrent ? "border-foreground bg-foreground text-background font-bold" : "border-foreground/10 text-foreground/60 hover:text-foreground hover:border-foreground/30"}`}
+                          style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
+                          aria-label={`Página ${page}`}
+                          aria-current={isCurrent ? "page" : undefined}
+                        >
+                          {page}
+                        </button>
+                      );
+                    })}
 
-                  <button
-                    onClick={() => { setCurrentPage((p) => Math.min(pageCount, p + 1)); mainRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
-                    disabled={currentPage === pageCount}
-                    className="w-9 h-9 flex items-center justify-center border border-foreground/10 text-foreground/50 hover:text-foreground hover:border-foreground/30 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
-                    style={{ borderRadius: "var(--radius-button)" }}
-                    aria-label="Próxima página"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
+                    <button
+                      onClick={() => { setCurrentPage((p) => Math.min(pageCount, p + 1)); mainRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
+                      disabled={currentPage === pageCount}
+                      className="w-9 h-9 flex items-center justify-center border border-foreground/10 text-foreground/50 hover:text-foreground hover:border-foreground/30 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
+                      style={{ borderRadius: "var(--radius-button)" }}
+                      aria-label="Próxima página"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                  
+                  {/* Mobile Pagination */}
+                  <div className="flex md:hidden items-center justify-between mt-12 mb-4 w-full gap-4">
+                    <button
+                      onClick={() => { setCurrentPage((p) => Math.max(1, p - 1)); mainRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
+                      disabled={currentPage === 1}
+                      className="flex-1 py-3.5 border border-foreground/20 text-foreground/70 disabled:opacity-30 rounded-full font-medium transition-opacity"
+                    >
+                      Anterior
+                    </button>
+                    <span className="text-sm font-medium text-foreground/60">{currentPage} / {pageCount}</span>
+                    <button
+                      onClick={() => { setCurrentPage((p) => Math.min(pageCount, p + 1)); mainRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
+                      disabled={currentPage === pageCount}
+                      className="flex-1 py-3.5 border border-foreground/20 text-foreground/70 disabled:opacity-30 rounded-full font-medium transition-opacity"
+                    >
+                      Próxima
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -965,7 +1027,13 @@ export function ProductsPage() {
 
       {/* ── Quick View Modal ── */}
       <AnimatePresence>
-        {quickViewProduct && (
+        {quickViewProduct && (() => {
+          const quickViewImages = getProductImages(quickViewProduct);
+          const quickViewImageIndex = getImageIndex(quickViewProduct.id, quickViewImages.length);
+          const quickViewDiscount = getDiscount(quickViewProduct);
+          const quickViewBullets = getProductAboutBullets(quickViewProduct).slice(0, 6);
+
+          return (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
@@ -981,19 +1049,41 @@ export function ProductsPage() {
                 aria-label="Fechar"
               ><X size={20} /></button>
               <div className="grid md:grid-cols-2 gap-8 items-center">
-                <div className="aspect-square overflow-hidden" style={{ borderRadius: "var(--radius-card)", background: isDark ? "#1a1a1c" : "#f0f0f0" }}>
-                  <ImageWithFallback src={getPrimaryProductImage(quickViewProduct)} alt={quickViewProduct.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                  {getDiscount(quickViewProduct) > 0 && (
-                    <span className="absolute top-4 left-4 px-3 py-1.5 bg-red-600 text-white shadow-sm" style={{ borderRadius: "4px", fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "700", letterSpacing: "0.03em" }}>
-                      {getDiscount(quickViewProduct)}% OFF
+                <div className="relative aspect-square overflow-hidden" style={{ borderRadius: "var(--radius-card)", background: isDark ? "#161617" : "#fff" }}>
+                  <ImageWithFallback src={quickViewImages[quickViewImageIndex]} alt={quickViewProduct.name} loading="lazy" decoding="async" className="h-full w-full object-contain p-6" />
+                  {quickViewDiscount > 0 && (
+                    <span className="absolute top-4 left-4 px-3 py-1.5 bg-emerald-500 text-white shadow-sm" style={{ borderRadius: "4px", fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "700", letterSpacing: "0.03em" }}>
+                      {quickViewDiscount}% OFF
                     </span>
+                  )}
+                  {quickViewImages.length > 1 && (
+                    <>
+                      {quickViewImageIndex > 0 && (
+                        <button
+                          onClick={(e) => { e.preventDefault(); setImageIdx(quickViewProduct.id, quickViewImageIndex - 1, quickViewImages.length); }}
+                          className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-md transition-colors hover:bg-black/55"
+                          aria-label="Imagem anterior"
+                        >
+                          <ChevronLeft size={20} />
+                        </button>
+                      )}
+                      {quickViewImageIndex < quickViewImages.length - 1 && (
+                        <button
+                          onClick={(e) => { e.preventDefault(); setImageIdx(quickViewProduct.id, quickViewImageIndex + 1, quickViewImages.length); }}
+                          className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-md transition-colors hover:bg-black/55"
+                          aria-label="Próxima imagem"
+                        >
+                          <ChevronRight size={20} />
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
                 <div className="flex flex-col justify-center">
                   <p className="text-foreground/40 uppercase mb-3 font-semibold tracking-wider" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>{quickViewProduct.category}</p>
                   <h3 className="text-foreground mb-3 text-2xl md:text-3xl" style={{ fontFamily: "var(--font-family-figtree)", fontWeight: "var(--font-weight-medium)", lineHeight: 1.2 }}>{quickViewProduct.name}</h3>
                   <div className="flex items-center gap-2 mb-5">
-                    <Star size={16} className="fill-foreground text-foreground" />
+                    <Star size={16} className="fill-yellow-400 text-yellow-400" />
                     <span className="text-foreground/70 font-medium" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}>{quickViewProduct.rating}</span>
                     <span className="text-foreground/40" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>({quickViewProduct.reviews} avaliações)</span>
                   </div>
@@ -1003,8 +1093,45 @@ export function ProductsPage() {
                     )}
                     <p className="text-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "28px", fontWeight: "700" }}>{quickViewProduct.price}</p>
                   </div>
-                  {quickViewProduct.description && (
-                    <p className="text-foreground/60 mb-8 leading-relaxed" style={{ fontFamily: "var(--font-family-inter)", fontSize: "15px", lineHeight: 1.6 }}>{quickViewProduct.description}</p>
+                  {quickViewBullets.length > 0 && (
+                    <div className="mb-8">
+                      <h4
+                        className="text-foreground/55 font-semibold tracking-wide mb-4 flex items-center gap-2"
+                        style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", letterSpacing: "0.1em" }}
+                      >
+                        <span className="w-1 h-1 rounded-full bg-primary" />
+                        SOBRE O PRODUTO
+                      </h4>
+                      <ul className="space-y-3">
+                        {quickViewBullets.map((bullet, index) => (
+                          <motion.li
+                            key={`${quickViewProduct.id}-${index}-${bullet.slice(0, 20)}`}
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.18, delay: Math.min(index, 5) * 0.025 }}
+                            className="flex items-start gap-3"
+                          >
+                            <span className="flex-shrink-0 w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center mt-1">
+                              <Check size={9} className="text-primary" strokeWidth={2.5} />
+                            </span>
+                            <span
+                              className="text-foreground/65 leading-relaxed"
+                              style={{ fontFamily: "var(--font-family-inter)", fontSize: "13.5px", lineHeight: "1.65" }}
+                            >
+                              {bullet}
+                            </span>
+                          </motion.li>
+                        ))}
+                      </ul>
+                      <Link
+                        to={`/produto/${quickViewProduct.id}`}
+                        className="mt-4 inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors cursor-pointer group"
+                        style={{ fontFamily: "var(--font-family-inter)", fontSize: "12.5px", fontWeight: 600 }}
+                      >
+                        Ver mais
+                        <ChevronRight size={13} className="rotate-90 transition-transform group-hover:translate-y-0.5" />
+                      </Link>
+                    </div>
                   )}
                   <div className="flex gap-4 mt-auto">
                     <button onClick={() => { handleAddToCart(quickViewProduct); setQuickViewProduct(null); }}
@@ -1024,7 +1151,8 @@ export function ProductsPage() {
               </div>
             </motion.div>
           </>
-        )}
+          );
+        })()}
       </AnimatePresence>
 
       <Footer />
