@@ -1702,7 +1702,8 @@ export function ProductPage() {
 
       {/* Main PDP */}
       <div className="px-5 md:px-8 pt-6 pb-24">
-        <div className="max-w-[1760px] mx-auto">
+        <div className="max-w-[1760px] mx-auto grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] items-start gap-8 xl:gap-10">
+          <div className="min-w-0 lg:col-start-1 lg:row-start-1">
             <div className="flex flex-col lg:flex-row items-start gap-8 xl:gap-10">
 
           {/* Gallery */}
@@ -1859,13 +1860,14 @@ export function ProductPage() {
             <AboutProduct product={product} onSeeDescription={scrollToDescription} />
           </motion.div>
             </div>
+          </div>
 
             {/* Purchase card */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-8 mb-10 w-full max-w-[760px] lg:mt-10"
+              className="mt-8 mb-10 w-full lg:col-start-2 lg:row-start-1 lg:mt-0 lg:mb-0 lg:sticky lg:top-[88px] lg:self-start"
             >
               <StickyPriceCard
                 product={product}
@@ -1880,6 +1882,7 @@ export function ProductPage() {
               />
             </motion.div>
 
+          <div className="min-w-0 lg:col-start-1 lg:row-start-2">
             <div ref={descriptionRef} className="scroll-mt-[96px]">
               <ProductStandardDescription product={product} images={galleryImages} />
             </div>
@@ -1971,6 +1974,7 @@ export function ProductPage() {
           </div>
         </div>
       )}
+          </div>
         </div>
       </div>
 
