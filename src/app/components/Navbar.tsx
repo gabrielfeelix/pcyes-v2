@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, type ReactNode } from "react";
 import { Link, useNavigate, useLocation } from "react-router";
-import { Search, ShoppingBag, User, Menu, X, Clock, TrendingUp, ArrowUpRight, Heart, ChevronRight, Download, FileText, Sparkles, Grid2x2, Box, Monitor, Cpu, Radio } from "lucide-react";
+import { Search, ShoppingBag, User, Menu, X, Clock, TrendingUp, ArrowUpRight, Heart, ChevronRight, ChevronLeft, Download, FileText, Sparkles, Grid2x2, Box, Monitor, Cpu, Radio, Globe2, MapPin } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useTheme } from "./ThemeProvider";
 import { useCart } from "./CartContext";
@@ -391,6 +391,8 @@ const getCatalogProduct = (id: number) => visibleCatalogProducts.find((product) 
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileMenuView, setMobileMenuView] = useState<"main" | "region" | "category">("main");
+  const [mobileActiveMega, setMobileActiveMega] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -432,6 +434,10 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
+    if (!mobileOpen) { setMobileMenuView("main"); setMobileActiveMega(null); }
+  }, [mobileOpen]);
+
+  useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); setSearchOpen((p) => !p); }
       if (e.key === "Escape" && searchOpen) { setSearchOpen(false); setSearchQuery(""); }
@@ -441,11 +447,6 @@ export function Navbar() {
   }, [searchOpen]);
 
   useEffect(() => { if (searchOpen) setTimeout(() => searchInputRef.current?.focus(), 100); else setSearchQuery(""); }, [searchOpen]);
-  useEffect(() => {
-    if (!searchOpen) return;
-    const h = (e: MouseEvent) => { if (searchDropdownRef.current && !searchDropdownRef.current.contains(e.target as Node)) setSearchOpen(false); };
-    document.addEventListener("mousedown", h); return () => document.removeEventListener("mousedown", h);
-  }, [searchOpen]);
 
   // Auto-select first subitem when mega menu changes
   useEffect(() => {
@@ -1052,34 +1053,84 @@ export function Navbar() {
 
 	            <AnimatePresence mode="wait" initial={false}>
 	              {scrolled ? (
-	                <motion.form
-	                  key="mobile-search"
-	                  onSubmit={handleSearchSubmit}
-	                  initial={{ opacity: 0, y: -6, scale: 0.98 }}
-	                  animate={{ opacity: 1, y: 0, scale: 1 }}
-	                  exit={{ opacity: 0, y: 6, scale: 0.98 }}
-	                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-	                  className="mx-2 flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-[8px] border border-white/10 bg-[#323232] shadow-sm backdrop-blur-xl"
-	                >
-	                  <Search size={16} className="ml-3 flex-shrink-0 text-white/55" strokeWidth={1.8} />
-	                  <input
-	                    value={searchQuery}
-	                    onChange={(e) => setSearchQuery(e.target.value)}
-	                    placeholder="Buscar"
-	                    className="h-full min-w-0 flex-1 bg-transparent px-2 text-white outline-none placeholder:text-white/48"
-	                    style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}
-	                  />
-	                  {searchQuery && (
-	                    <button
-	                      type="button"
-	                      onClick={() => setSearchQuery("")}
-	                      className="flex h-full w-8 items-center justify-center text-white/55"
-	                      aria-label="Limpar busca"
-	                    >
-	                      <X size={13} />
-	                    </button>
-	                  )}
-	                </motion.form>
+		                <motion.form
+		                  key="mobile-search"
+		                  onSubmit={handleSearchSubmit}
+		                  initial={{ opacity: 0, y: -6, scale: 0.98 }}
+		                  animate={{ opacity: 1, y: 0, scale: 1 }}
+		                  exit={{ opacity: 0, y: 6, scale: 0.98 }}
+		                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+		                  className="relative mx-2 min-w-0 flex-1"
+		                >
+		                  <div className="flex h-10 items-center overflow-hidden rounded-[8px] border border-white/10 bg-[#323232] shadow-sm backdrop-blur-xl">
+		                    <Search size={16} className="ml-3 flex-shrink-0 text-white/55" strokeWidth={1.8} />
+		                    <input
+		                      value={searchQuery}
+		                      onChange={(e) => setSearchQuery(e.target.value)}
+		                      placeholder="Buscar"
+		                      className="h-full min-w-0 flex-1 bg-transparent px-2 text-white outline-none placeholder:text-white/48"
+		                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}
+		                    />
+		                    {searchQuery && (
+		                      <button
+		                        type="button"
+		                        onClick={() => setSearchQuery("")}
+		                        className="flex h-full w-8 items-center justify-center text-white/55"
+		                        aria-label="Limpar busca"
+		                      >
+		                        <X size={13} />
+		                      </button>
+		                    )}
+		                  </div>
+		                  <AnimatePresence>
+		                    {searchQuery.trim().length > 0 && (
+		                      <motion.div
+		                        initial={{ opacity: 0, y: -6, scale: 0.985 }}
+		                        animate={{ opacity: 1, y: 0, scale: 1 }}
+		                        exit={{ opacity: 0, y: -6, scale: 0.985 }}
+		                        transition={{ duration: 0.16 }}
+		                        className="absolute -left-12 -right-12 top-[46px] z-[80] max-h-[58vh] overflow-y-auto rounded-[12px] border border-white/10 bg-[#121214]/98 p-2 shadow-2xl backdrop-blur-2xl"
+		                      >
+		                        {searchResults.length > 0 ? (
+		                          <>
+		                            <p className="px-2 pb-2 pt-1 text-white/35" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: 700 }}>
+		                              {searchResults.length} resultado{searchResults.length !== 1 ? "s" : ""}
+		                            </p>
+		                            {searchResults.map((product) => (
+		                              <Link
+		                                key={product.id}
+		                                to={`/produto/${product.id}`}
+		                                onClick={() => setSearchQuery("")}
+		                                className="group flex items-center gap-3 rounded-[10px] p-2.5 transition-colors hover:bg-white/[0.06]"
+		                              >
+		                                <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-[8px] bg-white/[0.04]">
+		                                  <ImageWithFallback src={getPrimaryProductImage(product)} alt={product.name} className="h-full w-full object-cover" />
+		                                </div>
+		                                <div className="min-w-0 flex-1">
+		                                  <p className="line-clamp-2 text-white/86 transition-colors group-hover:text-white" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "13px", fontWeight: 600, lineHeight: 1.15 }}>
+		                                    {product.name}
+		                                  </p>
+		                                  <p className="mt-1 truncate text-white/36" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>
+		                                    {product.category}
+		                                  </p>
+		                                </div>
+		                                <span className="flex-shrink-0 text-white/58" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: 700 }}>
+		                                  {product.price}
+		                                </span>
+		                              </Link>
+		                            ))}
+		                          </>
+		                        ) : (
+		                          <div className="px-4 py-5 text-center">
+		                            <p className="text-white/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>
+		                              Nenhum produto encontrado
+		                            </p>
+		                          </div>
+		                        )}
+		                      </motion.div>
+		                    )}
+		                  </AnimatePresence>
+		                </motion.form>
 	              ) : (
 	                <motion.div
 	                  key="mobile-logo"
@@ -1364,124 +1415,405 @@ export function Navbar() {
         </nav>
       </div>
 
-      {/* Search dropdown */}
+      {/* Search overlay */}
       <AnimatePresence>
         {searchOpen && (
-          <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[49] bg-black/50 backdrop-blur-sm" onClick={() => setSearchOpen(false)} />
-            <motion.div ref={searchDropdownRef}
-              initial={{ opacity: 0, y: -8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.98 }}
-              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed left-1/2 z-[51] w-[min(960px,calc(100vw-40px))] -translate-x-1/2 overflow-hidden border border-foreground/10 shadow-2xl"
-              style={{ top: promoTop + (showExpanded ? 158 : 68), borderRadius: "var(--radius-card)", backgroundColor: isDark ? "rgba(22,22,23,0.98)" : "rgba(250,250,250,0.98)", backdropFilter: "blur(40px)" }}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-[90] overflow-y-auto bg-[#070708] text-white"
+            onClick={() => setSearchOpen(false)}
+          >
+            <div
+              ref={searchDropdownRef}
+              className="relative mx-auto flex min-h-dvh w-full max-w-[1120px] flex-col px-4 py-4 sm:px-6 md:px-8 md:py-7"
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="px-5 md:px-8">
-                <div className="flex items-center gap-4 py-4 border-b border-foreground/5">
-                  <Search size={20} className="text-foreground/30 flex-shrink-0" />
-                  <input ref={searchInputRef} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && searchQuery.trim().length > 0) {
-                        setSearchOpen(false);
-                        navigate(`/produtos?search=${encodeURIComponent(searchQuery.trim())}`);
-                      }
-                    }}
-                    placeholder="Buscar produtos, categorias..." className="flex-1 bg-transparent text-foreground placeholder:text-foreground/20 outline-none"
-                    style={{ fontFamily: "var(--font-family-inter)", fontSize: "15px" }} />
-                  <div className="flex items-center gap-2">
-                    {searchQuery && <button onClick={() => setSearchQuery("")} className="text-foreground/20 hover:text-foreground/50 transition-colors cursor-pointer"><X size={14} /></button>}
-                    <kbd className="hidden md:flex items-center px-2 py-0.5 bg-foreground/5 text-foreground/20" style={{ borderRadius: "var(--radius)", fontFamily: "var(--font-family-inter)", fontSize: "10px" }}>ESC</kbd>
-                  </div>
-                </div>
-                <div className="max-h-[50vh] overflow-y-auto py-4">
-                  {searchQuery.trim().length === 0 ? (
-                    <div>
-                      <div className="mb-5">
-                        <div className="flex items-center gap-2 mb-3">
-                          <TrendingUp size={11} className="text-primary" />
-                          <span className="text-foreground/30 tracking-wider" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "var(--font-weight-medium)" }}>TENDÊNCIAS</span>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {trending.map((t) => (
-                            <button key={t} onClick={() => setSearchQuery(t)}
-                              className="px-4 py-2 bg-foreground/[0.03] border border-border/5 text-foreground/50 hover:text-foreground hover:border-border/20 transition-all duration-300 cursor-pointer"
-                              style={{ borderRadius: "100px", fontFamily: "var(--font-family-inter)", fontSize: "13px" }}
-                            >{t}</button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <Clock size={11} className="text-foreground/30" />
-                          <span className="text-foreground/30 tracking-wider" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: "var(--font-weight-medium)" }}>RECENTES</span>
-                        </div>
-                        {recent.map((r) => (
-                          <button key={r} onClick={() => setSearchQuery(r)}
-                            className="flex items-center gap-3 w-full px-3 py-2.5 text-foreground/40 hover:text-foreground hover:bg-foreground/[0.03] transition-all duration-200 cursor-pointer"
-                            style={{ borderRadius: "var(--radius)", fontFamily: "var(--font-family-inter)", fontSize: "16px" }}
-                          ><Clock size={13} className="text-foreground/15" />{r}</button>
-                        ))}
-                      </div>
-                    </div>
-                  ) : searchResults.length > 0 ? (
-                    <div>
-                      <p className="px-1 pb-3 text-foreground/20" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>
-                        {searchResults.length} resultado{searchResults.length !== 1 ? "s" : ""}
-                      </p>
-                      {searchResults.map((product, i) => (
-                        <motion.a key={product.id} href={`/produto/${product.id}`}
-                          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: i * 0.03 }}
-                          className="group flex items-center gap-4 p-3 hover:bg-foreground/[0.03] transition-colors"
-                          style={{ borderRadius: "var(--radius-card)" }} onClick={() => setSearchOpen(false)}
-                        >
-                          <div className="w-[48px] h-[48px] flex-shrink-0 overflow-hidden" style={{ borderRadius: "var(--radius)", background: isDark ? "#1a1a1c" : "#f5f5f5" }}>
-                            <ImageWithFallback src={getPrimaryProductImage(product)} alt={product.name} className="w-full h-full object-cover" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-foreground group-hover:text-primary transition-colors truncate" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "16px", fontWeight: "var(--font-weight-medium)" }}>{product.name}</p>
-                            <p className="text-foreground/25" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>{product.category}</p>
-                          </div>
-                          <span className="text-foreground/40 flex-shrink-0" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>{product.price}</span>
-                          <ArrowUpRight size={14} className="text-foreground/10 group-hover:text-foreground/40 transition-colors flex-shrink-0" />
-                        </motion.a>
-                      ))}
-                    </div>
+              <div className="flex h-12 items-center justify-between md:h-14">
+                <button
+                  onClick={() => setSearchOpen(false)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
+                  aria-label="Fechar busca"
+                >
+                  <X size={21} strokeWidth={1.6} />
+                </button>
+                <Link to="/" onClick={() => setSearchOpen(false)} className="absolute left-1/2 block -translate-x-1/2">
+                  <img src={PCYES_LOGO} alt="PCYES" className="h-[25px] w-auto object-contain md:h-[32px]" />
+                </Link>
+                <span className="h-10 w-10" aria-hidden="true" />
+              </div>
+
+              <form onSubmit={handleSearchSubmit} className="mt-8 w-full md:mt-14">
+                <div className="mx-auto flex w-full max-w-[920px] items-center gap-3 border-b border-white/18 pb-3 md:gap-5 md:pb-5">
+                  <Search size={22} className="flex-shrink-0 text-white/45 md:h-7 md:w-7" strokeWidth={1.45} />
+                  <input
+                    ref={searchInputRef}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Buscar produtos, categorias..."
+                    className="min-w-0 flex-1 bg-transparent text-white outline-none placeholder:text-white/34"
+                    style={{ fontFamily: "var(--font-family-figtree)", fontSize: "clamp(24px, 7vw, 46px)", fontWeight: 500, lineHeight: 1.05 }}
+                  />
+                  {searchQuery ? (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-white/55 transition-colors hover:bg-white/[0.09] hover:text-white"
+                      aria-label="Limpar busca"
+                    >
+                      <X size={16} />
+                    </button>
                   ) : (
-                    <div className="py-8 text-center">
-                      <p className="text-foreground/30 mb-1" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "16px", fontWeight: "var(--font-weight-medium)" }}>Nenhum resultado</p>
-                      <p className="text-foreground/15" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>Tente buscar por outro termo</p>
-                    </div>
+                    <button
+                      type="submit"
+                      className="hidden rounded-full bg-primary px-5 py-2 text-white transition-opacity hover:opacity-90 md:block"
+                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: 800 }}
+                    >
+                      BUSCAR
+                    </button>
                   )}
                 </div>
+              </form>
+
+              <div className="mx-auto mt-8 w-full max-w-[920px] pb-20 md:mt-11">
+                {searchQuery.trim().length === 0 ? (
+                  <div className="grid gap-8 md:grid-cols-[1.15fr_0.85fr] md:gap-12">
+                    <section>
+                      <div className="mb-4 flex items-center gap-2">
+                        <TrendingUp size={13} className="text-primary" />
+                        <span className="tracking-[0.18em] text-white/38" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: 800 }}>TENDENCIAS</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2.5">
+                        {trending.map((t) => (
+                          <button
+                            key={t}
+                            onClick={() => setSearchQuery(t)}
+                            className="rounded-full border border-white/8 bg-white/[0.055] px-4 py-2.5 text-white/64 transition-colors hover:border-primary/40 hover:bg-white/[0.08] hover:text-white"
+                            style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: 650 }}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="mt-9 border-t border-white/8 pt-7">
+                        <div className="mb-4 flex items-center gap-2">
+                          <Search size={13} className="text-white/28" />
+                          <span className="tracking-[0.18em] text-white/34" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: 800 }}>ATALHOS</span>
+                        </div>
+                        {["Water coolers", "Gabinetes", "Perifericos", "Hardware"].map((item) => (
+                          <Link
+                            key={item}
+                            to={`/produtos?search=${encodeURIComponent(item)}`}
+                            onClick={() => setSearchOpen(false)}
+                            className="group flex items-center justify-between border-b border-white/7 py-4 text-white/72 transition-colors hover:text-white"
+                            style={{ fontFamily: "var(--font-family-figtree)", fontSize: "18px", fontWeight: 600 }}
+                          >
+                            <span>{item}</span>
+                            <ArrowUpRight size={16} className="text-white/22 transition-colors group-hover:text-primary" />
+                          </Link>
+                        ))}
+                      </div>
+                    </section>
+
+                    <section className="border-t border-white/8 pt-7 md:border-l md:border-t-0 md:pl-10 md:pt-0">
+                      <div className="mb-4 flex items-center gap-2">
+                        <Clock size={13} className="text-white/28" />
+                        <span className="tracking-[0.18em] text-white/34" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: 800 }}>RECENTES</span>
+                      </div>
+                      <div className="space-y-1">
+                        {recent.map((r) => (
+                          <button
+                            key={r}
+                            onClick={() => setSearchQuery(r)}
+                            className="flex w-full items-center gap-3 rounded-[8px] py-3 text-left text-white/48 transition-colors hover:bg-white/[0.035] hover:px-3 hover:text-white/76"
+                            style={{ fontFamily: "var(--font-family-inter)", fontSize: "15px", fontWeight: 650 }}
+                          >
+                            <Clock size={13} className="text-white/22" />
+                            {r}
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                  </div>
+                ) : searchResults.length > 0 ? (
+                  <div>
+                    <p className="mb-5 tracking-[0.16em] text-white/35" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: 800 }}>
+                      {searchResults.length} RESULTADO{searchResults.length !== 1 ? "S" : ""}
+                    </p>
+                    <div className="grid gap-2">
+                      {searchResults.map((product, i) => (
+                        <motion.div
+                          key={product.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.16, delay: i * 0.025 }}
+                        >
+                          <Link
+                            to={`/produto/${product.id}`}
+                            onClick={() => setSearchOpen(false)}
+                            className="group flex items-center gap-4 border-b border-white/8 py-3.5 transition-colors hover:border-primary/30 md:gap-5 md:py-4"
+                          >
+                            <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-[10px] bg-white/[0.05] md:h-[76px] md:w-[76px]">
+                              <ImageWithFallback src={getPrimaryProductImage(product)} alt={product.name} className="h-full w-full object-cover" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="line-clamp-2 text-white/88 transition-colors group-hover:text-white" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "clamp(15px, 4vw, 19px)", fontWeight: 650, lineHeight: 1.15 }}>
+                                {product.name}
+                              </p>
+                              <p className="mt-1 text-white/34" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>
+                                {product.category}
+                              </p>
+                            </div>
+                            <span className="hidden flex-shrink-0 text-white/58 md:block" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: 750 }}>
+                              {product.price}
+                            </span>
+                            <ArrowUpRight size={16} className="flex-shrink-0 text-white/24 transition-colors group-hover:text-primary" />
+                          </Link>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border-t border-white/10 pt-9 text-left">
+                    <p className="text-white/76" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "22px", fontWeight: 650 }}>Nenhum resultado</p>
+                    <p className="mt-2 max-w-[420px] text-white/38" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", lineHeight: 1.6 }}>Tente buscar por categoria, produto ou linha PCYES.</p>
+                  </div>
+                )}
               </div>
-            </motion.div>
-          </>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
-
+ 
       {/* Mobile menu */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }} className="fixed inset-0 z-40 bg-background pt-[140px] overflow-y-auto"
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            className="fixed inset-0 z-[70] bg-background lg:hidden"
           >
-            <div className="px-8 py-8 flex flex-col gap-6">
-              {navItems.map((item, i) => (
-                <motion.div key={item.label} initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06, duration: 0.4 }}>
-                  {!isPlaceholderHref(item.href) ? (
-                    <Link to={resolveMenuHref(item.href)} onClick={() => setMobileOpen(false)}
-                      className="text-foreground/70 hover:text-foreground transition-colors block"
-                      style={{ fontFamily: "var(--font-family-figtree)", fontSize: "28px", fontWeight: "var(--font-weight-light)" }}
-                    >{item.label}</Link>
-                  ) : (
-                    <button onClick={() => { navigate("/produtos"); setMobileOpen(false); }}
-                      className="text-foreground/70 hover:text-foreground transition-colors text-left cursor-pointer"
-                      style={{ fontFamily: "var(--font-family-figtree)", fontSize: "28px", fontWeight: "var(--font-weight-light)" }}
-                    >{item.label}</button>
-                  )}
+            <AnimatePresence mode="wait" initial={false}>
+              {mobileMenuView === "region" ? (
+                <motion.div
+                  key="mobile-region"
+                  initial={{ x: 24, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: 24, opacity: 0 }}
+                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex h-full flex-col"
+                >
+                  <div className="flex h-16 items-center gap-4 border-b border-foreground/8 px-5">
+                    <button
+                      onClick={() => setMobileMenuView("main")}
+                      className="flex h-10 w-10 items-center justify-center text-foreground/60"
+                      aria-label="Voltar ao menu"
+                    >
+                      <ChevronLeft size={20} strokeWidth={1.6} />
+                    </button>
+                    <p className="text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "16px", fontWeight: 600 }}>
+                      Região e idioma
+                    </p>
+                  </div>
+
+                  <div className="px-6 py-7">
+                    <p className="mb-5 text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", lineHeight: 1.55 }}>
+                      Escolha a loja mais próxima para ver disponibilidade, frete e atendimento local.
+                    </p>
+                    {[
+                      { flag: "BR", title: "Brasil", detail: "Português" },
+                      { flag: "AR", title: "Argentina", detail: "Español" },
+                      { flag: "CL", title: "Chile", detail: "Español" },
+                    ].map((region) => (
+                      <button
+                        key={region.title}
+                        className="flex w-full items-center gap-4 border-b border-foreground/7 py-4 text-left"
+                        onClick={() => setMobileMenuView("main")}
+                      >
+                        <span className="flex h-8 w-10 items-center justify-center rounded-[6px] bg-foreground/[0.04] text-foreground/70" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: 700 }}>
+                          {region.flag}
+                        </span>
+                        <span className="text-foreground/76" style={{ fontFamily: "var(--font-family-inter)", fontSize: "15px", fontWeight: 500 }}>
+                          {region.title} · <span className="text-foreground/42">{region.detail}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </motion.div>
-              ))}
-            </div>
+              ) : mobileMenuView === "category" && mobileActiveMega ? (
+                <motion.div
+                  key={`mobile-category-${mobileActiveMega}`}
+                  initial={{ x: 24, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: 24, opacity: 0 }}
+                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex h-full flex-col"
+                >
+                  {/* Breadcrumb header */}
+                  <div className="flex h-16 flex-shrink-0 items-center gap-3 border-b border-foreground/8 px-5">
+                    <button
+                      onClick={() => setMobileMenuView("main")}
+                      className="flex h-10 w-10 flex-shrink-0 items-center justify-center text-foreground/60"
+                      aria-label="Voltar ao menu"
+                    >
+                      <ChevronLeft size={20} strokeWidth={1.6} />
+                    </button>
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <span className="flex-shrink-0 text-foreground/38" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>
+                        Menu
+                      </span>
+                      <ChevronRight size={12} className="flex-shrink-0 text-foreground/25" />
+                      <span className="truncate text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "16px", fontWeight: 600 }}>
+                        {megaMenus[mobileActiveMega]?.title}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Subcategory list */}
+                  <div className="min-h-0 flex-1 overflow-y-auto">
+                    <div className="border-b border-foreground/8">
+                      {megaMenus[mobileActiveMega]?.subItems.map((sub, i) => (
+                        <motion.div
+                          key={sub.label}
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.03, duration: 0.18 }}
+                        >
+                          <Link
+                            to={resolveMenuHref(sub.href)}
+                            onClick={() => { setMobileOpen(false); setMobileMenuView("main"); setMobileActiveMega(null); }}
+                            className="flex min-h-[56px] w-full items-center justify-between border-b border-foreground/7 px-7 last:border-b-0"
+                          >
+                            <span className="text-foreground/74" style={{ fontFamily: "var(--font-family-inter)", fontSize: "15px", fontWeight: 500 }}>
+                              {sub.label}
+                            </span>
+                            <ChevronRight size={16} className="flex-shrink-0 text-foreground/28" strokeWidth={1.5} />
+                          </Link>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    <div className="px-7 py-5">
+                      <Link
+                        to={resolveMenuHref(navItems.find((n) => n.mega === mobileActiveMega)?.href)}
+                        onClick={() => { setMobileOpen(false); setMobileMenuView("main"); setMobileActiveMega(null); }}
+                        className="flex items-center gap-1.5 text-primary transition-opacity hover:opacity-75"
+                        style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: 600 }}
+                      >
+                        <span>Ver tudo em {megaMenus[mobileActiveMega]?.title}</span>
+                        <ArrowUpRight size={13} />
+                      </Link>
+                    </div>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="mobile-main"
+                  initial={{ x: -18, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: -18, opacity: 0 }}
+                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex h-full flex-col"
+                >
+                  <div className="flex h-16 items-center justify-between border-b border-foreground/8 px-5">
+                    <button
+                      onClick={() => setMobileOpen(false)}
+                      className="flex h-10 w-10 items-center justify-center text-foreground/64"
+                      aria-label="Fechar menu"
+                    >
+                      <X size={20} strokeWidth={1.55} />
+                    </button>
+                    <Link to="/" onClick={() => setMobileOpen(false)} className="absolute left-1/2 -translate-x-1/2">
+                      <img src={PCYES_LOGO} alt="PCYES" className="h-[26px] w-auto object-contain" />
+                    </Link>
+                    <button
+                      onClick={() => { setMobileOpen(false); setSearchOpen(true); }}
+                      className="flex h-10 w-10 items-center justify-center text-foreground/64"
+                      aria-label="Buscar"
+                    >
+                      <Search size={19} strokeWidth={1.55} />
+                    </button>
+                  </div>
+
+                  <div className="min-h-0 flex-1 overflow-y-auto">
+                    <div className="border-b border-foreground/8">
+                      {navItems.map((item, i) => (
+                        <motion.div
+                          key={item.label}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.025, duration: 0.18 }}
+                        >
+                          <button
+                            onClick={() => {
+                              if (item.mega) {
+                                setMobileActiveMega(item.mega);
+                                setMobileMenuView("category");
+                              } else {
+                                navigate(resolveMenuHref(item.href));
+                                setMobileOpen(false);
+                              }
+                            }}
+                            className="flex min-h-[58px] w-full items-center justify-between border-b border-foreground/7 px-7 text-left last:border-b-0"
+                          >
+                            <span className="text-foreground/74" style={{ fontFamily: "var(--font-family-inter)", fontSize: "15px", fontWeight: 500 }}>
+                              {item.label}
+                            </span>
+                            {item.mega && <ChevronRight size={17} className="text-foreground/32" strokeWidth={1.5} />}
+                          </button>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    <div className="bg-foreground/[0.025] px-7 py-4">
+                      {[
+                        { icon: Heart, label: "Lista de desejos", action: () => navigate("/perfil?tab=favorites"), badge: favCount },
+                        { icon: User, label: isLoggedIn ? "Minha conta" : "Login", action: handleUserClick },
+                        { icon: MapPin, label: "Onde comprar", action: () => navigate("/fale-conosco") },
+                      ].map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <button
+                            key={item.label}
+                            onClick={() => { item.action(); setMobileOpen(false); }}
+                            className="flex w-full items-center gap-4 py-3.5 text-left"
+                          >
+                            <span className="relative flex h-8 w-8 items-center justify-center text-foreground/45">
+                              <Icon size={17} strokeWidth={1.45} />
+                              {!!item.badge && item.badge > 0 && (
+                                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-primary-foreground" style={{ fontFamily: "var(--font-family-inter)", fontSize: "9px", fontWeight: 700 }}>
+                                  {item.badge}
+                                </span>
+                              )}
+                            </span>
+                            <span className="text-foreground/78" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", fontWeight: 600 }}>
+                              {item.label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      onClick={() => setMobileMenuView("region")}
+                      className="flex w-full items-center gap-4 px-7 py-5 text-left"
+                    >
+                      <span className="flex h-8 w-8 items-center justify-center text-foreground/45">
+                        <Globe2 size={17} strokeWidth={1.45} />
+                      </span>
+                      <span className="text-foreground/78" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", fontWeight: 600 }}>
+                        Brasil · Português
+                      </span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
