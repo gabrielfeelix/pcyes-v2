@@ -735,7 +735,7 @@ export function MonteSeuPcPage() {
   };
 
   return (
-    <div className="bg-[#080808] pt-[92px] text-[#f5f5f5]">
+    <div className="bg-[#080808] pt-[140px] md:pt-[180px] text-[#f5f5f5]">
       <header className="sticky top-[92px] z-40 border-b border-white/[0.06] bg-[#090909]/92 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1760px] items-center justify-between gap-4 px-4 py-3 md:px-6 lg:px-8">
           <div className="flex items-center gap-2 md:gap-3">

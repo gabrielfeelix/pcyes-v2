@@ -510,7 +510,7 @@ export function ProductsPage() {
      ═══════════════════════════════════════════════════════ */
 
   return (
-    <div ref={mainRef} className="pt-[92px] min-h-screen">
+    <div ref={mainRef} className="pt-[140px] md:pt-[180px] min-h-screen">
       {/* ── Hero Header (compact) ── */}
       <div className="px-5 md:px-8 pt-10 pb-8" style={{ background: isDark ? "#161617" : "#f5f5f7" }}>
         <div style={{ maxWidth: "1600px", margin: "0 auto" }}>
@@ -700,7 +700,7 @@ export function ProductsPage() {
                                 </span>
                               )}
                               {displayProduct.badge && (
-                                <span className={`px-2.5 py-1 text-white shadow-sm ${displayProduct.badge.toUpperCase().includes('BLUE') ? 'bg-blue-600' : displayProduct.badge.toUpperCase().includes('RED') ? 'bg-red-600' : displayProduct.badge.toUpperCase().includes('BROWN') ? 'bg-amber-700' : 'bg-foreground'}`}
+                                <span className={`px-2.5 py-1 shadow-sm ${displayProduct.badge.toUpperCase().includes('BLUE') ? 'bg-blue-600 text-white' : displayProduct.badge.toUpperCase().includes('RED') ? 'bg-red-600 text-white' : displayProduct.badge.toUpperCase().includes('BROWN') ? 'bg-amber-700 text-white' : 'bg-primary text-primary-foreground'}`}
                                   style={{ borderRadius: "4px", fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "600", letterSpacing: "0.03em" }}>
                                   {displayProduct.badge}
                                 </span>

@@ -457,8 +457,9 @@ export function Navbar() {
     }
   }, [activeMega]);
 
-  const showExpanded = isHome && !scrolled;
-  const promoTop = (promoDismissed || !showExpanded) ? 0 : 36;
+  const showExpanded = !scrolled;
+  const showPromoBanner = false;
+  const promoTop = (promoDismissed || !showExpanded || !showPromoBanner) ? 0 : 36;
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
 
   const searchResults = searchQuery.trim().length > 0
@@ -469,17 +470,29 @@ export function Navbar() {
 
   const handleMegaEnter = (mega: string) => {
     if (megaTimeout.current) clearTimeout(megaTimeout.current);
-    setActiveMega(mega);
+    if (activeMega && activeMega !== mega) {
+      setActiveMega(mega);
+    } else if (!activeMega) {
+      megaTimeout.current = setTimeout(() => setActiveMega(mega), 400);
+    }
   };
   const handleMegaLeave = () => {
-    megaTimeout.current = setTimeout(() => setActiveMega(null), 180);
+    if (megaTimeout.current) clearTimeout(megaTimeout.current);
+    megaTimeout.current = setTimeout(() => setActiveMega(null), 200);
   };
 
   const handleUserClick = () => { if (isLoggedIn) navigate("/perfil"); else setAuthModalOpen(true); };
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const value = searchQuery.trim();
+    if (!value) return;
+    setSearchOpen(false);
+    navigate(`/produtos?search=${encodeURIComponent(value)}`);
+  };
 
   const iconColor = showExpanded
     ? (promoHovered ? (isDark ? "text-white/60 hover:text-white" : "text-black/60 hover:text-black") : (isDark ? "text-white/40 hover:text-white" : "text-black/40 hover:text-black"))
-    : (isDark ? "text-foreground/40 hover:text-foreground" : "text-foreground/50 hover:text-foreground");
+    : (isDark ? "text-white/62 hover:text-white" : "text-foreground/60 hover:text-foreground");
   const navTextColor = showExpanded
     ? (promoHovered ? (isDark ? "text-white/70 hover:text-white" : "text-black/70 hover:text-black") : (isDark ? "text-white/45 hover:text-white" : "text-black/45 hover:text-black"))
     : (isDark ? "text-foreground/40 hover:text-foreground" : "text-foreground/50 hover:text-foreground");
@@ -487,7 +500,7 @@ export function Navbar() {
 
   const renderIcons = () => (
     <div className="flex items-center gap-1">
-      <button onClick={() => setSearchOpen(!searchOpen)} className={`relative w-10 h-10 flex items-center justify-center transition-colors cursor-pointer ${iconColor}`}>
+      <button onClick={() => setSearchOpen(!searchOpen)} className={`relative w-10 h-10 items-center justify-center transition-colors cursor-pointer ${!showExpanded ? "flex lg:hidden" : "flex"} ${iconColor}`}>
         <Search size={20} strokeWidth={1.5} />
       </button>
       <button onClick={() => navigate("/perfil?tab=favorites")} className={`relative w-10 h-10 flex items-center justify-center transition-colors cursor-pointer ${iconColor}`}>
@@ -973,7 +986,7 @@ export function Navbar() {
       <div className="fixed top-0 left-0 right-0 z-50" onMouseEnter={() => setPromoHovered(true)} onMouseLeave={() => setPromoHovered(false)}>
         {/* Promo banner */}
         <AnimatePresence>
-          {!promoDismissed && showExpanded && (
+          {!promoDismissed && showExpanded && showPromoBanner && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
@@ -1026,10 +1039,10 @@ export function Navbar() {
         >
           {/* Top row */}
           <div className="max-w-[1760px] mx-auto px-5 md:px-8 flex items-center justify-between transition-all duration-700"
-            style={{ height: showExpanded ? 50 : 64 }}
+            style={{ height: showExpanded ? 50 : 72 }}
           >
             {/* Left: logo */}
-            <div className="flex items-center">
+            <div className="flex min-w-0 items-center lg:w-[150px] xl:w-[170px]">
               <div className="transition-all duration-700 overflow-hidden" style={{ maxWidth: showExpanded ? 0 : 200, opacity: showExpanded ? 0 : 1 }}>
                 <Link to="/" className="block flex-shrink-0">
                   <img src={PCYES_LOGO} alt="PCYES" className="h-[24px] w-auto object-contain" />
@@ -1037,39 +1050,92 @@ export function Navbar() {
               </div>
             </div>
 
-            {/* Center: compact nav links */}
-            <div className="hidden lg:flex items-center gap-2 transition-all duration-700 self-stretch"
+            {/* Center: compact search */}
+            <form
+              onSubmit={handleSearchSubmit}
+              className="relative hidden lg:flex flex-1 items-center justify-center mx-5 xl:mx-7 transition-all duration-700"
               style={{ opacity: showExpanded ? 0 : 1, pointerEvents: showExpanded ? "none" : "auto" }}
             >
-              {navItems.filter(item => ["Novidades", "Hardware", "Periféricos", "Computadores", "PC Gamer", "Collab", "Monte seu PC", "Drivers e Manuais"].includes(item.label)).map((item) => (
-                <div key={item.label}
-                  onMouseEnter={() => {
-                    if (item.mega) handleMegaEnter(item.mega);
-                    else { if (megaTimeout.current) clearTimeout(megaTimeout.current); setActiveMega(null); }
-                  }}
-                  onMouseLeave={handleMegaLeave}
-                  className="flex items-center h-full"
+              <div className="flex h-[36px] w-full max-w-[1120px] items-center overflow-hidden rounded-[10px] border border-white/18 bg-white/[0.18] shadow-[0_12px_30px_rgba(0,0,0,0.22)] backdrop-blur-xl ring-1 ring-white/10 transition-all focus-within:border-white/35 focus-within:bg-white/[0.24] focus-within:ring-2 focus-within:ring-primary/55">
+                <Search size={17} className="ml-4 flex-shrink-0 text-white/70" strokeWidth={1.8} />
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="O que você está procurando? Digite aqui..."
+                  className="h-full min-w-0 flex-1 bg-transparent px-3 text-white outline-none placeholder:text-white/58"
+                  style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="flex h-full w-10 items-center justify-center text-white/45 transition-colors hover:text-white/80"
+                    aria-label="Limpar busca"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className="flex h-full w-[48px] items-center justify-center bg-primary text-white transition-colors hover:bg-[#d90012]"
+                  aria-label="Buscar"
                 >
-                  {!isPlaceholderHref(item.href) ? (
-                    <Link to={resolveMenuHref(item.href)}
-                      className={`relative flex h-full items-center px-3 py-1.5 transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:bg-primary after:transition-transform after:duration-300 ${activeMega === item.mega
-                        ? "text-foreground after:scale-x-100"
-                        : `${navTextColor} after:scale-x-0 hover:after:scale-x-100`}`}
-                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px", lineHeight: "24px" }}
-                    >{item.label}</Link>
-                  ) : (
-                    <button className={`relative flex h-full cursor-pointer items-center px-3 py-1.5 transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:bg-primary after:transition-transform after:duration-300 ${activeMega === item.mega
-                      ? "text-foreground after:scale-x-100"
-                      : `${navTextColor} after:scale-x-0 hover:after:scale-x-100`}`}
-                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "16px", lineHeight: "24px" }}
-                    >{item.label}</button>
-                  )}
-                </div>
-              ))}
-            </div>
+                  <Search size={19} strokeWidth={2.2} />
+                </button>
+              </div>
+              <AnimatePresence>
+                {!showExpanded && searchQuery.trim().length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, scale: 0.985 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.985 }}
+                    transition={{ duration: 0.16 }}
+                    className="absolute left-0 right-0 top-[44px] z-[60] mx-auto w-full max-w-[1120px] overflow-hidden border border-white/10 bg-[#121214]/98 shadow-2xl"
+                    style={{ borderRadius: "12px", backdropFilter: "blur(24px)" }}
+                  >
+                    {searchResults.length > 0 ? (
+                      <div className="max-h-[380px] overflow-y-auto p-2">
+                        <p className="px-3 pb-2 pt-1 text-white/35" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>
+                          {searchResults.length} resultado{searchResults.length !== 1 ? "s" : ""}
+                        </p>
+                        {searchResults.map((product) => (
+                          <Link
+                            key={product.id}
+                            to={`/produto/${product.id}`}
+                            onClick={() => setSearchQuery("")}
+                            className="group flex items-center gap-3 rounded-[10px] p-2.5 transition-colors hover:bg-white/[0.06]"
+                          >
+                            <div className="h-11 w-11 flex-shrink-0 overflow-hidden bg-white/[0.04]" style={{ borderRadius: "8px" }}>
+                              <ImageWithFallback src={getPrimaryProductImage(product)} alt={product.name} className="h-full w-full object-cover" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-white/85 transition-colors group-hover:text-white" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "14px", fontWeight: 500 }}>
+                                {product.name}
+                              </p>
+                              <p className="truncate text-white/35" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>
+                                {product.category}
+                              </p>
+                            </div>
+                            <span className="flex-shrink-0 text-white/55" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: 600 }}>
+                              {product.price}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="px-5 py-6 text-center">
+                        <p className="text-white/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>
+                          Nenhum produto encontrado
+                        </p>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </form>
 
             {/* Right */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center justify-end gap-2 lg:w-[170px] xl:w-[190px]">
               {renderIcons()}
               <button className={`lg:hidden w-10 h-10 flex items-center justify-center transition-colors cursor-pointer ${iconColor}`}
                 onClick={() => setMobileOpen(!mobileOpen)}
@@ -1087,7 +1153,7 @@ export function Navbar() {
           </div>
 
           {/* Category links (expanded) */}
-          <div className="hidden md:flex items-center justify-center gap-0 overflow-hidden transition-all duration-700"
+          <div className="hidden md:flex items-center justify-center gap-0 overflow-hidden transition-all duration-300"
             style={{ maxHeight: showExpanded ? 50 : 0, opacity: showExpanded ? 1 : 0, paddingBottom: showExpanded ? 16 : 0, pointerEvents: showExpanded ? "auto" : "none" }}
           >
             {navItems.map((item) => (

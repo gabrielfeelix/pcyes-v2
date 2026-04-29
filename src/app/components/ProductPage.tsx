@@ -1,44 +1,1587 @@
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router";
-import { motion, useInView } from "motion/react";
+import { motion, useInView, AnimatePresence } from "motion/react";
 import {
-  ShoppingBag, Heart, Star, ChevronLeft, ChevronRight, Truck, Shield, RotateCcw,
-  Check, Minus, Plus, Share2, Package,
+  ShoppingBag, Heart, Star, ChevronLeft, ChevronRight, Truck,
+  Check, Minus, Plus, Share2, MapPin, CreditCard, Banknote, QrCode,
+  Loader2, ArrowUpRight, Zap, X, Clock, Info,
 } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { useCart } from "./CartContext";
+import { useFavorites } from "./FavoritesContext";
 import { useTheme } from "./ThemeProvider";
 import { allProducts } from "./productsData";
 import { Footer } from "./Footer";
-import { getCatalogHref, getProductImages, getPrimaryProductImage, getProductSubcategory, getVisibleCatalogProducts } from "./productPresentation";
+import {
+  getCatalogHref, getProductImages, getPrimaryProductImage,
+  getProductSubcategory, getProductSwatches,
+  getVisibleCatalogProducts,
+} from "./productPresentation";
+import { toast } from "sonner";
 
-function sanitizeProductHtml(value: string) {
-  return value
-    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
-    .replace(/\son\w+=(?:"[^"]*"|'[^']*')/gi, "");
+/* ── helpers ─────────────────────────────────────────── */
+
+function formatBRL(v: number) {
+  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
+
+function formatCep(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+}
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/* ── shipping mock ─────────────────────────────────────── */
+
+type ShippingOption = {
+  id: string;
+  name: string;
+  price: string;
+  isFree: boolean;
+  days: string;
+};
+
+function calcShipping(digits: string, productPrice: number): ShippingOption[] {
+  const seed = parseInt(digits.slice(0, 3)) || 10;
+  const options: ShippingOption[] = [];
+
+  if (productPrice >= 299) {
+    options.push({
+      id: "free",
+      name: "Frete Grátis",
+      price: "R$ 0,00",
+      isFree: true,
+      days: `${6 + (seed % 4)} dias úteis`,
+    });
+  }
+
+  options.push({
+    id: "pac",
+    name: "Correios PAC",
+    price: `R$ ${(14.9 + (seed % 6)).toFixed(2).replace(".", ",")}`,
+    isFree: false,
+    days: `${10 + (seed % 5)} dias úteis`,
+  });
+
+  options.push({
+    id: "sedex",
+    name: "SEDEX",
+    price: `R$ ${(29.9 + (seed % 8)).toFixed(2).replace(".", ",")}`,
+    isFree: false,
+    days: `${2 + (seed % 3)} dias úteis`,
+  });
+
+  return options;
+}
+
+/* ═══════════════════════════════════════════════════════
+   GALLERY
+   ═══════════════════════════════════════════════════════ */
+
+function ProductGallery({ images, name, isDark }: { images: string[]; name: string; isDark: boolean }) {
+  const [active, setActive] = useState(0);
+  const [zoomed, setZoomed] = useState(false);
+
+  const prev = () => setActive((i) => (i - 1 + images.length) % images.length);
+  const next = () => setActive((i) => (i + 1) % images.length);
+
+  const touchStart = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => { touchStart.current = e.touches[0].clientX; };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart.current === null) return;
+    const diff = touchStart.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) diff > 0 ? next() : prev();
+    touchStart.current = null;
+  };
+
+  return (
+    <div className="flex w-full flex-col items-center gap-4 overflow-visible md:gap-5">
+      <div
+        className="relative w-full max-w-[560px] aspect-square overflow-hidden group cursor-zoom-in xl:max-w-[620px]"
+        style={{ borderRadius: "var(--radius-card)", background: isDark ? "rgba(22,22,23,0.5)" : "#f5f5f5" }}
+        onClick={() => setZoomed(true)}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={active}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="w-full h-full"
+          >
+            <ImageWithFallback
+              src={images[active]}
+              alt={name}
+              className="w-full h-full object-contain p-4 md:p-5 group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+            />
+          </motion.div>
+        </AnimatePresence>
+
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={(e) => { e.stopPropagation(); prev(); }}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/25 backdrop-blur-sm flex items-center justify-center text-white/85 hover:bg-black/45 hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-300"
+              aria-label="Imagem anterior"
+            >
+              <ChevronLeft size={17} />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); next(); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/25 backdrop-blur-sm flex items-center justify-center text-white/85 hover:bg-black/45 hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-300"
+              aria-label="Próxima imagem"
+            >
+              <ChevronRight size={17} />
+            </button>
+          </>
+        )}
+
+        {images.length > 1 && (
+          <span
+            className="absolute bottom-3 right-3 px-2.5 py-1 bg-black/30 backdrop-blur-md text-white/75 opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ borderRadius: "100px", fontSize: "11px", fontFamily: "var(--font-family-inter)" }}
+          >
+            {active + 1} / {images.length}
+          </span>
+        )}
+      </div>
+
+      {images.length > 1 && (
+        <div className="relative z-10 flex w-full max-w-[560px] justify-center gap-3 overflow-x-auto pb-1 scrollbar-none xl:max-w-[620px]">
+          {images.map((img, i) => (
+            <button
+              key={i}
+              onClick={() => setActive(i)}
+              className={`flex-shrink-0 w-16 h-16 md:w-[74px] md:h-[74px] overflow-hidden border transition-all cursor-pointer ${i === active ? "border-primary ring-1 ring-primary/35" : "border-foreground/10 hover:border-foreground/30"}`}
+              style={{ borderRadius: "8px", background: isDark ? "#2a2a2c" : "#ffffff" }}
+              aria-label={`Ver imagem ${i + 1}`}
+            >
+              <ImageWithFallback src={img} alt={`${name} ${i + 1}`} className="w-full h-full object-contain p-1.5" />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Lightbox */}
+      <AnimatePresence>
+        {zoomed && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/90 z-50 cursor-zoom-out"
+              onClick={() => setZoomed(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              className="fixed inset-8 md:inset-16 z-50 flex items-center justify-center pointer-events-none"
+            >
+              <img src={images[active]} alt={name} className="max-w-full max-h-full object-contain" style={{ borderRadius: "var(--radius-card)" }} />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   COUNTDOWN — promo timer
+   ═══════════════════════════════════════════════════════ */
+
+function CountdownTimer() {
+  const target = useMemo(() => {
+    const t = new Date();
+    t.setHours(23, 59, 59, 0);
+    return t.getTime();
+  }, []);
+
+  const [time, setTime] = useState({ h: 0, m: 0, s: 0 });
+
+  useEffect(() => {
+    const tick = () => {
+      const diff = Math.max(0, target - Date.now());
+      setTime({
+        h: Math.floor(diff / 3600000),
+        m: Math.floor((diff % 3600000) / 60000),
+        s: Math.floor((diff % 60000) / 1000),
+      });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [target]);
+
+  const TimeBox = ({ value }: { value: string }) => (
+    <span
+      className="inline-flex items-center justify-center min-w-[26px] px-1.5 py-1 bg-foreground text-background font-bold tabular-nums"
+      style={{ borderRadius: "5px", fontFamily: "var(--font-family-inter)", fontSize: "12px" }}
+    >
+      {value}
+    </span>
+  );
+
+  return (
+    <div
+      className="flex items-center gap-2.5 px-3.5 py-2.5 border border-primary/20 bg-primary/[0.05]"
+      style={{ borderRadius: "var(--radius-button)" }}
+    >
+      <Clock size={13} className="text-primary flex-shrink-0" strokeWidth={2} />
+      <span
+        className="text-foreground/65 font-medium flex-1 truncate"
+        style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}
+      >
+        Oferta encerra em
+      </span>
+      <div className="flex items-center gap-0.5 flex-shrink-0">
+        <TimeBox value={pad(time.h)} />
+        <span className="text-foreground/30 font-bold mx-0.5">:</span>
+        <TimeBox value={pad(time.m)} />
+        <span className="text-foreground/30 font-bold mx-0.5">:</span>
+        <TimeBox value={pad(time.s)} />
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   AUTO SHIPPING CALCULATOR
+   ═══════════════════════════════════════════════════════ */
+
+function AutoShippingCalculator({ productPrice }: { productPrice: number }) {
+  const [cep, setCep] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [options, setOptions] = useState<ShippingOption[] | null>(null);
+
+  useEffect(() => {
+    const digits = cep.replace(/\D/g, "");
+    if (digits.length !== 8) {
+      setOptions(null);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setOptions(null);
+    const timer = setTimeout(() => {
+      setOptions(calcShipping(digits, productPrice));
+      setLoading(false);
+    }, 550);
+    return () => clearTimeout(timer);
+  }, [cep, productPrice]);
+
+  const digits = cep.replace(/\D/g, "");
+  const showHint = digits.length > 0 && digits.length < 8 && !loading;
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-3">
+        <MapPin size={13} className="text-foreground/40" strokeWidth={1.8} />
+        <span
+          className="text-foreground/60 font-semibold tracking-wide"
+          style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", letterSpacing: "0.08em" }}
+        >
+          CONSULTAR FRETE
+        </span>
+      </div>
+
+      <div className="relative">
+        <input
+          type="text"
+          inputMode="numeric"
+          placeholder="Digite seu CEP"
+          value={cep}
+          onChange={(e) => setCep(formatCep(e.target.value))}
+          className="w-full border border-foreground/12 bg-transparent text-foreground placeholder-foreground/30 px-3.5 py-3 pr-11 focus:border-primary/50 focus:outline-none transition-colors"
+          style={{
+            borderRadius: "var(--radius-button)",
+            fontFamily: "var(--font-family-inter)",
+            fontSize: "14px",
+            letterSpacing: "0.02em",
+          }}
+        />
+        <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+          {loading ? (
+            <Loader2 size={15} className="animate-spin text-primary" />
+          ) : digits.length === 8 && options ? (
+            <Check size={15} className="text-green-500" />
+          ) : (
+            <span className="text-foreground/25" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>
+              {digits.length}/8
+            </span>
+          )}
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {showHint && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="text-foreground/40 mt-2"
+            style={{ fontFamily: "var(--font-family-inter)", fontSize: "11.5px" }}
+          >
+            Digite os 8 dígitos para ver as opções
+          </motion.p>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {options && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="mt-3 space-y-1.5">
+              {options.map((opt, i) => (
+                <motion.div
+                  key={opt.id}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="flex items-center justify-between py-2.5"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Truck
+                      size={13}
+                      className={opt.isFree ? "text-green-500" : "text-foreground/35"}
+                      strokeWidth={1.8}
+                    />
+                    <div className="min-w-0">
+                      <p
+                        className={`truncate ${opt.isFree ? "text-green-500 font-semibold" : "text-foreground/75 font-medium"}`}
+                        style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}
+                      >
+                        {opt.name}
+                      </p>
+                      <p
+                        className="text-foreground/40"
+                        style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}
+                      >
+                        {opt.days}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className={`flex-shrink-0 ml-3 ${opt.isFree ? "text-green-500 font-bold" : "text-foreground font-semibold"}`}
+                    style={{ fontFamily: "var(--font-family-inter)", fontSize: "13.5px" }}
+                  >
+                    {opt.price}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   PAYMENT MODAL
+   ═══════════════════════════════════════════════════════ */
+
+function PaymentModal({ open, onClose, priceNum }: { open: boolean; onClose: () => void; priceNum: number }) {
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handler);
+    return () => {
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", handler);
+    };
+  }, [open, onClose]);
+
+  const pixPrice = priceNum * 0.9;
+  const installments = Array.from({ length: 12 }, (_, i) => ({
+    n: i + 1,
+    value: priceNum / (i + 1),
+  }));
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            onClick={onClose}
+          />
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center pointer-events-none p-0 md:p-6">
+            <motion.div
+              initial={{ opacity: 0, y: 40, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 40, scale: 0.96 }}
+              transition={{ type: "spring", damping: 28, stiffness: 280 }}
+              className="pointer-events-auto w-full max-w-[520px] bg-background border border-foreground/10 shadow-2xl overflow-hidden"
+              style={{
+                borderRadius: "20px 20px 0 0",
+                maxHeight: "min(85vh, 720px)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                className="flex items-center justify-between px-6 py-4 border-b border-foreground/8"
+                style={{ borderRadius: "var(--radius-card) var(--radius-card) 0 0" }}
+              >
+                <h3
+                  className="text-foreground"
+                  style={{ fontFamily: "var(--font-family-figtree)", fontSize: "17px", fontWeight: 500 }}
+                >
+                  Formas de pagamento
+                </h3>
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-foreground/8 text-foreground/45 hover:text-foreground transition-all cursor-pointer"
+                  aria-label="Fechar"
+                >
+                  <X size={16} strokeWidth={1.8} />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto px-6 py-5 space-y-6" style={{ maxHeight: "calc(85vh - 64px)" }}>
+                {/* PIX */}
+                <section>
+                  <header className="flex items-center gap-3 mb-3">
+                    <div className="w-9 h-9 rounded-lg bg-green-500/12 flex items-center justify-center flex-shrink-0">
+                      <QrCode size={16} className="text-green-500" strokeWidth={1.8} />
+                    </div>
+                    <div className="flex-1">
+                      <h4
+                        className="text-foreground font-semibold"
+                        style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
+                      >
+                        PIX
+                      </h4>
+                      <p
+                        className="text-foreground/45"
+                        style={{ fontFamily: "var(--font-family-inter)", fontSize: "11.5px" }}
+                      >
+                        Aprovação imediata
+                      </p>
+                    </div>
+                    <span
+                      className="px-2 py-0.5 bg-green-500/15 text-green-500 font-bold flex-shrink-0"
+                      style={{ borderRadius: "4px", fontSize: "10.5px", fontFamily: "var(--font-family-inter)" }}
+                    >
+                      10% OFF
+                    </span>
+                  </header>
+                  <div
+                    className="flex items-baseline justify-between px-4 py-3 bg-green-500/[0.04] border border-green-500/20"
+                    style={{ borderRadius: "var(--radius-button)" }}
+                  >
+                    <span
+                      className="text-foreground/60"
+                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "12.5px" }}
+                    >
+                      Total à vista
+                    </span>
+                    <span
+                      className="text-green-500"
+                      style={{ fontFamily: "var(--font-family-figtree)", fontSize: "20px", fontWeight: 600 }}
+                    >
+                      {formatBRL(pixPrice)}
+                    </span>
+                  </div>
+                </section>
+
+                {/* Cartão */}
+                <section>
+                  <header className="flex items-center gap-3 mb-3">
+                    <div className="w-9 h-9 rounded-lg bg-primary/12 flex items-center justify-center flex-shrink-0">
+                      <CreditCard size={16} className="text-primary" strokeWidth={1.8} />
+                    </div>
+                    <div className="flex-1">
+                      <h4
+                        className="text-foreground font-semibold"
+                        style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
+                      >
+                        Cartão de crédito
+                      </h4>
+                      <p
+                        className="text-foreground/45"
+                        style={{ fontFamily: "var(--font-family-inter)", fontSize: "11.5px" }}
+                      >
+                        Visa · Master · Elo · Amex · Hipercard
+                      </p>
+                    </div>
+                  </header>
+                  <div
+                    className="overflow-hidden border border-foreground/8"
+                    style={{ borderRadius: "var(--radius-button)" }}
+                  >
+                    <div className="grid grid-cols-2 divide-x divide-foreground/6">
+                      <div className="divide-y divide-foreground/6">
+                        {installments.slice(0, 6).map((inst) => (
+                          <div
+                            key={inst.n}
+                            className="flex items-center justify-between px-3.5 py-2.5"
+                          >
+                            <span
+                              className="text-foreground/45 font-medium"
+                              style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}
+                            >
+                              {inst.n}×
+                            </span>
+                            <span
+                              className="text-foreground font-semibold tabular-nums"
+                              style={{ fontFamily: "var(--font-family-inter)", fontSize: "12.5px" }}
+                            >
+                              {formatBRL(inst.value)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="divide-y divide-foreground/6">
+                        {installments.slice(6, 12).map((inst) => (
+                          <div
+                            key={inst.n}
+                            className="flex items-center justify-between px-3.5 py-2.5"
+                          >
+                            <span
+                              className="text-foreground/45 font-medium"
+                              style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}
+                            >
+                              {inst.n}×
+                            </span>
+                            <span
+                              className="text-foreground font-semibold tabular-nums"
+                              style={{ fontFamily: "var(--font-family-inter)", fontSize: "12.5px" }}
+                            >
+                              {formatBRL(inst.value)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <p
+                    className="text-foreground/40 mt-2.5 flex items-center gap-1.5"
+                    style={{ fontFamily: "var(--font-family-inter)", fontSize: "11.5px" }}
+                  >
+                    <Info size={11} strokeWidth={1.8} />
+                    Todas as parcelas sem juros
+                  </p>
+                </section>
+
+                {/* Boleto */}
+                <section>
+                  <header className="flex items-center gap-3 mb-3">
+                    <div className="w-9 h-9 rounded-lg bg-foreground/[0.06] flex items-center justify-center flex-shrink-0">
+                      <Banknote size={16} className="text-foreground/55" strokeWidth={1.8} />
+                    </div>
+                    <div className="flex-1">
+                      <h4
+                        className="text-foreground font-semibold"
+                        style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}
+                      >
+                        Boleto bancário
+                      </h4>
+                      <p
+                        className="text-foreground/45"
+                        style={{ fontFamily: "var(--font-family-inter)", fontSize: "11.5px" }}
+                      >
+                        Vencimento em 3 dias úteis
+                      </p>
+                    </div>
+                  </header>
+                  <div
+                    className="flex items-baseline justify-between px-4 py-3 border border-foreground/8 bg-foreground/[0.02]"
+                    style={{ borderRadius: "var(--radius-button)" }}
+                  >
+                    <span
+                      className="text-foreground/60"
+                      style={{ fontFamily: "var(--font-family-inter)", fontSize: "12.5px" }}
+                    >
+                      Total
+                    </span>
+                    <span
+                      className="text-foreground"
+                      style={{ fontFamily: "var(--font-family-figtree)", fontSize: "18px", fontWeight: 500 }}
+                    >
+                      {formatBRL(priceNum)}
+                    </span>
+                  </div>
+                </section>
+              </div>
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   STICKY PRICE CARD
+   ═══════════════════════════════════════════════════════ */
+
+type StickyCardProps = {
+  product: any;
+  qty: number;
+  setQty: (q: number) => void;
+  onBuyNow: () => void;
+  onAddToCart: () => void;
+  addedToCart: boolean;
+  pixPrice: number;
+  installment: number;
+  discount: number;
+};
+
+function StickyPriceCard({
+  product, qty, setQty, onBuyNow, onAddToCart, addedToCart, pixPrice, installment, discount,
+}: StickyCardProps) {
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const inStock = product.inStock !== false;
+
+  return (
+    <>
+      <div
+        className="border border-foreground/8 bg-foreground/[0.015] p-5 lg:p-6"
+        data-purchase-card="product-page"
+        style={{ borderRadius: "var(--radius-card)", position: "relative" }}
+      >
+        {/* Promo Timer */}
+        <div className="mb-5">
+          <CountdownTimer />
+        </div>
+
+        {/* Price block */}
+        <div className="mb-5">
+          {product.oldPrice && (
+            <div className="flex items-center gap-2 mb-1.5">
+              <span
+                className="text-foreground/35 line-through"
+                style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}
+              >
+                {product.oldPrice}
+              </span>
+              {discount > 0 && (
+                <span
+                  className="px-1.5 py-0.5 bg-red-500/12 text-red-500 font-bold"
+                  style={{ borderRadius: "4px", fontSize: "10.5px", fontFamily: "var(--font-family-inter)" }}
+                >
+                  -{discount}%
+                </span>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-baseline gap-2 mb-1">
+            <span
+              className="text-foreground leading-none"
+              style={{
+                fontFamily: "var(--font-family-figtree)",
+                fontSize: "clamp(28px, 3.2vw, 36px)",
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+              }}
+            >
+              {formatBRL(pixPrice)}
+            </span>
+          </div>
+
+          <p
+            className="text-foreground/55 mb-2.5"
+            style={{ fontFamily: "var(--font-family-inter)", fontSize: "12.5px" }}
+          >
+            no <span className="text-green-500 font-semibold">PIX</span> com{" "}
+            <span className="text-green-500 font-semibold">10% de desconto</span>
+          </p>
+
+          <div className="h-px bg-foreground/6 my-3" />
+
+          <p
+            className="text-foreground/65"
+            style={{ fontFamily: "var(--font-family-inter)", fontSize: "12.5px", lineHeight: "1.55" }}
+          >
+            ou <span className="text-foreground font-semibold">{product.price}</span> em até{" "}
+            <span className="text-foreground font-semibold">12× {formatBRL(installment)}</span> sem juros
+          </p>
+
+          <button
+            onClick={() => setPaymentOpen(true)}
+            className="mt-2.5 inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors cursor-pointer group"
+            style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: 600 }}
+          >
+            Ver opções de pagamento
+            <ArrowUpRight size={12} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+          </button>
+        </div>
+
+        {/* Stock indicator */}
+        <div className="flex items-center gap-2 mb-4">
+          <span className={`relative flex w-2 h-2`}>
+            {inStock && (
+              <span className="absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-65 animate-ping" />
+            )}
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${inStock ? "bg-green-500" : "bg-foreground/30"}`} />
+          </span>
+          <span
+            className={inStock ? "text-green-500" : "text-foreground/45"}
+            style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: 600 }}
+          >
+            {inStock ? "Em estoque · envio em 24h" : "Sem estoque"}
+          </span>
+        </div>
+
+        {/* Qty selector */}
+        <div className="flex items-center justify-between mb-3">
+          <span
+            className="text-foreground/55 font-semibold tracking-wide"
+            style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", letterSpacing: "0.08em" }}
+          >
+            QUANTIDADE
+          </span>
+          <div
+            className="flex items-center border border-foreground/12 overflow-hidden"
+            style={{ borderRadius: "var(--radius-button)" }}
+          >
+            <button
+              onClick={() => setQty(Math.max(1, qty - 1))}
+              className="w-8 h-9 flex items-center justify-center text-foreground/40 hover:text-foreground hover:bg-foreground/5 transition-all cursor-pointer disabled:opacity-30"
+              disabled={qty <= 1}
+            >
+              <Minus size={12} />
+            </button>
+            <span
+              className="w-9 h-9 flex items-center justify-center text-foreground border-x border-foreground/10 select-none tabular-nums"
+              style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: 600 }}
+            >
+              {qty}
+            </span>
+            <button
+              onClick={() => setQty(qty + 1)}
+              className="w-8 h-9 flex items-center justify-center text-foreground/40 hover:text-foreground hover:bg-foreground/5 transition-all cursor-pointer"
+              disabled={!inStock}
+            >
+              <Plus size={12} />
+            </button>
+          </div>
+        </div>
+
+        {/* CTAs */}
+        <div className="flex flex-col gap-2 mb-5">
+          <button
+            onClick={onBuyNow}
+            disabled={!inStock}
+            className="h-12 flex items-center justify-center gap-2 bg-[#059669] text-white font-bold hover:bg-[#047857] active:scale-[0.99] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
+            style={{
+              borderRadius: "var(--radius-button)",
+              fontFamily: "var(--font-family-inter)",
+              fontSize: "13.5px",
+              letterSpacing: "0.02em",
+            }}
+          >
+            <Zap size={15} strokeWidth={2} fill="currentColor" />
+            Comprar agora
+          </button>
+
+          <button
+            onClick={onAddToCart}
+            disabled={!inStock}
+            className={`h-12 flex items-center justify-center gap-2 font-semibold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+              addedToCart
+                ? "bg-green-500/10 text-green-600 border border-green-500/30"
+                : "bg-white text-black border border-foreground/10 hover:bg-zinc-50 active:scale-[0.99]"
+            }`}
+            style={{
+              borderRadius: "var(--radius-button)",
+              fontFamily: "var(--font-family-inter)",
+              fontSize: "13.5px",
+              letterSpacing: "0.02em",
+            }}
+          >
+            {addedToCart ? (
+              <><Check size={15} strokeWidth={2.2} /> Adicionado ao carrinho</>
+            ) : (
+              <><ShoppingBag size={15} strokeWidth={1.8} /> Adicionar ao carrinho</>
+            )}
+          </button>
+        </div>
+
+        <div className="h-px bg-foreground/6 mb-5" />
+
+        {/* Shipping */}
+        <div className="mb-5">
+          <AutoShippingCalculator productPrice={product.priceNum} />
+        </div>
+      </div>
+
+      <PaymentModal
+        open={paymentOpen}
+        onClose={() => setPaymentOpen(false)}
+        priceNum={product.priceNum}
+      />
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   ABOUT PRODUCT (middle column bullets + ver mais)
+   ═══════════════════════════════════════════════════════ */
+
+function AboutProduct({ product, onSeeDescription }: { product: any; onSeeDescription: () => void }) {
+  const bullets: string[] = product.features?.length
+    ? product.features
+    : (product.description ?? "")
+        .split("\n")
+        .map((s: string) => s.trim())
+        .filter(Boolean);
+
+  if (!bullets.length) return null;
+
+  return (
+    <section>
+      <h2
+        className="text-foreground/55 font-semibold tracking-wide mb-4 flex items-center gap-2"
+        style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", letterSpacing: "0.1em" }}
+      >
+        <span className="w-1 h-1 rounded-full bg-primary" />
+        SOBRE O PRODUTO
+      </h2>
+
+      <ul key={product.id} className="space-y-3">
+        {bullets.map((bullet, i) => (
+          <motion.li
+            key={`${i}-${bullet.slice(0, 20)}`}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.18, delay: Math.min(i, 5) * 0.025 }}
+            className="flex items-start gap-3"
+          >
+            <span className="flex-shrink-0 w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center mt-1">
+              <Check size={9} className="text-primary" strokeWidth={2.5} />
+            </span>
+            <span
+              className="text-foreground/65 leading-relaxed"
+              style={{ fontFamily: "var(--font-family-inter)", fontSize: "13.5px", lineHeight: "1.65" }}
+            >
+              {bullet}
+            </span>
+          </motion.li>
+        ))}
+      </ul>
+
+      <button
+        onClick={onSeeDescription}
+        className="mt-4 inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors cursor-pointer group"
+        style={{ fontFamily: "var(--font-family-inter)", fontSize: "12.5px", fontWeight: 600 }}
+      >
+        Ver mais
+        <ChevronRight size={13} className="rotate-90 transition-transform group-hover:translate-y-0.5" />
+      </button>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   REVIEWS SECTION
+   ═══════════════════════════════════════════════════════ */
+
+function ReviewsSection({ product, isDark }: { product: any; isDark: boolean }) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [activeFilter, setActiveFilter] = useState<"recent" | "relevant" | "photos">("recent");
+  const [activeStarFilter, setActiveStarFilter] = useState<number | null>(null);
+  const [reviewPage, setReviewPage] = useState(1);
+  const [selectedMedia, setSelectedMedia] = useState<{ reviewIndex: number; imageIndex: number } | null>(null);
+  const [isReviewModalOpen, setReviewModalOpen] = useState(false);
+  const [newReviewRating, setNewReviewRating] = useState(0);
+  const [newReviewText, setNewReviewText] = useState("");
+
+  const reviews = [
+    {
+      id: 1,
+      user: "Ricardo M.",
+      rating: 5,
+      date: "24 Mar 2026",
+      comment: "Simplesmente incrível. O acabamento é premium e o desempenho superou minhas expectativas. Recomendo muito para quem busca qualidade.",
+      verified: true,
+      images: [
+        "https://images.unsplash.com/photo-1527814050087-3793815479db?q=80&w=900&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=900&auto=format&fit=crop",
+      ],
+      likes: 12
+    },
+    {
+      id: 2,
+      user: "Juliana S.",
+      rating: 5,
+      date: "15 Mar 2026",
+      comment: "Entrega super rápida e o produto veio muito bem embalado. A cor é linda e o material parece ser bem durável.",
+      verified: true,
+      images: [
+        "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=900&auto=format&fit=crop",
+      ],
+      likes: 8
+    },
+    {
+      id: 3,
+      user: "Fabio L.",
+      rating: 4,
+      date: "02 Mar 2026",
+      comment: "Ótimo custo-benefício. O único ponto é que o cabo poderia ser um pouco mais longo, mas nada que atrapalhe o uso.",
+      verified: true,
+      images: [
+        "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?q=80&w=900&auto=format&fit=crop",
+      ],
+      likes: 4
+    },
+    {
+      id: 4,
+      user: "Marina A.",
+      rating: 5,
+      date: "21 Fev 2026",
+      comment: "Gostei muito do visual minimalista. Combina com meu setup e a experiência no uso diário é bem fluida.",
+      verified: true,
+      images: [
+        "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=900&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=900&auto=format&fit=crop",
+      ],
+      likes: 19
+    },
+    {
+      id: 5,
+      user: "Pedro C.",
+      rating: 5,
+      date: "08 Fev 2026",
+      comment: "A compra foi tranquila, chegou antes do prazo e o produto tem uma presença muito melhor pessoalmente.",
+      verified: true,
+      likes: 7
+    },
+    {
+      id: 6,
+      user: "Camila R.",
+      rating: 4,
+      date: "19 Jan 2026",
+      comment: "Produto muito bom. Só senti falta de uma embalagem um pouco mais premium, mas o produto em si é excelente.",
+      verified: true,
+      images: [
+        "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=900&auto=format&fit=crop",
+      ],
+      likes: 5
+    },
+  ];
+
+  const mediaReviews = reviews.filter((review) => review.images?.length);
+  const customerPhotos = mediaReviews.flatMap((review) =>
+    review.images!.map((image, imageIndex) => ({
+      image,
+      imageIndex,
+      reviewIndex: reviews.findIndex((item) => item.id === review.id),
+      review,
+    })),
+  );
+  const sortedReviews = activeFilter === "photos"
+    ? mediaReviews
+    : activeFilter === "relevant"
+      ? [...reviews].sort((a, b) => b.likes - a.likes)
+      : [...reviews].sort((a, b) => a.id - b.id);
+  const filteredReviews = activeStarFilter ? sortedReviews.filter(r => r.rating === activeStarFilter) : sortedReviews;
+  const reviewsPerPage = 4;
+  const totalReviewPages = Math.max(1, Math.ceil(filteredReviews.length / reviewsPerPage));
+  const visibleReviews = filteredReviews.slice((reviewPage - 1) * reviewsPerPage, reviewPage * reviewsPerPage);
+  const selectedReview = selectedMedia ? reviews[selectedMedia.reviewIndex] : null;
+  const selectedImage = selectedReview?.images?.[selectedMedia?.imageIndex ?? 0];
+
+  const openMedia = (reviewIndex: number, imageIndex: number) => {
+    setSelectedMedia({ reviewIndex, imageIndex });
+  };
+
+  const moveMedia = (direction: 1 | -1) => {
+    if (!selectedMedia) return;
+    const images = reviews[selectedMedia.reviewIndex]?.images ?? [];
+    if (images.length <= 1) return;
+    const nextImageIndex = (selectedMedia.imageIndex + direction + images.length) % images.length;
+    setSelectedMedia({ reviewIndex: selectedMedia.reviewIndex, imageIndex: nextImageIndex });
+  };
+
+  const moveReview = (direction: 1 | -1) => {
+    if (!selectedMedia) return;
+    const reviewOrder = mediaReviews.map((review) => reviews.findIndex((item) => item.id === review.id));
+    const currentIndex = reviewOrder.indexOf(selectedMedia.reviewIndex);
+    const nextIndex = (currentIndex + direction + reviewOrder.length) % reviewOrder.length;
+    setSelectedMedia({ reviewIndex: reviewOrder[nextIndex], imageIndex: 0 });
+  };
+
+  const goToReviewPage = (page: number) => {
+    setReviewPage(page);
+    window.setTimeout(() => {
+      sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  };
+
+  const filters = [
+    { key: "recent" as const, label: "Recentes" },
+    { key: "relevant" as const, label: "Mais relevantes" },
+    { key: "photos" as const, label: "Com fotos" },
+  ];
+
+  return (
+    <section ref={sectionRef} className="py-16 md:py-20 border-t border-foreground/5 bg-foreground/[0.01] scroll-mt-[96px]">
+      <div className="max-w-[1760px] mx-auto">
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-20">
+          {/* Summary */}
+          <div className="w-full lg:w-[320px] flex-shrink-0">
+            <h2 className="text-foreground mb-6" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "28px", fontWeight: 600 }}>
+              Avaliações de Clientes
+            </h2>
+
+            <div className="flex items-center gap-4 mb-8">
+              <span className="text-foreground" style={{ fontSize: "56px", fontWeight: 700, fontFamily: "var(--font-family-figtree)" }}>
+                {product.rating.toFixed(1)}
+              </span>
+              <div>
+                <div className="flex items-center gap-0.5 mb-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={16} className={i < Math.floor(product.rating) ? "fill-[#FFB800] text-[#FFB800]" : "text-foreground/12"} fill="currentColor" />
+                  ))}
+                </div>
+                <p className="text-foreground/45" style={{ fontSize: "14px", fontFamily: "var(--font-family-inter)" }}>
+                  {product.reviews} avaliações
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              {[5, 4, 3, 2, 1].map((star) => {
+                const percentage = star === 5 ? 85 : star === 4 ? 12 : 1;
+                return (
+                  <button key={star} onClick={() => { setActiveStarFilter(activeStarFilter === star ? null : star); setReviewPage(1); }} className={`flex w-full items-center gap-3 p-1.5 rounded transition-colors cursor-pointer ${activeStarFilter === star ? 'bg-primary/10' : 'hover:bg-foreground/5'}`}>
+                    <span className="text-foreground/45 min-w-[12px]" style={{ fontSize: "12px", fontWeight: 600 }}>{star}</span>
+                    <div className="flex-1 h-1.5 bg-foreground/5 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${percentage}%` }}
+                        transition={{ duration: 1, delay: 0.2 }}
+                        className="h-full bg-[#FFB800]"
+                      />
+                    </div>
+                    <span className="text-foreground/30 min-w-[32px] text-right" style={{ fontSize: "12px" }}>{percentage}%</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <button onClick={() => setReviewModalOpen(true)} className="w-full mt-10 py-3.5 border border-foreground/10 hover:border-foreground/25 text-foreground transition-all font-semibold cursor-pointer" style={{ borderRadius: "var(--radius-button)", fontSize: "14px" }}>
+              Escrever uma avaliação
+            </button>
+          </div>
+
+          {/* List */}
+          <div className="flex-1">
+            <div className="mb-8 pb-5 border-b border-foreground/5">
+              <div className="flex items-center gap-4 overflow-x-auto scrollbar-none">
+                {filters.map((filter) => (
+                  <button
+                    key={filter.key}
+                    onClick={() => {
+                      setActiveFilter(filter.key);
+                      setReviewPage(1);
+                    }}
+                    className={`px-4 py-1.5 text-xs font-bold rounded-full transition-colors cursor-pointer ${
+                      activeFilter === filter.key
+                        ? "bg-foreground text-background"
+                        : "bg-foreground/5 text-foreground/45 hover:text-foreground hover:bg-foreground/10"
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-5 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                {customerPhotos.map((photo) => (
+                  <button
+                    key={`${photo.review.id}-${photo.imageIndex}`}
+                    onClick={() => openMedia(photo.reviewIndex, photo.imageIndex)}
+                    className="group relative h-20 w-20 flex-shrink-0 overflow-hidden border border-foreground/8 bg-foreground/5 cursor-pointer"
+                    style={{ borderRadius: "8px" }}
+                    aria-label={`Abrir foto da avaliação de ${photo.review.user}`}
+                  >
+                    <img
+                      src={photo.image}
+                      alt={`Foto enviada por ${photo.review.user}`}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <span className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/15" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-10 divide-y divide-foreground/[0.03]">
+              {visibleReviews.map((rev) => {
+                const reviewIndex = reviews.findIndex((item) => item.id === rev.id);
+                return (
+                <div key={rev.id} className="pt-10 first:pt-0">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-foreground/5 flex items-center justify-center font-bold text-foreground/40">
+                        {rev.user.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-foreground font-semibold" style={{ fontSize: "14px" }}>{rev.user}</span>
+                          {rev.verified && <Check size={12} className="text-green-500" strokeWidth={3} />}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <Star key={i} size={11} className={i < rev.rating ? "fill-[#FFB800] text-[#FFB800]" : "text-foreground/12"} fill="currentColor" />
+                            ))}
+                          </div>
+                          <span className="text-foreground/25" style={{ fontSize: "11px" }}>{rev.date}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-foreground/75 leading-relaxed mb-4" style={{ fontSize: "15px", fontFamily: "var(--font-family-inter)" }}>
+                    {rev.comment}
+                  </p>
+
+                  {rev.images && (
+                    <div className="flex gap-2 mb-4">
+                      {rev.images.map((img, i) => (
+                        <button
+                          key={i}
+                          onClick={() => openMedia(reviewIndex, i)}
+                          className="w-20 h-20 rounded-lg overflow-hidden border border-foreground/5 cursor-pointer"
+                          aria-label={`Abrir foto ${i + 1} da avaliação de ${rev.user}`}
+                        >
+                          <img src={img} alt={`Foto da avaliação de ${rev.user}`} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <button className="flex items-center gap-2 text-foreground/30 hover:text-foreground transition-colors" style={{ fontSize: "12px" }}>
+                    Útil? ({rev.likes})
+                  </button>
+                </div>
+              )})}
+            </div>
+
+            {filteredReviews.length > reviewsPerPage && (
+              <div className="mt-12 flex items-center justify-between gap-4">
+                <span className="text-foreground/35" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>
+                  Página {reviewPage} de {totalReviewPages}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => goToReviewPage(Math.max(1, reviewPage - 1))}
+                    disabled={reviewPage === 1}
+                    className="h-9 px-4 border border-foreground/10 text-foreground/55 transition-colors hover:border-foreground/25 hover:text-foreground disabled:opacity-30 disabled:hover:border-foreground/10 disabled:hover:text-foreground/55 cursor-pointer disabled:cursor-not-allowed"
+                    style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: 700 }}
+                  >
+                    Anterior
+                  </button>
+                  {Array.from({ length: totalReviewPages }, (_, index) => index + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => goToReviewPage(page)}
+                      className={`h-9 w-9 transition-colors cursor-pointer ${
+                        page === reviewPage
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-foreground/5 text-foreground/45 hover:bg-foreground/10 hover:text-foreground"
+                      }`}
+                      style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: 800 }}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => goToReviewPage(Math.min(totalReviewPages, reviewPage + 1))}
+                    disabled={reviewPage === totalReviewPages}
+                    className="h-9 px-4 border border-foreground/10 text-foreground/55 transition-colors hover:border-foreground/25 hover:text-foreground disabled:opacity-30 disabled:hover:border-foreground/10 disabled:hover:text-foreground/55 cursor-pointer disabled:cursor-not-allowed"
+                    style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: 700 }}
+                  >
+                    Próxima
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {selectedMedia && selectedReview && selectedImage && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
+              onClick={() => setSelectedMedia(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 24, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 24, scale: 0.98 }}
+              transition={{ type: "spring", damping: 28, stiffness: 260 }}
+              className="fixed inset-4 z-50 mx-auto flex max-w-[980px] items-center justify-center pointer-events-none md:inset-8"
+            >
+              <div
+                className="grid w-full max-h-[88vh] overflow-hidden border border-white/10 shadow-2xl pointer-events-auto md:grid-cols-[minmax(0,1.2fr)_360px]"
+                style={{
+                  borderRadius: "18px",
+                  background: isDark ? "rgba(16,16,17,0.98)" : "rgba(255,255,255,0.98)",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="relative min-h-[320px] bg-black md:min-h-[560px]">
+                  <img src={selectedImage} alt={`Foto enviada por ${selectedReview.user}`} className="h-full w-full object-contain" />
+                  {(selectedReview.images?.length ?? 0) > 1 && (
+                    <>
+                      <button
+                        onClick={() => moveMedia(-1)}
+                        className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-md transition-colors hover:bg-black/55"
+                        aria-label="Foto anterior desta avaliação"
+                      >
+                        <ChevronLeft size={18} />
+                      </button>
+                      <button
+                        onClick={() => moveMedia(1)}
+                        className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-md transition-colors hover:bg-black/55"
+                        aria-label="Próxima foto desta avaliação"
+                      >
+                        <ChevronRight size={18} />
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                <aside className="flex max-h-[88vh] flex-col p-5 md:p-6">
+                  <div className="mb-5 flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-foreground font-semibold" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}>
+                        {selectedReview.user}
+                      </p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <div className="flex items-center gap-0.5">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} size={12} className={i < selectedReview.rating ? "fill-[#FFB800] text-[#FFB800]" : "text-foreground/12"} />
+                          ))}
+                        </div>
+                        <span className="text-foreground/30" style={{ fontSize: "11px" }}>{selectedReview.date}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setSelectedMedia(null)}
+                      className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-foreground/45 transition-colors hover:bg-foreground/8 hover:text-foreground"
+                      aria-label="Fechar foto"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  <p className="text-foreground/70 leading-relaxed" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", lineHeight: 1.7 }}>
+                    {selectedReview.comment}
+                  </p>
+
+                  <div className="mt-6 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                    {selectedReview.images?.map((image, index) => (
+                      <button
+                        key={image}
+                        onClick={() => setSelectedMedia({ reviewIndex: selectedMedia.reviewIndex, imageIndex: index })}
+                        className={`h-14 w-14 flex-shrink-0 overflow-hidden border transition-all ${
+                          index === selectedMedia.imageIndex ? "border-primary opacity-100" : "border-foreground/10 opacity-45 hover:opacity-80"
+                        }`}
+                        style={{ borderRadius: "7px" }}
+                      >
+                        <img src={image} alt="" className="h-full w-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                </aside>
+              </div>
+            </motion.div>
+            {mediaReviews.length > 1 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="fixed inset-0 z-[55] pointer-events-none"
+              >
+                <button
+                  onClick={() => moveReview(-1)}
+                  className="pointer-events-auto absolute left-5 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-black shadow-2xl transition-transform hover:scale-105 hover:bg-white md:left-[7vw] cursor-pointer"
+                  aria-label="Avaliação anterior"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                <button
+                  onClick={() => moveReview(1)}
+                  className="pointer-events-auto absolute right-5 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-black shadow-2xl transition-transform hover:scale-105 hover:bg-white md:right-[7vw] cursor-pointer"
+                  aria-label="Próxima avaliação"
+                >
+                  <ChevronRight size={24} />
+                </button>
+              </motion.div>
+            )}
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Review Modal */}
+      <AnimatePresence>
+        {isReviewModalOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
+              onClick={() => setReviewModalOpen(false)}
+            />
+            <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none p-4">
+              <motion.div
+                initial={{ opacity: 0, y: 40, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 40, scale: 0.96 }}
+                transition={{ type: "spring", damping: 28, stiffness: 280 }}
+                className="pointer-events-auto w-full max-w-[500px] bg-background border border-foreground/10 shadow-2xl p-6"
+                style={{ borderRadius: "20px" }}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "20px", fontWeight: 600 }}>
+                    Escrever Avaliação
+                  </h3>
+                  <button
+                    onClick={() => setReviewModalOpen(false)}
+                    className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-foreground/8 text-foreground/45 hover:text-foreground transition-all cursor-pointer"
+                  >
+                    <X size={16} strokeWidth={1.8} />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-foreground/70 mb-2" style={{ fontSize: "14px", fontWeight: 500 }}>Nota</label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => setNewReviewRating(star)}
+                          className="cursor-pointer transition-transform hover:scale-110"
+                        >
+                          <Star size={28} className={star <= newReviewRating ? "fill-[#FFB800] text-[#FFB800]" : "text-foreground/20"} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-foreground/70 mb-2" style={{ fontSize: "14px", fontWeight: 500 }}>Seu comentário</label>
+                    <textarea
+                      value={newReviewText}
+                      onChange={(e) => setNewReviewText(e.target.value)}
+                      placeholder="Conte-nos o que achou do produto..."
+                      className="w-full h-32 border border-foreground/12 bg-transparent text-foreground placeholder-foreground/30 p-3 focus:border-primary/50 focus:outline-none transition-colors resize-none"
+                      style={{ borderRadius: "8px", fontSize: "14px" }}
+                    />
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (newReviewRating === 0) {
+                        toast.error("Por favor, selecione uma nota.");
+                        return;
+                      }
+                      if (!newReviewText.trim()) {
+                        toast.error("Por favor, escreva um comentário.");
+                        return;
+                      }
+                      toast.success("Avaliação enviada com sucesso!");
+                      setReviewModalOpen(false);
+                      setNewReviewRating(0);
+                      setNewReviewText("");
+                    }}
+                    className="w-full mt-4 py-3 bg-primary text-primary-foreground font-semibold transition-all hover:bg-primary/90 cursor-pointer"
+                    style={{ borderRadius: "var(--radius-button)", fontSize: "14px" }}
+                  >
+                    Enviar Avaliação
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   STANDARD PRODUCT DESCRIPTION
+   ═══════════════════════════════════════════════════════ */
+
+function ProductStandardDescription({ product, images }: { product: any; images: string[] }) {
+  const primaryImage = images[0] ?? getPrimaryProductImage(product);
+  const secondaryImage = images[1] ?? primaryImage;
+  const tertiaryImage = images[2] ?? secondaryImage;
+  const specs = product.specs?.length
+    ? product.specs
+    : [
+        { label: "Categoria", value: product.category },
+        { label: "Modelo", value: product.sku ? String(product.sku) : product.name },
+        { label: "Marca", value: product.brand ?? "PCYES" },
+      ];
+
+  const lead = product.description?.split("\n").find((item: string) => item.trim()) ??
+    `${product.name} foi desenvolvido para entregar desempenho, acabamento e confiabilidade no uso diário.`;
+
+  return (
+    <section className="pb-20 border-t border-foreground/5">
+      <div className="mx-auto mt-10 max-w-[1120px]">
+        <div className="overflow-hidden border border-foreground/8 bg-[#111112] shadow-[0_22px_70px_rgba(0,0,0,0.24)]" style={{ borderRadius: "30px" }}>
+          <section className="px-6 py-10 text-center md:px-10 md:py-14">
+            <p className="mb-4 text-primary tracking-[0.24em]" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: 800 }}>
+              {product.category}
+            </p>
+            <h2 className="mx-auto max-w-[820px] text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "clamp(30px, 5vw, 52px)", lineHeight: 1.02, fontWeight: 700, letterSpacing: "-0.04em" }}>
+              {product.name}
+            </h2>
+            <p className="mx-auto mt-5 max-w-[820px] text-foreground/58" style={{ fontFamily: "var(--font-family-inter)", fontSize: "17px", lineHeight: 1.65 }}>
+              {lead}
+            </p>
+            <div className="mt-9 flex min-h-[360px] items-center justify-center overflow-hidden border border-foreground/8 bg-foreground/[0.025] p-8" style={{ borderRadius: "24px" }}>
+              <ImageWithFallback src={primaryImage} alt={product.name} className="max-h-[340px] w-full object-contain drop-shadow-[0_24px_30px_rgba(0,0,0,0.32)]" />
+            </div>
+          </section>
+
+          <section className="border-t border-foreground/7 px-6 py-10 md:px-10">
+            <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+              <article className="relative min-h-[540px] overflow-hidden border border-foreground/8 bg-foreground/[0.025]" style={{ borderRadius: "24px" }}>
+                <ImageWithFallback src={secondaryImage} alt={`${product.name} em destaque`} className="absolute inset-0 h-full w-full object-cover opacity-65" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-7">
+                  <h3 className="max-w-[420px] text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "clamp(24px, 3vw, 32px)", lineHeight: 1.08, fontWeight: 700 }}>
+                    Construção pensada para performance
+                  </h3>
+                  <p className="mt-3 max-w-[520px] text-foreground/62" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", lineHeight: 1.65 }}>
+                    Um produto pensado para setups exigentes, com materiais selecionados, visual limpo e desempenho consistente.
+                  </p>
+                </div>
+              </article>
+
+              <div className="grid gap-6">
+                <article className="relative min-h-[260px] overflow-hidden border border-foreground/8 bg-foreground/[0.025]" style={{ borderRadius: "24px" }}>
+                  <div className="relative z-10 max-w-[58%] p-7">
+                    <h3 className="text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "25px", lineHeight: 1.1, fontWeight: 700 }}>
+                      Design para o dia a dia
+                    </h3>
+                    <p className="mt-3 text-foreground/58" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", lineHeight: 1.6 }}>
+                      Visual moderno, presença equilibrada e experiência consistente para trabalho, estudo ou gameplay.
+                    </p>
+                  </div>
+                  <ImageWithFallback src={tertiaryImage} alt={`${product.name} detalhe`} className="absolute inset-y-0 right-0 h-full w-[52%] object-cover opacity-70" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#111112] via-[#111112]/78 to-transparent" />
+                </article>
+
+                <article className="relative min-h-[260px] overflow-hidden border border-foreground/8 bg-foreground/[0.025]" style={{ borderRadius: "24px" }}>
+                  <div className="relative z-10 max-w-[58%] p-7">
+                    <h3 className="text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "25px", lineHeight: 1.1, fontWeight: 700 }}>
+                      Pronto para acompanhar seu ritmo
+                    </h3>
+                    <p className="mt-3 text-foreground/58" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", lineHeight: 1.6 }}>
+                      Recursos essenciais reunidos em um produto confiável, bonito e fácil de integrar ao seu setup.
+                    </p>
+                  </div>
+                  <ImageWithFallback src={primaryImage} alt={`${product.name} em uso`} className="absolute inset-y-0 right-0 h-full w-[52%] object-cover opacity-70" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#111112] via-[#111112]/78 to-transparent" />
+                </article>
+              </div>
+            </div>
+          </section>
+
+          <section className="border-t border-foreground/7 px-6 py-10 md:px-10">
+            <div className="grid gap-7 md:grid-cols-2">
+              {[primaryImage, secondaryImage].map((image, index) => (
+                <div key={`${image}-${index}`} className="aspect-[16/10] overflow-hidden border border-foreground/8 bg-foreground/[0.025]" style={{ borderRadius: "22px" }}>
+                  <ImageWithFallback src={image} alt={`${product.name} galeria ${index + 1}`} className="h-full w-full object-cover" />
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="border-t border-foreground/7 px-6 py-10 md:px-10">
+            <article className="relative overflow-hidden border border-foreground/8 bg-foreground/[0.025]" style={{ borderRadius: "24px" }}>
+              <div className="relative z-10 w-full p-7 md:w-[62%] md:p-9">
+                <p className="mb-4 text-primary tracking-[0.22em]" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px", fontWeight: 800 }}>
+                  RAIO-X DO PRODUTO
+                </p>
+                <h3 className="text-foreground" style={{ fontFamily: "var(--font-family-figtree)", fontSize: "clamp(28px, 4vw, 38px)", lineHeight: 1.08, fontWeight: 700 }}>
+                  Especificações técnicas
+                </h3>
+                <dl className="mt-6 grid gap-3">
+                  {specs.slice(0, 8).map((spec: { label: string; value: string }) => (
+                    <div key={spec.label} className="grid gap-2 border-b border-foreground/6 pb-3 sm:grid-cols-[170px_1fr]">
+                      <dt className="text-foreground/38 tracking-[0.12em]" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: 800 }}>
+                        {spec.label}
+                      </dt>
+                      <dd className="text-foreground/78" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", fontWeight: 600 }}>
+                        {spec.value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+              <ImageWithFallback src={tertiaryImage} alt={`${product.name} especificações`} className="absolute inset-y-0 right-0 hidden h-full w-[40%] object-cover opacity-45 md:block" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#111112] via-[#111112]/90 to-[#111112]/20" />
+            </article>
+          </section>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAIN COMPONENT
+   ═══════════════════════════════════════════════════════ */
 
 export function ProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const product = allProducts.find((p) => p.id === Number(id));
   const { addItem } = useCart();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark" || resolvedTheme === undefined;
 
   const [qty, setQty] = useState(1);
-  const [liked, setLiked] = useState(false);
-  const [activeTab, setActiveTab] = useState<"specs" | "features">("specs");
   const [addedToCart, setAddedToCart] = useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const relatedRef = useRef<HTMLDivElement>(null);
+  const reviewsRef = useRef<HTMLDivElement>(null);
+  const descriptionRef = useRef<HTMLDivElement>(null);
   const relatedInView = useInView(relatedRef, { once: true, amount: 0.1 });
-  const productHtmlDescription = useMemo(
-    () => sanitizeProductHtml(product?.htmlDescription ?? ""),
-    [product?.htmlDescription],
-  );
+
+  const scrollToReviews = () => {
+    reviewsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const scrollToDescription = () => {
+    descriptionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [id]);
 
   if (!product) {
     return (
@@ -52,7 +1595,12 @@ export function ProductPage() {
         <Link
           to="/produtos"
           className="px-6 py-3 border border-foreground/15 text-foreground/50 hover:text-foreground hover:border-foreground/30 transition-all duration-300"
-          style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "var(--font-weight-medium)" }}
+          style={{
+            borderRadius: "var(--radius-button)",
+            fontFamily: "var(--font-family-inter)",
+            fontSize: "13px",
+            fontWeight: "var(--font-weight-medium)",
+          }}
         >
           Ver todos os produtos
         </Link>
@@ -63,6 +1611,8 @@ export function ProductPage() {
   const productSubcategory = getProductSubcategory(product);
   const galleryImages = getProductImages(product);
   const visibleProducts = getVisibleCatalogProducts(allProducts);
+  const swatches = getProductSwatches(product);
+
   const related = visibleProducts
     .filter((p) => p.category === product.category && getProductSubcategory(p) === productSubcategory && p.id !== product.id)
     .slice(0, 4);
@@ -73,451 +1623,382 @@ export function ProductPage() {
     related.push(...extras);
   }
 
+  const discount = product.oldPriceNum && product.oldPriceNum > product.priceNum
+    ? Math.round(((product.oldPriceNum - product.priceNum) / product.oldPriceNum) * 100)
+    : 0;
+
+  const pixPrice = product.priceNum * 0.9;
+  const installment = product.priceNum / 12;
+
   const handleAdd = () => {
-    for (let i = 0; i < qty; i++) addItem(product);
+    for (let i = 0; i < qty; i++) {
+      addItem({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: getPrimaryProductImage(product),
+      });
+    }
     setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2000);
+    toast.success(`${product.name.split(" ").slice(0, 4).join(" ")}…`, {
+      description: `${qty}× adicionado ao carrinho`,
+      duration: 2500,
+    });
+    setTimeout(() => setAddedToCart(false), 2200);
   };
 
-  const installments = Math.ceil(product.priceNum / 12);
-  const installmentStr = `12x de R$ ${installments.toFixed(2).replace(".", ",")} sem juros`;
+  const handleBuyNow = () => {
+    for (let i = 0; i < qty; i++) {
+      addItem({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: getPrimaryProductImage(product),
+      });
+    }
+    navigate("/checkout");
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({ title: product.name, url: window.location.href }).catch(() => {});
+      return;
+    }
+    navigator.clipboard.writeText(window.location.href).then(() => toast.success("Link copiado!"));
+  };
+
+  const liked = isFavorite(product.id);
 
   return (
-    <div className="pt-[92px]">
+    <div className="pt-[140px] md:pt-[180px]">
       {/* Breadcrumb */}
-      <div className="px-5 md:px-8 pt-8 pb-4">
-        <div className="max-w-[1760px] mx-auto flex items-center gap-2 flex-wrap">
-          <Link to="/" className="text-foreground/25 hover:text-foreground/50 transition-colors" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>
-            Home
-          </Link>
+      <div className="px-5 md:px-8 pt-6 pb-2">
+        <div className="max-w-[1760px] mx-auto flex items-center gap-1.5 flex-wrap">
+          {[
+            { label: "Home", to: "/" },
+            { label: product.category, to: getCatalogHref({ category: product.category }) },
+            { label: productSubcategory, to: getCatalogHref({ category: product.category, subcategory: productSubcategory }) },
+          ].map((crumb, i) => (
+            <span key={crumb.label} className="flex items-center gap-1.5">
+              {i > 0 && <span className="text-foreground/15" style={{ fontSize: "10px" }}>›</span>}
+              <Link
+                to={crumb.to}
+                className="text-foreground/35 hover:text-foreground/65 transition-colors"
+                style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}
+              >
+                {crumb.label}
+              </Link>
+            </span>
+          ))}
           <span className="text-foreground/15" style={{ fontSize: "10px" }}>›</span>
-          <Link
-            to={getCatalogHref({ category: product.category })}
-            className="text-foreground/25 hover:text-foreground/50 transition-colors"
+          <span
+            className="text-foreground/55 truncate max-w-[260px]"
             style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}
           >
-            {product.category}
-          </Link>
-          <span className="text-foreground/15" style={{ fontSize: "10px" }}>›</span>
-          <Link
-            to={getCatalogHref({ category: product.category, subcategory: productSubcategory })}
-            className="text-foreground/25 hover:text-foreground/50 transition-colors"
-            style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}
-          >
-            {productSubcategory}
-          </Link>
-          <span className="text-foreground/15" style={{ fontSize: "10px" }}>›</span>
-          <span className="text-foreground/50" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>
             {product.name}
           </span>
         </div>
       </div>
 
-      {/* ─── Main PDP section ─── */}
-      <div className="px-5 md:px-8 pb-24">
-        <div className="max-w-[1760px] mx-auto flex flex-col lg:flex-row gap-12 lg:gap-20">
+      {/* Main PDP */}
+      <div className="px-5 md:px-8 pt-6 pb-24">
+        <div className="max-w-[1760px] mx-auto grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] items-start gap-8 xl:gap-10">
+          <div className="min-w-0">
+            <div className="flex flex-col lg:flex-row items-start gap-8 xl:gap-10">
 
-          {/* ── Left: Gallery ── */}
+          {/* Gallery */}
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
+            initial={{ opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:w-[55%] flex-shrink-0"
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full lg:w-[50%] xl:w-[52%] flex-shrink-0"
           >
-            {/* Main image */}
-            <div
-              className="relative overflow-hidden aspect-square mb-4 group"
-              style={{ borderRadius: "var(--radius-card)", background: isDark ? "rgba(22,22,23,0.5)" : "#f5f5f5" }}
-            >
-              <ImageWithFallback
-                src={galleryImages[selectedImageIndex]}
-                alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105"
-              />
-
-              {/* Nav arrows */}
-              <button
-                onClick={() => setSelectedImageIndex((i) => (i - 1 + galleryImages.length) % galleryImages.length)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer"
-              >
-                <ChevronLeft size={18} />
-              </button>
-              <button
-                onClick={() => setSelectedImageIndex((i) => (i + 1) % galleryImages.length)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer"
-              >
-                <ChevronRight size={18} />
-              </button>
-
-              {/* Category badge */}
-              <span
-                className="absolute top-5 left-5 px-3 py-1.5 bg-black/20 backdrop-blur-md text-white/70"
-                style={{ borderRadius: "100px", fontFamily: "var(--font-family-inter)", fontSize: "10px", letterSpacing: "0.08em" }}
-              >
-                {product.category}
-              </span>
-            </div>
-
-            {/* Thumbnails */}
-            <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
-              {galleryImages.map((img, i) => (
-                <button
-                  key={i}
-                  onClick={() => setSelectedImageIndex(i)}
-                  className={`aspect-square overflow-hidden transition-all duration-300 cursor-pointer ${
-                    selectedImageIndex === i ? "ring-2 ring-primary/50 ring-offset-2 ring-offset-background" : "opacity-40 hover:opacity-70"
-                  }`}
-                  style={{ borderRadius: "var(--radius)", background: isDark ? "rgba(22,22,23,0.5)" : "#f5f5f5" }}
-                >
-                  <ImageWithFallback src={img} alt={`${product.name} ${i + 1}`} className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
+            <ProductGallery images={galleryImages} name={product.name} isDark={isDark} />
           </motion.div>
 
-          {/* ── Right: Info ── */}
+          {/* Middle column: title, rating, share/like, description */}
           <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:w-[45%] flex flex-col"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.05 }}
+            className="w-full lg:flex-1 min-w-0"
           >
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2 mb-5">
-              {product.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-3 py-1 border border-foreground/8 text-foreground/30"
-                  style={{ borderRadius: "100px", fontFamily: "var(--font-family-inter)", fontSize: "10px", letterSpacing: "0.06em" }}
+            {/* Brand + badges row */}
+            <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
+                {product.brand && (
+                  <span
+                    className="text-foreground/45 font-semibold tracking-widest uppercase"
+                    style={{ fontFamily: "var(--font-family-inter)", fontSize: "10.5px", letterSpacing: "0.14em" }}
+                  >
+                    {product.brand}
+                  </span>
+                )}
+                {product.brand && product.badge && <span className="text-foreground/15">·</span>}
+                {product.badge && (
+                  <span
+                    className="px-2 py-0.5 bg-primary/12 text-primary font-bold"
+                    style={{ borderRadius: "4px", fontFamily: "var(--font-family-inter)", fontSize: "10.5px" }}
+                  >
+                    {product.badge}
+                  </span>
+                )}
+              </div>
+
+              {/* Like + Share */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => toggleFavorite(product.id)}
+                  className={`w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 cursor-pointer ${
+                    liked
+                      ? "bg-red-500/10 text-red-500"
+                      : "text-foreground/35 hover:text-foreground/70 hover:bg-foreground/5"
+                  }`}
+                  aria-label={liked ? "Remover dos favoritos" : "Adicionar aos favoritos"}
                 >
-                  {tag}
-                </span>
-              ))}
+                  <Heart size={15} className={liked ? "fill-red-500" : ""} strokeWidth={1.7} />
+                </button>
+                <button
+                  onClick={handleShare}
+                  className="w-9 h-9 flex items-center justify-center rounded-full text-foreground/35 hover:text-foreground/70 hover:bg-foreground/5 transition-all duration-300 cursor-pointer"
+                  aria-label="Compartilhar"
+                >
+                  <Share2 size={15} strokeWidth={1.7} />
+                </button>
+              </div>
             </div>
 
-            {/* Name */}
+            {/* Title */}
             <h1
-              className="text-foreground mb-3"
+              className="text-foreground mb-4 leading-[1.18]"
               style={{
                 fontFamily: "var(--font-family-figtree)",
-                fontSize: "clamp(28px, 3.5vw, 40px)",
+                fontSize: "clamp(22px, 2.6vw, 32px)",
                 fontWeight: "var(--font-weight-light)",
-                lineHeight: "1.15",
+                letterSpacing: "-0.01em",
               }}
             >
               {product.name}
             </h1>
 
             {/* Rating */}
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2.5 mb-6 flex-wrap">
+              <div
+                className="flex items-center gap-0.5 cursor-pointer group"
+                onClick={scrollToReviews}
+              >
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
                     size={13}
-                    className={i < Math.floor(product.rating) ? "fill-primary text-primary" : "text-foreground/10"}
+                    className={i < Math.floor(product.rating) ? "fill-[#FFB800] text-[#FFB800]" : "text-foreground/12"}
                     strokeWidth={1.5}
                   />
                 ))}
               </div>
-              <span className="text-foreground/40" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>
-                {product.rating}
+              <span
+                className="text-foreground/70 font-semibold tabular-nums cursor-pointer hover:text-[#FFB800] transition-colors"
+                style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}
+                onClick={scrollToReviews}
+              >
+                {product.rating.toFixed(1)}
               </span>
-              <span className="text-foreground/15" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>
-                ({product.reviews} avaliações)
+              <span className="text-foreground/15">·</span>
+              <span
+                className="text-foreground/45 hover:text-foreground/65 cursor-pointer transition-colors"
+                style={{ fontFamily: "var(--font-family-inter)", fontSize: "12.5px" }}
+                onClick={scrollToReviews}
+              >
+                {product.reviews} avaliações
               </span>
-            </div>
-
-            {/* Description */}
-            <p
-              className="text-foreground/40 mb-8"
-              style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", lineHeight: "1.8" }}
-            >
-              {product.description}
-            </p>
-
-            {/* Divider */}
-            <div className="h-px bg-foreground/5 mb-8" />
-
-            {/* Price block */}
-            <div className="mb-8">
-              <div className="flex items-baseline gap-3 mb-1">
-                <span
-                  className="text-foreground"
-                  style={{ fontFamily: "var(--font-family-figtree)", fontSize: "32px", fontWeight: "var(--font-weight-medium)" }}
-                >
-                  {product.price}
-                </span>
-              </div>
-              <p className="text-foreground/25" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>
-                ou {installmentStr}
-              </p>
-              <p className="text-primary/70 mt-1 flex items-center gap-1.5" style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px" }}>
-                <Truck size={12} />
-                Frete grátis para todo o Brasil
-              </p>
-            </div>
-
-            {/* Quantity + Add to Cart */}
-            <div className="flex items-center gap-4 mb-6">
-              {/* Qty */}
-              <div
-                className="flex items-center border border-foreground/10 overflow-hidden flex-shrink-0"
-                style={{ borderRadius: "var(--radius-button)" }}
-              >
-                <button
-                  onClick={() => setQty(Math.max(1, qty - 1))}
-                  className="w-11 h-12 flex items-center justify-center text-foreground/30 hover:text-foreground hover:bg-foreground/5 transition-all duration-200 cursor-pointer"
-                >
-                  <Minus size={14} />
-                </button>
-                <span
-                  className="w-12 h-12 flex items-center justify-center text-foreground border-x border-foreground/10"
-                  style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px", fontWeight: "var(--font-weight-medium)" }}
-                >
-                  {qty}
-                </span>
-                <button
-                  onClick={() => setQty(qty + 1)}
-                  className="w-11 h-12 flex items-center justify-center text-foreground/30 hover:text-foreground hover:bg-foreground/5 transition-all duration-200 cursor-pointer"
-                >
-                  <Plus size={14} />
-                </button>
-              </div>
-
-              {/* Add to cart */}
-              <button
-                onClick={handleAdd}
-                className={`flex-1 h-12 flex items-center justify-center gap-2.5 transition-all duration-500 cursor-pointer ${
-                  addedToCart
-                    ? "bg-green-600 text-white"
-                    : "bg-primary text-primary-foreground hover:brightness-110"
-                }`}
-                style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "var(--font-weight-medium)" }}
-              >
-                {addedToCart ? (
-                  <>
-                    <Check size={16} />
-                    Adicionado!
-                  </>
-                ) : (
-                  <>
-                    <ShoppingBag size={16} strokeWidth={1.5} />
-                    Adicionar ao carrinho
-                  </>
-                )}
-              </button>
-
-              {/* Like */}
-              <button
-                onClick={() => setLiked(!liked)}
-                className={`w-12 h-12 flex-shrink-0 border flex items-center justify-center transition-all duration-300 cursor-pointer ${
-                  liked ? "border-primary/30 text-primary bg-primary/5" : "border-foreground/10 text-foreground/25 hover:text-foreground/50 hover:border-foreground/20"
-                }`}
-                style={{ borderRadius: "var(--radius-button)" }}
-              >
-                <Heart size={16} className={liked ? "fill-primary" : ""} strokeWidth={1.5} />
-              </button>
-
-              {/* Share */}
-              <button
-                className="w-12 h-12 flex-shrink-0 border border-foreground/10 text-foreground/25 hover:text-foreground/50 hover:border-foreground/20 flex items-center justify-center transition-all duration-300 cursor-pointer"
-                style={{ borderRadius: "var(--radius-button)" }}
-              >
-                <Share2 size={16} strokeWidth={1.5} />
-              </button>
-            </div>
-
-            {/* Trust badges */}
-            <div className="grid grid-cols-3 gap-3 mb-10">
-              {[
-                { icon: Truck, label: "Entrega Rápida", sub: "2-5 dias úteis" },
-                { icon: Shield, label: "Garantia", sub: "1 ano PCYES" },
-                { icon: RotateCcw, label: "Troca Fácil", sub: "7 dias grátis" },
-              ].map((badge) => (
-                <div
-                  key={badge.label}
-                  className="flex flex-col items-center gap-2 py-4 border border-foreground/5 text-center"
-                  style={{ borderRadius: "var(--radius-card)" }}
-                >
-                  <badge.icon size={16} className="text-foreground/20" strokeWidth={1.5} />
-                  <span className="text-foreground/50" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", fontWeight: "var(--font-weight-medium)" }}>
-                    {badge.label}
-                  </span>
-                  <span className="text-foreground/20" style={{ fontFamily: "var(--font-family-inter)", fontSize: "10px" }}>
-                    {badge.sub}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Divider */}
-            <div className="h-px bg-foreground/5 mb-8" />
-
-            {/* Tabs: Specs / Features */}
-            <div className="flex gap-0 mb-6 border-b border-foreground/5">
-              {(["specs", "features"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`relative px-5 py-3 transition-colors duration-300 cursor-pointer ${
-                    activeTab === tab ? "text-foreground" : "text-foreground/25 hover:text-foreground/50"
-                  }`}
-                  style={{ fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: "var(--font-weight-medium)", letterSpacing: "0.08em" }}
-                >
-                  {tab === "specs" ? "ESPECIFICAÇÕES" : "DESTAQUES"}
-                  {activeTab === tab && (
-                    <motion.div
-                      layoutId="pdp-tab"
-                      className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary"
-                      transition={{ duration: 0.25 }}
-                    />
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {activeTab === "specs" && product.specs ? (
-              <motion.div
-                key="specs"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-0"
-              >
-                {product.specs.map((spec, i) => (
-                  <div
-                    key={spec.label}
-                    className={`flex items-center justify-between py-3 ${i < product.specs!.length - 1 ? "border-b border-foreground/[0.04]" : ""}`}
+              {product.sku && (
+                <>
+                  <span className="text-foreground/15">·</span>
+                  <span
+                    className="text-foreground/30"
+                    style={{ fontFamily: "var(--font-family-inter)", fontSize: "11.5px" }}
                   >
-                    <span className="text-foreground/30" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>
-                      {spec.label}
-                    </span>
-                    <span className="text-foreground/70 text-right" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", fontWeight: "var(--font-weight-medium)" }}>
-                      {spec.value}
-                    </span>
-                  </div>
-                ))}
-              </motion.div>
-            ) : product.features ? (
-              <motion.div
-                key="features"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-3"
-              >
-                {product.features.map((feat) => (
-                  <div key={feat} className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check size={10} className="text-primary" />
-                    </div>
-                    <span className="text-foreground/50" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px", lineHeight: "1.6" }}>
-                      {feat}
-                    </span>
-                  </div>
-                ))}
-              </motion.div>
-            ) : null}
+                    SKU {product.sku}
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Color swatches */}
+            {swatches.length > 1 && (
+              <div className="mb-6">
+                <p
+                  className="text-foreground/55 mb-2.5 font-semibold tracking-wide"
+                  style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px", letterSpacing: "0.1em" }}
+                >
+                  COR · <span className="text-foreground/40 font-medium tracking-normal normal-case">
+                    {swatches.find((s) => s.productId === product.id)?.label}
+                  </span>
+                </p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {swatches.map((sw) => (
+                    <button
+                      key={sw.productId}
+                      title={sw.label}
+                      onClick={() => navigate(`/produto/${sw.productId}`)}
+                      className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
+                        sw.productId === product.id
+                          ? "border-primary ring-2 ring-primary/25 ring-offset-2 ring-offset-background scale-105"
+                          : "border-foreground/15 hover:border-foreground/35"
+                      }`}
+                      style={{ backgroundColor: sw.color }}
+                      aria-label={sw.label}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="h-px bg-foreground/6 mb-6" />
+
+            {/* About / bullets */}
+            <AboutProduct product={product} onSeeDescription={scrollToDescription} />
           </motion.div>
-        </div>
+            </div>
+
+            <div ref={descriptionRef} className="scroll-mt-[96px]">
+              <ProductStandardDescription product={product} images={galleryImages} />
+            </div>
+
+      {/* Reviews Section */}
+      <div ref={reviewsRef}>
+        <ReviewsSection product={product} isDark={isDark} />
       </div>
 
-      {productHtmlDescription && (
-        <section className="px-5 md:px-8 pb-24">
-          <div
-            className="mx-auto max-w-[1180px] rounded-[28px] border border-foreground/10 bg-foreground/[0.025] px-6 py-8 text-foreground/70 md:px-12 md:py-12 [&_.produto-descricao]:space-y-5 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:tracking-[-0.02em] [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-primary [&_li]:mb-2 [&_p]:leading-8 [&_strong]:text-foreground [&_ul]:list-disc [&_ul]:pl-6"
-            style={{ fontFamily: "var(--font-family-inter)" }}
-            dangerouslySetInnerHTML={{ __html: productHtmlDescription }}
-          />
-        </section>
-      )}
-
-      {/* ─── Related products ─── */}
-      <div ref={relatedRef} className="px-5 md:px-8 py-24 border-t border-foreground/5">
-        <div className="max-w-[1760px] mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={relatedInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6 }}
-            className="flex items-end justify-between mb-12"
-          >
-            <div>
-              <span
-                className="text-foreground/25 tracking-[0.25em] block mb-3"
-                style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-label)", fontWeight: "var(--font-weight-medium)" }}
-              >
-                VOCÊ TAMBÉM VAI GOSTAR
-              </span>
-              <h2
-                className="text-foreground"
-                style={{ fontFamily: "var(--font-family-figtree)", fontSize: "clamp(24px, 3vw, 36px)", fontWeight: "var(--font-weight-light)" }}
-              >
-                Produtos Relacionados
-              </h2>
-            </div>
-            <Link
-              to={getCatalogHref({ category: product.category, subcategory: productSubcategory })}
-              className="hidden md:flex items-center gap-2 text-foreground/25 hover:text-foreground/50 transition-colors duration-300"
-              style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}
+      {/* Related products */}
+      {related.length > 0 && (
+        <div ref={relatedRef} className="py-20 border-t border-foreground/5">
+          <div className="max-w-[1760px] mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={relatedInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6 }}
+              className="flex items-end justify-between mb-10"
             >
-              Ver todos
-              <ChevronRight size={14} />
-            </Link>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {related.map((rProduct, i) => (
-              <motion.div
-                key={rProduct.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={relatedInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="group cursor-pointer"
-                onClick={() => { navigate(`/produto/${rProduct.id}`); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-              >
-                <div
-                  className="relative overflow-hidden aspect-square mb-4"
-                  style={{ borderRadius: "var(--radius-card)", background: isDark ? "rgba(22,22,23,0.5)" : "#f5f5f5" }}
+              <div>
+                <span
+                  className="text-foreground/30 tracking-[0.25em] block mb-3"
+                  style={{ fontFamily: "var(--font-family-inter)", fontSize: "var(--text-label)", fontWeight: "var(--font-weight-medium)" }}
                 >
-                  <ImageWithFallback
-                    src={getPrimaryProductImage(rProduct)}
-                    alt={rProduct.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-500" />
+                  VOCÊ TAMBÉM VAI GOSTAR
+                </span>
+                <h2
+                  className="text-foreground"
+                  style={{ fontFamily: "var(--font-family-figtree)", fontSize: "clamp(24px, 3vw, 36px)", fontWeight: "var(--font-weight-light)" }}
+                >
+                  Produtos Relacionados
+                </h2>
+              </div>
+              <Link
+                to={getCatalogHref({ category: product.category, subcategory: productSubcategory })}
+                className="hidden md:flex items-center gap-2 text-foreground/30 hover:text-foreground/60 transition-colors duration-300"
+                style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}
+              >
+                Ver todos <ArrowUpRight size={14} />
+              </Link>
+            </motion.div>
 
-                  {/* Quick add */}
-                  <div className="absolute bottom-4 left-4 right-4 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); addItem(rProduct); }}
-                      className="w-full py-2.5 bg-white/95 backdrop-blur-sm text-black flex items-center justify-center gap-2 hover:bg-primary hover:text-white transition-colors duration-300 cursor-pointer"
-                      style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: "var(--font-weight-medium)" }}
-                    >
-                      <ShoppingBag size={13} strokeWidth={1.5} />
-                      Adicionar <span className="hidden sm:inline">ao carrinho</span>
-                    </button>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              {related.map((rProduct, i) => (
+                <motion.div
+                  key={rProduct.id}
+                  initial={{ opacity: 0, y: 28 }}
+                  animate={relatedInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.5, delay: i * 0.08 }}
+                  className="group cursor-pointer"
+                  onClick={() => { navigate(`/produto/${rProduct.id}`); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                >
+                  <div
+                    className="relative overflow-hidden aspect-square mb-3.5"
+                    style={{ borderRadius: "var(--radius-card)", background: isDark ? "rgba(22,22,23,0.5)" : "#f5f5f5" }}
+                  >
+                    <ImageWithFallback
+                      src={getPrimaryProductImage(rProduct)}
+                      alt={rProduct.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
+                    <div className="absolute bottom-3 left-3 right-3 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); addItem({ id: rProduct.id, name: rProduct.name, price: rProduct.price, image: getPrimaryProductImage(rProduct) }); toast.success("Adicionado!"); }}
+                        className="w-full py-2.5 bg-white/95 backdrop-blur-sm text-black flex items-center justify-center gap-2 hover:bg-primary hover:text-white transition-colors duration-300 cursor-pointer"
+                        style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "12px", fontWeight: 600 }}
+                      >
+                        <ShoppingBag size={12} strokeWidth={2} /> Adicionar
+                      </button>
+                    </div>
                   </div>
-                </div>
-
-                <div className="px-0.5">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Star size={11} className="fill-primary text-primary" />
+                  <div className="flex items-center gap-1 mb-1.5">
+                    <Star size={11} className="fill-[#FFB800] text-[#FFB800]" />
                     <span className="text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "11px" }}>{rProduct.rating}</span>
                   </div>
                   <p
                     className="text-foreground group-hover:text-primary transition-colors duration-300 mb-1 truncate"
-                    style={{ fontFamily: "var(--font-family-figtree)", fontSize: "15px", fontWeight: "var(--font-weight-medium)" }}
+                    style={{ fontFamily: "var(--font-family-figtree)", fontSize: "14px", fontWeight: "var(--font-weight-medium)" }}
                   >
                     {rProduct.name}
                   </p>
-                  <p className="text-foreground/45" style={{ fontFamily: "var(--font-family-inter)", fontSize: "14px" }}>
+                  <p className="text-foreground/50" style={{ fontFamily: "var(--font-family-inter)", fontSize: "13px" }}>
                     {rProduct.price}
                   </p>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+            </div>
           </div>
+        </div>
+      )}
+          </div>
+
+          {/* Sticky right card */}
+          <motion.div
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.55, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full lg:sticky lg:top-[88px] lg:self-start"
+          >
+            <StickyPriceCard
+              product={product}
+              qty={qty}
+              setQty={setQty}
+              onBuyNow={handleBuyNow}
+              onAddToCart={handleAdd}
+              addedToCart={addedToCart}
+              pixPrice={pixPrice}
+              installment={installment}
+              discount={discount}
+            />
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Mobile sticky CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden">
+        <div
+          className="px-4 py-3 flex items-center gap-3 border-t border-foreground/10"
+          style={{ background: isDark ? "rgba(16,16,17,0.95)" : "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)" }}
+        >
+          <div className="flex-1 min-w-0">
+            <p className="text-foreground/45 text-xs truncate" style={{ fontFamily: "var(--font-family-inter)" }}>
+              {product.name.split(" ").slice(0, 5).join(" ")}…
+            </p>
+            <p className="text-foreground font-bold" style={{ fontFamily: "var(--font-family-inter)", fontSize: "15px" }}>
+              {formatBRL(pixPrice)} <span className="text-green-500 text-xs font-normal">no PIX</span>
+            </p>
+          </div>
+          <button
+            onClick={handleBuyNow}
+            disabled={product.inStock === false}
+            className="px-5 py-3 flex items-center gap-2 font-semibold transition-all cursor-pointer disabled:opacity-40 bg-[#059669] text-white hover:bg-[#047857]"
+            style={{ borderRadius: "var(--radius-button)", fontFamily: "var(--font-family-inter)", fontSize: "13px", whiteSpace: "nowrap" }}
+          >
+            <Zap size={14} fill="currentColor" />
+            Comprar
+          </button>
         </div>
       </div>
 
