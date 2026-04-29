@@ -1702,8 +1702,7 @@ export function ProductPage() {
 
       {/* Main PDP */}
       <div className="px-5 md:px-8 pt-6 pb-24">
-        <div className="max-w-[1760px] mx-auto grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] items-start gap-8 xl:gap-10">
-          <div className="min-w-0">
+        <div className="max-w-[1760px] mx-auto">
             <div className="flex flex-col lg:flex-row items-start gap-8 xl:gap-10">
 
           {/* Gallery */}
@@ -1861,6 +1860,26 @@ export function ProductPage() {
           </motion.div>
             </div>
 
+            {/* Purchase card */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-8 mb-10 w-full max-w-[760px] lg:mt-10"
+            >
+              <StickyPriceCard
+                product={product}
+                qty={qty}
+                setQty={setQty}
+                onBuyNow={handleBuyNow}
+                onAddToCart={handleAdd}
+                addedToCart={addedToCart}
+                pixPrice={pixPrice}
+                installment={installment}
+                discount={discount}
+              />
+            </motion.div>
+
             <div ref={descriptionRef} className="scroll-mt-[96px]">
               <ProductStandardDescription product={product} images={galleryImages} />
             </div>
@@ -1952,27 +1971,6 @@ export function ProductPage() {
           </div>
         </div>
       )}
-          </div>
-
-          {/* Sticky right card */}
-          <motion.div
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.55, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full lg:sticky lg:top-[88px] lg:self-start"
-          >
-            <StickyPriceCard
-              product={product}
-              qty={qty}
-              setQty={setQty}
-              onBuyNow={handleBuyNow}
-              onAddToCart={handleAdd}
-              addedToCart={addedToCart}
-              pixPrice={pixPrice}
-              installment={installment}
-              discount={discount}
-            />
-          </motion.div>
         </div>
       </div>
 
